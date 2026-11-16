@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tecleo</title>
+<meta name="description" content="Test de mecanografía con cursor fluido, paletas a medida y citas de filosofía e historia.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2314161f'/%3E%3Crect x='14.5' y='7' width='3' height='18' rx='1.5' fill='%238fb4ff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fragment+Mono&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one calm column, left-aligned. The text is the hero; the big serif numerals are the only loud thing.
+   Colors come from the active palette (set from script), so the page is single-theme by choice. */
+:root{
+  --bg:#14161f; --alt:#1c1f2b; --text:#e4e6f0; --sub:#5a607a; --accent:#8fb4ff; --err:#ff6b81;
+  --line:color-mix(in srgb,var(--sub) 30%,transparent);
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --display:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  --fs:28px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.5;
+  display:grid;grid-template-rows:auto 1fr;overflow-x:hidden;
+  transition:background-color .45s ease,color .45s ease;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ambient glow */
+.glow{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .6s}
+.glow-on .glow{opacity:1}
+.glow::before,.glow::after{content:"";position:absolute;border-radius:50%;filter:blur(90px)}
+.glow::before{width:52vw;height:52vw;left:-12vw;top:18%;background:color-mix(in srgb,var(--accent) 13%,transparent);animation:drift 26s ease-in-out infinite alternate}
+.glow::after{width:38vw;height:38vw;right:-8vw;top:-10%;background:color-mix(in srgb,var(--err) 7%,transparent);animation:drift 34s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(9vw,7vh) scale(1.12)}}
+
+header,main{position:relative;z-index:1}
+.chrome{transition:opacity .4s ease}
+.typing .chrome{opacity:0;pointer-events:none}
+
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:26px;padding-bottom:10px}
+.mark{font-family:var(--display);font-style:italic;font-size:38px;line-height:1;letter-spacing:-.01em;color:var(--text)}
+.mark b{font-weight:400;color:var(--accent)}
+.ghost{padding:6px 2px;color:var(--sub);transition:color .2s}
+.ghost:hover{color:var(--text)}
+
+main{display:grid;align-content:center;padding:24px 0 56px}
+
+/* config bar */
+.config{display:flex;flex-wrap:wrap;gap:8px 10px;margin-bottom:44px}
+.seg{display:inline-flex;background:var(--alt);border-radius:12px;padding:4px;gap:2px;transition:background-color .45s}
+.seg button{padding:6px 12px;border-radius:9px;color:var(--sub);transition:color .18s,background .18s;white-space:nowrap}
+.seg button:hover{color:var(--text)}
+.seg button[aria-pressed="true"]{color:var(--bg);background:var(--accent)}
+.seg.soft button[aria-pressed="true"]{color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+[hidden]{display:none!important}
+
+/* live readout */
+.live{display:flex;align-items:baseline;gap:22px;height:64px;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.live-main{font-family:var(--display);font-size:60px;line-height:1;color:var(--accent);transition:color .45s}
+.q-src{margin-left:auto;font-family:var(--display);font-style:italic;font-size:22px;color:var(--sub);text-align:right}
+.r-quote{grid-column:1/-1;margin:0;max-width:62ch;font-family:var(--display);font-size:26px;line-height:1.25;text-wrap:balance}
+.r-quote cite{display:block;margin-top:8px;font-family:var(--mono);font-style:normal;font-size:12px;letter-spacing:.06em;color:var(--sub)}
+.live-wpm{color:var(--sub);opacity:0;transition:opacity .3s}
+.started .live-wpm{opacity:1}
+
+/* typing area */
+.area{position:relative;cursor:text}
+#viewport{overflow:hidden;padding:0 .3em;margin:0 -.3em;font-size:min(var(--fs),6.2vw);transition:filter .25s,opacity .25s}
+#words{position:relative;display:flex;flex-wrap:wrap;column-gap:1ch;row-gap:.55em;align-content:flex-start;
+  transition:transform .32s cubic-bezier(.22,.9,.3,1);will-change:transform;user-select:none}
+.word{line-height:1.3;white-space:nowrap;border-radius:2px;transition:box-shadow .2s}
+.word span{color:var(--sub);transition:color .14s ease}
+.word span.ok{color:var(--text)}
+.word span.no{color:var(--err)}
+.word span.x{color:color-mix(in srgb,var(--err) 62%,var(--bg))}
+.word.bad{box-shadow:0 .09em 0 color-mix(in srgb,var(--err) 80%,transparent)}
+#caret{position:absolute;left:0;top:0;width:2px;height:1.3em;border-radius:99px;background:var(--accent);
+  box-shadow:0 0 .55em color-mix(in srgb,var(--accent) 65%,transparent);pointer-events:none;will-change:transform,width;
+  transition:background-color .45s}
+.caret-block #caret{border-radius:.12em;background:color-mix(in srgb,var(--accent) 32%,transparent)}
+.caret-outline #caret{border-radius:.12em;background:transparent;box-shadow:inset 0 0 0 .06em var(--accent)}
+.no-anim #words,.no-anim #prog{transition:none!important}
+#caret.err{background:var(--err);box-shadow:0 0 .6em var(--err)}
+.word.cur span:not(.ok):not(.no):not(.x){color:color-mix(in srgb,var(--sub) 68%,var(--text))}
+.prog{height:2px;border-radius:2px;background:var(--line);margin-bottom:22px;overflow:hidden}
+#prog{display:block;height:100%;background:var(--accent);transform-origin:left;transform:scaleX(0);transition:transform .25s ease-out,background-color .45s}
+.mode-time #prog{transition:transform 1s linear,background-color .45s}
+.caps{color:var(--err)}
+.idle #caret{animation:breathe 1.15s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.12}}
+#inp{position:absolute;left:0;top:0;width:2px;height:1.3em;opacity:0;border:0;padding:0;font-size:16px;background:transparent;color:transparent;caret-color:transparent;outline:0}
+.hint{margin-top:26px;color:var(--sub);display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;min-height:34px}
+kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var(--alt);color:var(--text);transition:background-color .45s}
+.area.paused #viewport{filter:blur(6px);opacity:.55}
+.resume{position:absolute;inset:0 0 60px 0;display:none;place-items:center;color:var(--text);pointer-events:none}
+.area.paused .resume{display:grid}
+
+/* results */
+#results{display:grid;grid-template-columns:minmax(180px,auto) 1fr;gap:28px 56px;align-items:start;animation:rise .5s cubic-bezier(.22,.9,.3,1)}
+@keyframes rise{from{opacity:.0;transform:translateY(10px)}}
+.big{display:grid;gap:22px}
+.stat-l{color:var(--sub);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.stat-n{font-family:var(--display);font-size:104px;line-height:.9;color:var(--accent);font-variant-numeric:tabular-nums}
+.stat-n.mid{font-size:64px;color:var(--text)}
+.pb{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;font-size:12px;color:var(--bg);background:var(--accent)}
+#chart{position:relative;width:100%;min-height:210px;cursor:crosshair;touch-action:pan-y}
+.tip{position:absolute;top:4px;display:grid;gap:2px;padding:8px 11px;border-radius:10px;background:var(--alt);border:1px solid var(--line);font-size:12px;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums;color:var(--sub)}
+.tip b{font-weight:400;color:var(--text)}
+.tip em{font-style:normal;color:var(--text);margin-left:10px;float:right}
+#pacer{position:absolute;left:0;top:0;width:2px;height:1.3em;border-radius:99px;background:var(--sub);opacity:.6;pointer-events:none;display:none}
+.pacing #pacer{display:block}
+#spark{display:block;margin-top:4px}
+.minis b small{font-size:12px;color:var(--sub);margin-left:8px}
+#chart svg{display:block;width:100%;height:auto}
+#chart text{font-family:var(--mono);font-size:11px;fill:var(--sub)}
+.legend{display:flex;gap:18px;color:var(--sub);font-size:12px;margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:7px}
+.minis{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px 28px;padding-top:24px;border-top:1px solid var(--line)}
+.minis b{display:block;font-weight:400;font-size:20px;white-space:nowrap;color:var(--text);font-variant-numeric:tabular-nums}
+.actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{padding:11px 18px;border-radius:12px;background:var(--accent);color:var(--bg);transition:transform .15s,filter .2s}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn.alt{background:var(--alt);color:var(--text)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;z-index:9;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s}
+.drawer{position:fixed;z-index:10;top:0;right:0;height:100%;width:min(430px,100%);background:var(--alt);border-left:1px solid var(--line);
+  padding:26px 26px 40px;overflow-y:auto;transform:translateX(102%);visibility:hidden;transition:transform .38s cubic-bezier(.22,.9,.3,1),visibility .38s,background-color .45s}
+.open .scrim{opacity:1;pointer-events:auto}
+.open .drawer{transform:none;visibility:visible}
+.drawer h2{font-family:var(--display);font-weight:400;font-size:34px;line-height:1;margin:0}
+.drawer h3{font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin:30px 0 12px}
+.drawer .top{display:flex;justify-content:space-between;align-items:center}
+.drawer .seg{background:var(--bg);flex-wrap:wrap}
+.pals{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pal{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 13px;border-radius:13px;border:2px solid transparent;text-align:left;transition:transform .15s,border-color .2s}
+.pal:hover{transform:translateY(-2px)}
+.pal[aria-pressed="true"]{border-color:var(--accent)}
+.pal span{display:flex;gap:4px}
+.pal i{width:10px;height:10px;border-radius:50%}
+.colors{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.colors label{display:grid;gap:6px;color:var(--sub);font-size:12px}
+.colors input{width:100%;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:3px;cursor:pointer}
+.row{display:flex;align-items:center;gap:14px}
+input[type=range]{flex:1;accent-color:var(--accent)}
+.note{color:var(--sub);font-size:12px;margin:10px 0 0}
+
+@media (max-width:720px){
+  .wrap{padding:0 18px}
+  .config{margin-bottom:28px}
+  #results{grid-template-columns:1fr;gap:24px}
+  .big{grid-template-columns:1fr 1fr;align-items:end}
+  .stat-n{font-size:84px}
+  .live-main{font-size:48px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important}
+  #words,#prog,.drawer,body{transition:none!important}
+}
+</style>
+</head>
+<body class="glow-on">
+<div class="glow" aria-hidden="true"></div>
+
+<header class="chrome">
+  <div class="wrap">
+    <div class="mark">tecleo<b>.</b></div>
+    <button class="ghost" id="open-settings" type="button">ajustes</button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section id="test">
+      <div class="config chrome" aria-label="Configuración del test">
+        <div class="seg soft" id="seg-opts">
+          <button type="button" data-toggle="punct" id="t-punct">puntuación</button>
+          <button type="button" data-toggle="nums" id="t-nums">números</button>
+        </div>
+        <div class="seg" data-key="mode">
+          <button type="button" data-val="time">tiempo</button>
+          <button type="button" data-val="words">palabras</button>
+          <button type="button" data-val="quote">citas</button>
+        </div>
+        <div class="seg soft" data-key="time" id="seg-time">
+          <button type="button" data-val="15">15</button><button type="button" data-val="30">30</button>
+          <button type="button" data-val="60">60</button><button type="button" data-val="120">120</button>
+        </div>
+        <div class="seg soft" data-key="count" id="seg-count">
+          <button type="button" data-val="10">10</button><button type="button" data-val="25">25</button>
+          <button type="button" data-val="50">50</button><button type="button" data-val="100">100</button>
+        </div>
+        <div class="seg soft" data-key="qtag" id="seg-qtag">
+          <button type="button" data-val="all">todas</button><button type="button" data-val="fil">filosofía</button>
+          <button type="button" data-val="his">historia y poder</button><button type="button" data-val="let">letras</button>
+        </div>
+        <div class="seg soft" data-key="qlen" id="seg-qlen">
+          <button type="button" data-val="long">largas</button><button type="button" data-val="short">cortas</button><button type="button" data-val="all">mezcla</button>
+        </div>
+        <div class="seg soft" data-key="lang" id="seg-lang">
+          <button type="button" data-val="es">español</button>
+          <button type="button" data-val="en">english</button>
+        </div>
+      </div>
+
+      <div class="live" aria-live="off">
+        <div class="live-main" id="live-main">30</div>
+        <div class="live-wpm" id="live-wpm">0 ppm</div>
+        <div class="caps" id="caps" hidden>Bloq Mayús activado</div>
+        <div class="q-src chrome" id="q-src"></div>
+      </div>
+      <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+
+      <div class="area idle" id="area">
+        <input id="inp" type="text" aria-label="Escribe aquí el texto mostrado" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div id="viewport"><div id="words"><div id="pacer"></div><div id="caret"></div></div></div>
+        <div class="resume">Haz clic o pulsa una tecla para seguir</div>
+        <div class="hint chrome">
+          <span id="hint-text">Empieza a escribir cuando quieras.</span>
+          <span><kbd>tab</kbd> texto nuevo</span>
+          <span><kbd>esc</kbd> ajustes</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" hidden>
+      <div class="big">
+        <div><div class="stat-l">ppm</div><div class="stat-n" id="r-wpm">0</div><div id="r-pb"></div></div>
+        <div><div class="stat-l">precisión</div><div class="stat-n mid" id="r-acc">0%</div></div>
+      </div>
+      <div>
+        <div id="chart"></div>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>ppm</span>
+          <span><i style="background:var(--sub)"></i>ppm en bruto por segundo</span>
+          <span><i style="background:var(--err);width:7px;height:7px;border-radius:50%"></i>errores</span>
+        </div>
+      </div>
+      <blockquote class="r-quote" id="r-quote" hidden></blockquote>
+      <div class="minis">
+        <div><span class="stat-l">en bruto</span><b id="r-raw">0</b></div>
+        <div><span class="stat-l">consistencia</span><b id="r-cons">0%</b></div>
+        <div><span class="stat-l" title="correctos / incorrectos / extra / omitidos">caracteres</span><b id="r-chars">0/0/0/0</b></div>
+        <div><span class="stat-l">media últimos 10</span><b id="r-avg">0</b><span id="spark"></span></div>
+        <div><span class="stat-l">teclas falladas</span><b id="r-miss">ninguna</b></div>
+        <div><span class="stat-l">racha</span><b id="r-streak">1 día</b></div>
+        <div><span class="stat-l">tiempo</span><b id="r-time">0s</b></div>
+        <div><span class="stat-l">test</span><b id="r-mode">–</b></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="next" type="button">Texto nuevo</button>
+        <button class="btn alt" id="again" type="button">Repetir este texto</button>
+        <button class="btn alt" id="copy" type="button">Copiar resultado</button>
+        <span style="color:var(--sub)"><kbd>tab</kbd> o <kbd>enter</kbd> para seguir</span>
+      </div>
+    </section>
+  </div>
+</main>
+
+
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Paletas y ajustes">
+  <div class="top"><h2>Aspecto</h2><button class="ghost" id="close-settings" type="button">cerrar</button></div>
+
+  <h3>Paleta</h3>
+  <div class="pals" id="pals"></div>
+
+  <h3>Colores a medida</h3>
+  <div class="colors">
+    <label for="c-0">Fondo<input type="color" id="c-0"></label>
+    <label for="c-1">Paneles<input type="color" id="c-1"></label>
+    <label for="c-2">Texto escrito<input type="color" id="c-2"></label>
+    <label for="c-3">Texto pendiente<input type="color" id="c-3"></label>
+    <label for="c-4">Acento y cursor<input type="color" id="c-4"></label>
+    <label for="c-5">Errores<input type="color" id="c-5"></label>
+  </div>
+  <p class="note">Al tocar un color se crea tu paleta «A medida» a partir de la activa. Se guarda en este navegador.</p>
+
+  <h3>Cursor</h3>
+  <div class="seg" data-key="caret">
+    <button type="button" data-val="line">línea</button><button type="button" data-val="block">bloque</button>
+    <button type="button" data-val="outline">contorno</button><button type="button" data-val="under">subrayado</button>
+  </div>
+  <h3>Fluidez del cursor</h3>
+  <div class="seg" data-key="smooth">
+    <button type="button" data-val="0">seco</button><button type="button" data-val="80">ágil</button>
+    <button type="button" data-val="130">suave</button><button type="button" data-val="220">líquido</button>
+  </div>
+
+  <h3>Estela del cursor</h3>
+  <div class="seg" data-key="trail">
+    <button type="button" data-val="1">con estela</button><button type="button" data-val="0">sin estela</button>
+  </div>
+
+  <h3>Ritmo fantasma</h3>
+  <div class="seg" data-key="pace">
+    <button type="button" data-val="off">apagado</button><button type="button" data-val="avg">mi media</button><button type="button" data-val="pb">mi mejor marca</button>
+  </div>
+  <p class="note">Un segundo cursor tenue avanza a tu ritmo habitual para que compitas contra ti.</p>
+
+  <h3>Sonido</h3>
+  <div class="seg" data-key="sound">
+    <button type="button" data-val="0">silencio</button><button type="button" data-val="1">teclas</button>
+  </div>
+
+  <h3>Tipografía</h3>
+  <div class="seg" data-key="font">
+    <button type="button" data-val="JetBrains Mono">JetBrains</button><button type="button" data-val="Martian Mono">Martian</button>
+    <button type="button" data-val="IBM Plex Mono">Plex</button><button type="button" data-val="Fragment Mono">Fragment</button>
+  </div>
+  <h3>Tamaño del texto</h3>
+  <div class="row"><input type="range" id="size" min="18" max="44" step="1" aria-label="Tamaño del texto"><span id="size-v">28</span></div>
+
+  <h3>Ambiente</h3>
+  <div class="seg" data-key="glow">
+    <button type="button" data-val="1">con resplandor</button><button type="button" data-val="0">liso</button>
+  </div>
+</aside>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+// [fondo, paneles, texto, pendiente, acento, error]
+const PALETTES=[
+  {id:'medianoche',name:'Medianoche',c:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81']},
+  {id:'ambar',name:'Ámbar',c:['#1d1a17','#27231e','#ede4d3','#7a6f5f','#f2b24a','#e5604d']},
+  {id:'mar',name:'Mar',c:['#0d2530','#123240','#d6ecef','#4f7785','#4fd6c4','#ff7a6b']},
+  {id:'lavanda',name:'Lavanda',c:['#221d2e','#2c2640','#ece6f7','#74698f','#c6a0ff','#ff7096']},
+  {id:'bosque',name:'Bosque',c:['#141c17','#1b2620','#dbe6d6','#5c7364','#9bd67a','#f07a5a']},
+  {id:'atardecer',name:'Atardecer',c:['#2a1a24','#38222f','#fbe9dc','#8c6474','#ff8a5c','#ff4d7a']},
+  {id:'nordico',name:'Nórdico',c:['#2b303b','#343b48','#e5e9f0','#6f7a8f','#88c0d0','#d9727b']},
+  {id:'carbon',name:'Carbón',c:['#111111','#1b1b1b','#f2f2f2','#5c5c5c','#ffffff','#ff5c5c']},
+  {id:'papel',name:'Papel',c:['#f2f0ea','#e6e3da','#26262b','#a3a097','#2f55d4','#d43d2f']},
+  {id:'sakura',name:'Sakura',c:['#f7eef0','#efdfe3','#4a3540','#b99aa5','#d6457a','#8a2be2']},
+  {id:'menta',name:'Menta',c:['#e9f3ee','#d9e9e1','#1f3a30','#8fb0a2','#0f9d76','#d1493f']},
+];
+const WORDS={
+es:"de la que el en y a los se del las un por con no una su para es al lo como más o pero sus le ha me si sin sobre este ya entre cuando todo esta ser son dos también fue había era muy años hasta desde está mi porque qué solo han yo hay vez puede todos así nos ni parte tiene uno donde bien tiempo mismo ese ahora cada vida otro después otros aunque esa eso hace otra tan durante siempre día tanto ella tres dijo sido gran país según menos mundo año antes estado contra sino forma caso nada hacer general estaba poco estos mayor ante unos algo hacia casa ellos ayer hecho primera mucho mientras además quien momento esto hombre están pues hoy lugar trabajo otras mejor nuevo decir algunos entonces todas días debe cómo casi toda tal luego pasado primer medio estas sea tenía nunca poder aquí ver veces partido personas grupo cuenta pueden tienen misma nueva cual fueron mujer frente tras cosas fin ciudad manera tener sistema será historia muchos tipo cuatro dentro nuestro punto dice ello cualquier noche aún agua parece haber situación fuera bajo grandes nuestra ejemplo acuerdo usted hizo nadie horas posible tarde ley importante guerra desarrollo proceso realidad sentido lado cambio allí mano estar número sociedad centro padre gente final relación cuerpo obra incluso través último madre modo problema cinco información ojos muerte nombre público siglo todavía meses mañana nosotros hora pueblo alguna dar derecho verdad podría sería junto cabeza tierra equipo segundo cierto nivel familia largo falta llegar propio cosa primero seguridad mal semana varios real voz paso señor mil proyecto mercado mayoría luz claro orden español buena quiere programa palabras empresa puesto libro igual persona total creo tengo camino idea juego música calle puerta ventana cielo fuego viento sueño amigo color pequeño joven viejo rápido lento fácil difícil abrir cerrar pensar sentir escribir leer aprender jugar correr".split(' '),
+en:"the be of and a to in he have it that for they i with as not on she at by this we you do but from or which one would all will there say who make when can more if no man out other so what time up go about than into could state only new year some take come these know see use get like then first any work now may such give over think most even find day also after way many must look before great back through long where much should well people down own just because good each those feel seem how high too place little world very still nation hand old life tell write become here show house both between need mean call develop under last right move thing general school never same another begin while number part turn real leave might want point form off child few small since against ask late home interest large person end open public follow during present without again hold govern around possible head consider word program problem however lead system set order eye plan run keep face fact group play stand increase early course change help line".split(' ')
+};
+// [cita, autor, obra, tema]  fil = filosofía, his = historia y poder, let = letras
+const QUOTES=[
+["Es mucho más seguro ser temido que amado, cuando se ha de carecer de una de las dos cosas.","Maquiavelo","El príncipe","his"],
+["Todos ven lo que pareces, pocos sienten lo que eres.","Maquiavelo","El príncipe","his"],
+["Los hombres ofenden antes al que aman que al que temen.","Maquiavelo","El príncipe","his"],
+["Quien engaña encontrará siempre a quien se deje engañar.","Maquiavelo","El príncipe","his"],
+["El primer juicio que se forma sobre un príncipe se basa en los hombres que lo rodean.","Maquiavelo","El príncipe","his"],
+["El arte supremo de la guerra es someter al enemigo sin luchar.","Sun Tzu","El arte de la guerra","his"],
+["Conoce a tu enemigo y conócete a ti mismo, y en cien batallas no correrás peligro.","Sun Tzu","El arte de la guerra","his"],
+["La guerra es la continuación de la política por otros medios.","Clausewitz","De la guerra","his"],
+["Los fuertes hacen lo que pueden y los débiles sufren lo que deben.","Tucídides","Historia de la guerra del Peloponeso","his"],
+["Crean un desierto y lo llaman paz.","Tácito","Agrícola","his"],
+["La historia es maestra de la vida.","Cicerón","Sobre el orador","his"],
+["Si tienes un jardín y una biblioteca, tienes todo lo que necesitas.","Cicerón","Cartas a los familiares","his"],
+["Llegué, vi, vencí.","Julio César","","his"],
+["La suerte está echada.","Julio César","","his"],
+["Nunca interrumpas a tu enemigo mientras comete un error.","Napoleón","","his"],
+["La política es el arte de lo posible.","Bismarck","","his"],
+["El poder tiende a corromper, y el poder absoluto corrompe absolutamente.","Lord Acton","","his"],
+["Quien no recuerda su pasado está condenado a repetirlo.","Santayana","La vida de la razón","his"],
+["El hombre es un lobo para el hombre.","Hobbes","De Cive","his"],
+["El hombre nace libre, y en todas partes está encadenado.","Rousseau","El contrato social","his"],
+["Los filósofos no han hecho más que interpretar el mundo; de lo que se trata es de transformarlo.","Marx","Tesis sobre Feuerbach","his"],
+["No es que tengamos poco tiempo, sino que perdemos mucho.","Séneca","Sobre la brevedad de la vida","fil"],
+["Sufrimos más en la imaginación que en la realidad.","Séneca","Cartas a Lucilio","fil"],
+["Mientras se aplaza, la vida pasa.","Séneca","Cartas a Lucilio","fil"],
+["El mejor modo de vengarse es no parecerse al que te hizo daño.","Marco Aurelio","Meditaciones","fil"],
+["Lo que no es útil para la colmena tampoco lo es para la abeja.","Marco Aurelio","Meditaciones","fil"],
+["Nuestra vida es lo que nuestros pensamientos hacen de ella.","Marco Aurelio","Meditaciones","fil"],
+["No nos perturban las cosas, sino las opiniones que tenemos de ellas.","Epicteto","Enquiridión","fil"],
+["Una vida sin examen no merece ser vivida.","Sócrates","Apología, de Platón","fil"],
+["El hombre es por naturaleza un animal político.","Aristóteles","Política","fil"],
+["Todos los hombres desean por naturaleza saber.","Aristóteles","Metafísica","fil"],
+["Nadie se baña dos veces en el mismo río.","Heráclito","","fil"],
+["El carácter es el destino del hombre.","Heráclito","","fil"],
+["El hombre es la medida de todas las cosas.","Protágoras","","fil"],
+["Aprender sin pensar es inútil; pensar sin aprender, peligroso.","Confucio","Analectas","fil"],
+["Pienso, luego existo.","Descartes","Discurso del método","fil"],
+["El buen sentido es la cosa mejor repartida del mundo.","Descartes","Discurso del método","fil"],
+["El corazón tiene razones que la razón no conoce.","Pascal","Pensamientos","fil"],
+["Toda la desgracia de los hombres viene de no saber quedarse tranquilos en una habitación.","Pascal","Pensamientos","fil"],
+["No reír, no llorar, no detestar, sino comprender.","Spinoza","Tratado político","fil"],
+["Atrévete a saber: ten el valor de servirte de tu propio entendimiento.","Kant","¿Qué es la Ilustración?","fil"],
+["Dos cosas llenan el ánimo de admiración: el cielo estrellado sobre mí y la ley moral en mí.","Kant","Crítica de la razón práctica","fil"],
+["El búho de Minerva solo levanta el vuelo al anochecer.","Hegel","Filosofía del derecho","fil"],
+["El destino baraja las cartas, y nosotros las jugamos.","Schopenhauer","","fil"],
+["Quien tiene un porqué para vivir puede soportar casi cualquier cómo.","Nietzsche","El crepúsculo de los ídolos","fil"],
+["Lo que no me mata me hace más fuerte.","Nietzsche","El crepúsculo de los ídolos","fil"],
+["Sin música la vida sería un error.","Nietzsche","El crepúsculo de los ídolos","fil"],
+["El conocimiento es poder.","Francis Bacon","","fil"],
+["Hay que cultivar nuestro jardín.","Voltaire","Cándido","let"],
+["La libertad, Sancho, es uno de los más preciosos dones que a los hombres dieron los cielos.","Cervantes","Don Quijote","let"],
+["El que lee mucho y anda mucho, ve mucho y sabe mucho.","Cervantes","Don Quijote","let"],
+["Lo bueno, si breve, dos veces bueno.","Gracián","Oráculo manual y arte de prudencia","let"],
+["Todos deseamos llegar a viejos, y todos negamos haber llegado.","Quevedo","","let"],
+["Se quiere ser ambas cosas; pero como es difícil juntarlas, es mucho más seguro ser temido que amado. Porque de los hombres se puede decir en general que son ingratos, volubles, simuladores, que huyen del peligro y ansían la ganancia.","Maquiavelo","El príncipe","his"],
+["Los hombres en general juzgan más por los ojos que por las manos, porque a todos les es dado ver, pero a pocos tocar. Todos ven lo que pareces, pocos sienten lo que eres.","Maquiavelo","El príncipe","his"],
+["Juzgo que puede ser verdad que la fortuna sea árbitro de la mitad de nuestras acciones, pero que también ella nos deja gobernar la otra mitad, o casi, a nosotros.","Maquiavelo","El príncipe","his"],
+["No hay cosa más difícil de tratar, ni más dudosa de conseguir, ni más peligrosa de manejar, que introducir un orden nuevo; porque el innovador tiene por enemigos a todos los que se beneficiaban del antiguo, y por tibios defensores a los que se beneficiarían del nuevo.","Maquiavelo","El príncipe","his"],
+["Conoce al enemigo y conócete a ti mismo, y en cien batallas no correrás peligro. Si no conoces al enemigo pero te conoces a ti mismo, por cada victoria sufrirás una derrota. Si no conoces ni al uno ni al otro, sucumbirás en cada batalla.","Sun Tzu","El arte de la guerra","his"],
+["Amamos la belleza con sencillez y el saber sin flaqueza. Usamos la riqueza más para la acción que para la jactancia, y no es vergonzoso para nadie confesar su pobreza, sino no esforzarse por salir de ella.","Tucídides","Discurso fúnebre de Pericles","his"],
+["La guerra no es simplemente un acto político, sino un verdadero instrumento político, una continuación de la actividad política, una realización de la misma por otros medios.","Clausewitz","De la guerra","his"],
+["La historia es testigo de los tiempos, luz de la verdad, vida de la memoria, maestra de la vida y mensajera de la antigüedad.","Cicerón","Sobre el orador","his"],
+["Los hombres hacen su propia historia, pero no la hacen a su libre arbitrio, bajo circunstancias elegidas por ellos mismos, sino bajo aquellas con que se encuentran directamente, que existen y les han sido legadas por el pasado.","Marx","El dieciocho brumario de Luis Bonaparte","his"],
+["Hegel dice en alguna parte que todos los grandes hechos y personajes de la historia universal aparecen, como si dijéramos, dos veces. Pero se olvidó de agregar: una vez como tragedia y la otra como farsa.","Marx","El dieciocho brumario de Luis Bonaparte","his"],
+["El primero al que, tras haber cercado un terreno, se le ocurrió decir esto es mío y encontró personas lo bastante simples para creerle, fue el verdadero fundador de la sociedad civil.","Rousseau","Discurso sobre el origen de la desigualdad","his"],
+["El hombre ha nacido libre, y en todas partes se halla encadenado. Alguno se cree señor de los demás, y no deja de ser más esclavo que ellos.","Rousseau","El contrato social","his"],
+["Sin un poder común que los mantenga a todos atemorizados, los hombres viven en guerra de todos contra todos, y la vida del hombre es solitaria, pobre, desagradable, brutal y corta.","Hobbes","Leviatán","his"],
+["Que estos muertos no habrán muerto en vano; que esta nación tendrá un nuevo nacimiento de libertad, y que el gobierno del pueblo, por el pueblo y para el pueblo no desaparecerá de la Tierra.","Lincoln","Discurso de Gettysburg","his"],
+["No es que tengamos poco tiempo, sino que perdemos mucho. La vida es lo bastante larga y se nos ha dado con generosidad para realizar las cosas más grandes, si toda ella se invierte bien.","Séneca","Sobre la brevedad de la vida","fil"],
+["Todo, Lucilio, nos es ajeno; solo el tiempo es nuestro. Mientras se aplaza, la vida pasa.","Séneca","Cartas a Lucilio","fil"],
+["Al despuntar la aurora, dite a ti mismo: me encontraré con un indiscreto, un ingrato, un insolente, un mentiroso, un envidioso, un insociable. Todo eso les sucede por ignorancia del bien y del mal.","Marco Aurelio","Meditaciones","fil"],
+["Se buscan retiros en el campo, en la costa y en el monte; tú también sueles anhelarlos. Pero todo eso es de lo más vulgar, porque puedes, en el momento que quieras, retirarte en ti mismo.","Marco Aurelio","Meditaciones","fil"],
+["De las cosas, unas dependen de nosotros y otras no. De nosotros dependen el juicio, el impulso, el deseo y la aversión; no dependen de nosotros el cuerpo, la hacienda, la reputación ni los cargos.","Epicteto","Enquiridión","fil"],
+["La muerte no es nada para nosotros, pues mientras nosotros existimos la muerte no está presente, y cuando la muerte está presente, entonces nosotros ya no existimos.","Epicuro","Carta a Meneceo","fil"],
+["Una golondrina no hace verano, ni tampoco un solo día; y así tampoco hace dichoso y feliz al hombre un solo día o un poco de tiempo.","Aristóteles","Ética a Nicómaco","fil"],
+["El hombre es por naturaleza un animal político, y el que vive fuera de la ciudad por naturaleza y no por azar es o un ser inferior o más que un hombre.","Aristóteles","Política","fil"],
+["Yo soy más sabio que este hombre; es posible que ninguno de los dos sepamos nada valioso, pero él cree saber algo sin saberlo, mientras que yo, así como no sé, tampoco creo saber.","Sócrates","Apología, de Platón","fil"],
+["El buen sentido es la cosa mejor repartida del mundo, pues cada uno piensa estar tan bien provisto de él que aun los más difíciles de contentar en cualquier otra cosa no suelen desear más del que tienen.","Descartes","Discurso del método","fil"],
+["El hombre no es más que una caña, la más débil de la naturaleza; pero es una caña que piensa. No hace falta que el universo entero se arme para aplastarlo: un vapor, una gota de agua bastan para matarlo.","Pascal","Pensamientos","fil"],
+["La Ilustración es la salida del hombre de su minoría de edad, de la cual él mismo es culpable. La minoría de edad es la incapacidad de servirse del propio entendimiento sin la dirección de otro.","Kant","¿Qué es la Ilustración?","fil"],
+["Dos cosas llenan el ánimo de admiración y respeto, siempre nuevos y crecientes, cuanto con más frecuencia y aplicación se ocupa de ellas la reflexión: el cielo estrellado sobre mí y la ley moral en mí.","Kant","Crítica de la razón práctica","fil"],
+["Quien con monstruos lucha cuide de no convertirse a su vez en monstruo. Cuando miras largo tiempo a un abismo, también este mira dentro de ti.","Nietzsche","Más allá del bien y del mal","fil"],
+["La libertad, Sancho, es uno de los más preciosos dones que a los hombres dieron los cielos; con ella no pueden igualarse los tesoros que encierra la tierra ni el mar encubre; por la libertad, así como por la honra, se puede y debe aventurar la vida.","Cervantes","Don Quijote","let"],
+["En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor.","Cervantes","Don Quijote","let"],
+["Lo bueno, si breve, dos veces bueno; y aun lo malo, si poco, no tan malo. Más obran quintas esencias que fárragos.","Gracián","Oráculo manual y arte de prudencia","let"],
+];
+
+const FONT_STACK=f=>`"${f}",ui-monospace,"SF Mono",Menlo,Consolas,monospace`;
+
+let cfg=Object.assign({mode:'time',time:30,count:25,lang:'es',punct:false,nums:false,palette:'medianoche',
+  custom:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],font:'JetBrains Mono',size:28,caret:'line',smooth:130,trail:1,glow:1,sound:0,qtag:'all',qlen:'long',pace:'off'},store.get('tecleo.cfg',{}));
+const save=()=>store.set('tecleo.cfg',cfg);
+
+const root=document.documentElement, body=document.body, area=$('#area'), inp=$('#inp'),
+  viewport=$('#viewport'), wordsEl=$('#words'), caretEl=$('#caret'), pacerEl=$('#pacer');
+const pbKey=()=>cfg.mode==='quote'?'tecleo.pb.quote.'+cfg.qlen:`tecleo.pb.${cfg.mode}.${cfg.mode==='time'?cfg.time:cfg.count}.${cfg.lang}.${+cfg.punct}${+cfg.nums}`;
+
+/* ---------- look ---------- */
+const activeColors=()=>cfg.palette==='custom'?cfg.custom:(PALETTES.find(p=>p.id===cfg.palette)||PALETTES[0]).c;
+function lum(hex){const n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255;return (.299*r+.587*g+.114*b)/255}
+function applyLook(){
+  const c=activeColors();
+  ['--bg','--alt','--text','--sub','--accent','--err'].forEach((k,i)=>root.style.setProperty(k,c[i]));
+  root.style.colorScheme=lum(c[0])<.5?'dark':'light';
+  root.style.setProperty('--mono',FONT_STACK(cfg.font));
+  root.style.setProperty('--fs',cfg.size+'px');
+  body.classList.toggle('glow-on',!!+cfg.glow);
+  body.className=body.className.replace(/caret-\w+/g,'').trim();
+  body.classList.add('caret-'+cfg.caret);
+  syncUI(); relayout();
+}
+function palButtons(){
+  const all=[...PALETTES,{id:'custom',name:'A medida',c:cfg.custom}];
+  $('#pals').innerHTML='';
+  for(const p of all){
+    const b=document.createElement('button');b.type='button';b.className='pal';b.dataset.pal=p.id;
+    b.style.background=p.c[0];b.style.color=p.c[2];
+    b.append(p.name);const s=document.createElement('span');
+    [4,5,3].forEach(i=>{const d=document.createElement('i');d.style.background=p.c[i];s.append(d)});
+    b.append(s);$('#pals').append(b);
+  }
+}
+function syncUI(){
+  $$('.seg[data-key]').forEach(s=>{const k=s.dataset.key;[...s.children].forEach(b=>b.setAttribute('aria-pressed',String(cfg[k])===b.dataset.val))});
+  $$('[data-toggle]').forEach(b=>b.setAttribute('aria-pressed',!!cfg[b.dataset.toggle]));
+  $$('[data-pal]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pal===cfg.palette));
+  $('#seg-time').hidden=cfg.mode!=='time';$('#seg-count').hidden=cfg.mode!=='words';
+  const q=cfg.mode==='quote';$('#seg-qtag').hidden=!q;$('#seg-qlen').hidden=!q;$('#seg-opts').hidden=q;$('#seg-lang').hidden=q;
+  const c=activeColors();for(let i=0;i<6;i++)$('#c-'+i).value=c[i];
+  $('#size').value=cfg.size;$('#size-v').textContent=cfg.size+' px';
+}
+const NUMERIC=new Set(['time','count','smooth','glow','trail','sound']), RESTART=new Set(['mode','time','count','lang','qtag','qlen']);
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const seg=b.closest('.seg[data-key]');
+  if(seg&&b.dataset.val!==undefined){const k=seg.dataset.key;cfg[k]=NUMERIC.has(k)?+b.dataset.val:b.dataset.val;save();applyLook();if(k==='sound')snd();if(RESTART.has(k)){reset();focusInput()}return}
+  if(b.dataset.toggle){cfg[b.dataset.toggle]=!cfg[b.dataset.toggle];save();syncUI();reset();focusInput();return}
+  if(b.dataset.pal){cfg.palette=b.dataset.pal;save();applyLook();return}
+});
+for(let i=0;i<6;i++)$('#c-'+i).addEventListener('input',e=>{
+  if(cfg.palette!=='custom'){cfg.custom=[...activeColors()];cfg.palette='custom'}
+  cfg.custom[i]=e.target.value;save();palButtons();applyLook();
+});
+$('#size').addEventListener('input',e=>{cfg.size=+e.target.value;save();applyLook()});
+const openDrawer=o=>{body.classList.toggle('open',o);if(o){inp.blur();$('#close-settings').focus()}else focusInput()};
+$('#open-settings').onclick=()=>openDrawer(true);$('#close-settings').onclick=()=>openDrawer(false);$('#scrim').onclick=()=>openDrawer(false);
+
+/* ---------- sound: a short filtered noise burst per key ---------- */
+let AC=null,noiseBuf=null;
+function snd(bad){
+  if(!+cfg.sound)return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+    if(!noiseBuf){noiseBuf=AC.createBuffer(1,AC.sampleRate*.04|0,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length)**2}
+    const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();
+    s.buffer=noiseBuf;f.type='bandpass';f.frequency.value=bad?420:1500+Math.random()*500;f.Q.value=1.2;g.gain.value=bad?.22:.12;
+    s.connect(f);f.connect(g);g.connect(AC.destination);s.start();
+  }catch(e){}
+}
+
+/* ---------- text ---------- */
+const cap=w=>w.charAt(0).toUpperCase()+w.slice(1);
+function gen(n){
+  const list=WORDS[cfg.lang],out=[];let prev='';
+  for(let i=0;i<n;i++){let w;do{w=list[Math.random()*list.length|0]}while(w===prev);prev=w;
+    if(cfg.nums&&Math.random()<.1)w=String(1+(Math.random()*10**(1+(Math.random()*4|0))|0));out.push(w)}
+  if(cfg.punct){let start=0;
+    for(let i=0;i<n;i++){
+      if(i===start)out[i]=cap(out[i]);
+      const r=Math.random();
+      if(i===n-1||(i-start>=3&&r<.16)){
+        const k=Math.random(),mark=k<.2?'?':k<.3?'!':'.';
+        if(cfg.lang==='es'&&mark!=='.')out[start]=(mark==='?'?'¿':'¡')+out[start];
+        out[i]+=mark;start=i+1;
+      }else if(r>.88&&i>start)out[i]+=',';
+    }}
+  return out;
+}
+
+/* ---------- engine ---------- */
+let S=null,wordEls=[],idleT=0;
+function addWordEls(from){
+  for(let i=from;i<S.words.length;i++){const d=document.createElement('div');d.className='word';
+    for(const ch of S.words[i]){const s=document.createElement('span');s.textContent=ch;d.append(s)}
+    wordsEl.append(d);wordEls.push(d)}
+}
+function reset(keep){
+  if(S)clearInterval(S.timer);
+  let quote=keep&&S?S.quote:null,words;
+  if(keep&&S)words=S.words.slice(0,S.initial);
+  else if(cfg.mode==='quote'){const byTag=QUOTES.filter(q=>cfg.qtag==='all'||q[3]===cfg.qtag),byLen=byTag.filter(q=>cfg.qlen==='all'||(q[0].length>=80)===(cfg.qlen==='long')),pool=byLen.length?byLen:byTag;do{quote=pool[Math.random()*pool.length|0]}while(pool.length>1&&S&&S.quote===quote);words=quote[0].split(' ')}
+  else words=gen(cfg.mode==='time'?90:cfg.count);
+  S={words,quote,initial:words.length,typed:words.map(()=>''),wi:0,committed:0,started:false,finished:false,t0:0,sec:0,timer:null,
+     ok:0,bad:0,secChars:0,secErr:0,history:[],prev:'',miss:{},pace:0};
+  wordEls.forEach(e=>e.remove());wordEls=[];addWordEls(0);
+  inp.value='';$('#results').hidden=true;$('#test').hidden=false;
+  body.classList.remove('typing','started','pacing');body.classList.toggle('mode-time',cfg.mode==='time');area.classList.add('idle');area.classList.remove('paused');
+  setProg(0);
+  $('#hint-text').textContent='Empieza a escribir cuando quieras.';
+  $('#q-src').textContent=quote?quote[1]+(quote[2]?', '+quote[2]:''):'';
+  live();relayout();
+}
+function paint(i){
+  const el=wordEls[i],w=S.words[i],t=S.typed[i],n=Math.max(w.length,t.length);
+  while(el.children.length<n)el.append(document.createElement('span'));
+  while(el.children.length>n)el.lastChild.remove();
+  for(let j=0;j<n;j++){const s=el.children[j],ch=j<w.length?w[j]:t[j];
+    if(s.textContent!==ch)s.textContent=ch;
+    const c=j>=w.length?'x':j>=t.length?'':t[j]===w[j]?'ok':'no';if(s.className!==c)s.className=c}
+}
+/* Caret: follows its target with frame-rate independent exponential smoothing, so every keystroke
+   retargets from the current position with no restart. A slower tail stretches it while it moves. */
+const C={x:0,y:0,tail:0,tx:0,ty:0,base:2,cap:4,raf:0,last:0,cur:null};
+const reduced=matchMedia('(prefers-reduced-motion:reduce)');
+function caret(snap){
+  const el=wordEls[S.wi];if(!el)return;
+  const n=S.typed[S.wi].length,k=el.children;
+  let x;if(n<k.length)x=k[n].offsetLeft;else{const l=k[k.length-1];x=l.offsetLeft+l.offsetWidth}
+  const top=el.offsetTop,h=el.offsetHeight,cw=k[0].offsetWidth;
+  const gap=parseFloat(getComputedStyle(wordsEl).rowGap)||0,step=h+gap;
+  viewport.style.height=(3*h+2*gap+4)+'px';
+  wordsEl.style.transform=`translateY(${-Math.max(0,top-step)}px)`;
+  if(C.cur!==el){if(C.cur)C.cur.classList.remove('cur');el.classList.add('cur');C.cur=el}
+  let y=top;C.cap=Math.max(1.5,cfg.caret==='line'?h*.13:cw*.2); // the most the caret may stretch while moving
+  if(cfg.caret==='line'){C.base=Math.max(2,h*.075);x-=C.base/2;caretEl.style.height=h+'px'}
+  else if(cfg.caret==='under'){C.base=cw;const t=Math.max(2,h*.09);caretEl.style.height=t+'px';y=top+h-t}
+  else{C.base=cw;caretEl.style.height=h+'px'}
+  C.tx=x;C.ty=y;
+  const jump=Math.abs(y-C.y)>h/2;
+  if(snap||jump||!+cfg.smooth||reduced.matches){
+    cancelAnimationFrame(C.raf);C.raf=0;C.x=C.tail=x;C.y=y;drawCaret();
+    if(jump&&!snap&&caretEl.animate)caretEl.animate([{opacity:0},{opacity:1}],{duration:170,easing:'ease-out'});
+    return;
+  }
+  if(!C.raf){C.last=performance.now();C.raf=requestAnimationFrame(stepCaret)}
+}
+function stepCaret(now){
+  const dt=Math.min(48,Math.max(1,now-C.last));C.last=now;
+  const tau=cfg.smooth*.42,a=1-Math.exp(-dt/tau),b=+cfg.trail?1-Math.exp(-dt/(tau*1.9)):a;
+  C.x+=(C.tx-C.x)*a;C.y+=(C.ty-C.y)*a;C.tail+=(C.tx-C.tail)*b;
+  if(Math.abs(C.tx-C.x)<.05&&Math.abs(C.tx-C.tail)<.15&&Math.abs(C.ty-C.y)<.05){C.x=C.tail=C.tx;C.y=C.ty;C.raf=0;drawCaret();return}
+  drawCaret();C.raf=requestAnimationFrame(stepCaret);
+}
+function drawCaret(){
+  const d=C.x-C.tail,s=C.cap*Math.tanh(Math.abs(d)/C.cap);
+  caretEl.style.width=(C.base+s).toFixed(2)+'px';
+  caretEl.style.transform=`translate3d(${(d>0?C.x-s:C.x).toFixed(2)}px,${C.y.toFixed(2)}px,0)`;
+}
+let errT=0;
+function flashErr(){caretEl.classList.add('err');clearTimeout(errT);errT=setTimeout(()=>caretEl.classList.remove('err'),170)}
+function setProg(v){$('#prog').style.transform=`scaleX(${Math.max(0,Math.min(1,v)).toFixed(4)})`}
+function relayout(){ // reposition without animating
+  if(!S)return;body.classList.add('no-anim');caret(true);void caretEl.offsetWidth;
+  requestAnimationFrame(()=>body.classList.remove('no-anim'));
+}
+function markTyping(){
+  body.classList.add('typing');area.classList.remove('idle');clearTimeout(idleT);
+  idleT=setTimeout(()=>area.classList.add('idle'),650);
+}
+function account(pos,added){
+  for(const ch of added){S.secChars++;if(ch===' ')continue;
+    const exp=S.words[S.wi][pos];if(ch===exp)S.ok++;else{S.bad++;S.secErr++;flashErr();if(exp)S.miss[exp]=(S.miss[exp]||0)+1}pos++}
+}
+function start(){S.started=true;S.t0=performance.now();S.timer=setInterval(tick,1000);body.classList.add('started');if(cfg.mode==='time')setProg(1/cfg.time);paceStart()}
+/* Ghost pacer: a faint second caret that advances at the typist's usual speed. */
+let paceRaf=0;
+function paceStart(){
+  const last=store.get('tecleo.hist',[]).slice(-10),avg=last.length?last.reduce((a,b)=>a+b,0)/last.length:0;
+  S.pace=cfg.pace==='avg'?avg:cfg.pace==='pb'?(store.get(pbKey(),0)||avg):0;
+  body.classList.toggle('pacing',S.pace>0);cancelAnimationFrame(paceRaf);
+  if(S.pace>0)paceRaf=requestAnimationFrame(paceStep);
+}
+function paceStep(now){
+  if(!S.started||S.finished||!S.pace){body.classList.remove('pacing');return}
+  let rem=Math.max(0,S.pace*5/60*(now-S.t0)/1000),i=0;const end=S.words.length-1;
+  while(i<end&&rem>=S.words[i].length+1){rem-=S.words[i].length+1;i++}
+  const el=wordEls[i],k=el.children,n=S.words[i].length,j=Math.min(n,Math.floor(rem)),f=Math.min(1,rem-j);
+  const x=j<n?k[j].offsetLeft+f*k[j].offsetWidth:k[n-1].offsetLeft+k[n-1].offsetWidth*(1+(i<end?f:0));
+  pacerEl.style.height=el.offsetHeight+'px';
+  pacerEl.style.transform=`translate3d(${x.toFixed(1)}px,${el.offsetTop}px,0)`;
+  paceRaf=requestAnimationFrame(paceStep);
+}
+function correctChars(){
+  let c=0;for(let i=0;i<S.committed;i++)if(S.typed[i]===S.words[i])c+=S.words[i].length+1;
+  if(S.wi>=S.committed){const t=S.typed[S.wi];if(S.words[S.wi].startsWith(t))c+=t.length}
+  else if(S.typed[S.wi]===S.words[S.wi])c--; // last word closed with a space: that space does not count
+  return c;
+}
+function tick(){
+  S.sec++;S.history.push({t:S.sec,wpm:correctChars()/5/(S.sec/60),raw:S.secChars*12,err:S.secErr});
+  S.secChars=0;S.secErr=0;live();if(cfg.mode==='time')setProg((S.sec+1)/cfg.time);
+  if(cfg.mode==='time'&&S.sec>=cfg.time)finish();
+}
+function live(){
+  $('#live-main').textContent=cfg.mode==='time'?Math.max(0,cfg.time-S.sec):`${S.committed}/${S.words.length}`;
+  $('#live-wpm').textContent=(S.sec?Math.round(correctChars()/5/(S.sec/60)):0)+' ppm';
+}
+function commit(){
+  const i=S.wi,good=S.typed[i]===S.words[i];
+  if(good)S.ok++;else{S.bad++;S.secErr++;flashErr()}
+  paint(i);wordEls[i].classList.toggle('bad',!good);
+  S.committed++;S.prev='';
+  if(cfg.mode!=='time'&&S.committed>=S.words.length){finish();return}
+  S.wi++;
+  if(cfg.mode==='time'&&S.words.length-S.wi<40){const from=S.words.length;S.words.push(...gen(60));while(S.typed.length<S.words.length)S.typed.push('');addWordEls(from)}
+  if(cfg.mode!=='time')live();
+}
+inp.addEventListener('input',e=>{
+  if(!S||S.finished){inp.value='';return}
+  let v=inp.value;const bad0=S.bad;
+  const composing=e.isComposing||e.inputType==='insertFromComposition';
+  if(!composing&&v.length>S.prev.length&&v.startsWith(S.prev))account(S.prev.length,v.slice(S.prev.length));
+  if(!S.started&&v.trim().length)start();
+  let sp;
+  while((sp=v.indexOf(' '))>-1){
+    const before=v.slice(0,sp);v=v.slice(sp+1);
+    if(before){S.typed[S.wi]=before;commit();if(S.finished){inp.value='';return}}
+  }
+  const w=S.words[S.wi];if(v.length>w.length+8)v=v.slice(0,w.length+8);
+  if(inp.value!==v)inp.value=v;
+  S.typed[S.wi]=v;S.prev=v;paint(S.wi);
+  if(cfg.mode!=='time'&&S.wi===S.words.length-1&&v===w){finish();return}
+  if(cfg.mode!=='time')setProg((S.committed+Math.min(1,v.length/w.length))/S.words.length);
+  snd(S.bad>bad0);caret();markTyping();
+});
+inp.addEventListener('compositionend',e=>{
+  if(!S||S.finished||!e.data)return;
+  const v=inp.value;account(Math.max(0,v.length-e.data.length),e.data);
+});
+inp.addEventListener('beforeinput',e=>{
+  if(!S||S.finished)return;
+  if(e.inputType&&e.inputType.startsWith('delete')&&inp.value===''&&S.wi>0){
+    const p=S.wi-1;
+    if(S.typed[p]!==S.words[p]){e.preventDefault();S.wi=p;S.committed--;inp.value=S.typed[p];S.prev=inp.value;
+      wordEls[p].classList.remove('bad');paint(p);caret();markTyping();if(cfg.mode!=='time')live()}
+  }
+});
+inp.addEventListener('keydown',e=>{if(e.getModifierState)$('#caps').hidden=!e.getModifierState('CapsLock');if(/^(Arrow|Home|End|Page)/.test(e.key)||((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'))e.preventDefault()});
+inp.addEventListener('focus',()=>{area.classList.remove('paused');inp.setSelectionRange(inp.value.length,inp.value.length)});
+inp.addEventListener('blur',()=>{if(S&&S.started&&!S.finished)area.classList.add('paused')});
+const focusInput=()=>{if(!body.classList.contains('open')&&S&&!S.finished)inp.focus({preventScroll:true})};
+area.addEventListener('mousedown',e=>{e.preventDefault();focusInput()});
+document.addEventListener('mousemove',()=>body.classList.remove('typing'));
+document.addEventListener('keydown',e=>{
+  if(body.classList.contains('open')){if(e.key==='Escape')openDrawer(false);return}
+  const a=document.activeElement,free=a===inp||a===body||!a;
+  if(e.key==='Escape'){openDrawer(true);return}
+  if(S&&S.finished&&tooSoon()){if(e.key.length===1||e.key==='Enter'||e.key==='Tab')e.preventDefault();return}
+  if(e.key==='Tab'&&free){e.preventDefault();reset();focusInput();return}
+  if(S&&S.finished){if(tooSoon()){if(e.key.length===1||e.key==='Enter'||e.key==='Tab')e.preventDefault();return}if(e.key==='Enter'&&free){e.preventDefault();reset();focusInput()}return}
+  if(a!==inp&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!(a&&/^(INPUT|BUTTON)$/.test(a.tagName)))focusInput();
+});
+// keys still in flight when a test ends must not start the next one
+const tooSoon=()=>S&&S.finished&&performance.now()-(S.doneAt||0)<1200;
+$('#next').onclick=()=>{if(tooSoon())return;reset();focusInput()};
+$('#again').onclick=()=>{if(tooSoon())return;reset(true);focusInput()};
+$('#copy').onclick=async e=>{
+  const b=e.currentTarget;let ok=true;
+  try{await navigator.clipboard.writeText(S.summary||'')}catch(err){ok=false}
+  b.textContent=ok?'Copiado':'No se pudo copiar';setTimeout(()=>b.textContent='Copiar resultado',1600);
+};
+
+/* ---------- results ---------- */
+function finish(){
+  S.finished=true;clearInterval(S.timer);clearTimeout(idleT);
+  const dur=cfg.mode==='time'?cfg.time:Math.max(.2,(performance.now()-S.t0)/1000);
+  const cc=correctChars(),frac=dur-S.sec;
+  if(cfg.mode!=='time'&&(frac>.3||!S.history.length))
+    S.history.push({t:+dur.toFixed(1),wpm:cc/5/(dur/60),raw:S.secChars/Math.max(frac,.2)*12,err:S.secErr});
+  const mins=dur/60,wpm=cc/5/mins;
+  let typedAll=0,cor=0,inc=0,ext=0,mis=0;
+  for(let i=0;i<=S.wi;i++){const t=S.typed[i],w=S.words[i];typedAll+=t.length;
+    for(let j=0;j<Math.min(t.length,w.length);j++)t[j]===w[j]?cor++:inc++;
+    ext+=Math.max(0,t.length-w.length);if(i<S.committed)mis+=Math.max(0,w.length-t.length)}
+  const spaces=cfg.mode!=='time'&&S.committed===S.words.length?S.committed-1:S.committed;
+  const raw=(typedAll+spaces)/5/mins,acc=S.ok+S.bad?S.ok/(S.ok+S.bad)*100:0;
+  const rs=S.history.map(p=>p.raw),mean=rs.reduce((a,b)=>a+b,0)/(rs.length||1),
+        sd=Math.sqrt(rs.reduce((a,b)=>a+(b-mean)**2,0)/(rs.length||1)),cons=mean?Math.max(0,100*(1-sd/mean)):0;
+  const hist=store.get('tecleo.hist',[]);hist.push(Math.round(wpm));while(hist.length>50)hist.shift();store.set('tecleo.hist',hist);
+  const last=hist.slice(-10);$('#r-avg').textContent=Math.round(last.reduce((a,b)=>a+b,0)/last.length);
+  const sp=hist.slice(-30),lo=Math.min(...sp),hi=Math.max(...sp),sx=i=>sp.length>1?3+i/(sp.length-1)*114:60,sy=v=>hi===lo?12:21-(v-lo)/(hi-lo)*18;
+  $('#spark').innerHTML=`<svg width="120" height="24" viewBox="0 0 120 24" aria-hidden="true"><polyline points="${sp.map((v,i)=>sx(i).toFixed(1)+','+sy(v).toFixed(1)).join(' ')}" fill="none" stroke="var(--sub)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${sx(sp.length-1)}" cy="${sy(sp[sp.length-1])}" r="2.6" fill="var(--accent)"/></svg>`;
+  const miss=Object.entries(S.miss).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  $('#r-miss').textContent=miss.length?miss.map(([c,n])=>c+' ×'+n).join('  '):'ninguna';
+  const day=d=>d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(),now=new Date(),yes=new Date(now-864e5),st=store.get('tecleo.days',{last:'',streak:0,today:0});
+  if(st.last===day(now))st.today++;else{st.streak=st.last===day(yes)?st.streak+1:1;st.today=1;st.last=day(now)}
+  store.set('tecleo.days',st);
+  $('#r-streak').innerHTML=`${st.streak} ${st.streak===1?'día':'días'}<small>${st.today} hoy</small>`;
+  S.summary=`Tecleo · ${Math.round(wpm)} ppm · ${Math.round(acc)}% de precisión · `+(S.quote?'cita de '+S.quote[1]:cfg.mode==='time'?cfg.time+' s':cfg.count+' palabras');
+  setProg(1);countUp($('#r-wpm'),Math.round(wpm));$('#r-acc').textContent=Math.round(acc)+'%';
+  $('#r-raw').textContent=Math.round(raw);$('#r-cons').textContent=Math.round(cons)+'%';
+  $('#r-chars').textContent=`${cor}/${inc}/${ext}/${mis}`;$('#r-time').textContent=(Math.round(dur*10)/10)+' s';
+  $('#r-mode').textContent=cfg.mode==='quote'?'cita':(cfg.mode==='time'?`tiempo ${cfg.time}`:`palabras ${cfg.count}`)+' · '+cfg.lang;
+  const rq=$('#r-quote');rq.hidden=!S.quote;if(S.quote){rq.textContent=S.quote[0];const c=document.createElement('cite');c.textContent=S.quote[1]+(S.quote[2]?' · '+S.quote[2]:'');rq.append(c)}
+  const key=pbKey(),pb=store.get(key,0);
+  const el=$('#r-pb');el.innerHTML='';
+  if(wpm>pb&&acc>=50){store.set(key,Math.round(wpm*10)/10);if(pb){const s=document.createElement('span');s.className='pb';s.textContent='Nueva mejor marca';el.append(s)}}
+  else if(pb){const s=document.createElement('span');s.className='stat-l';s.textContent='mejor marca '+Math.round(pb);el.append(s)}
+  body.classList.remove('typing','started');inp.blur();
+  $('#test').hidden=true;$('#results').hidden=false;drawChart();S.doneAt=performance.now();
+}
+function countUp(el,to){
+  if(reduced.matches||!to){el.textContent=to;return}
+  const t0=performance.now(),run=S;
+  (function f(now){const k=Math.min(1,(now-t0)/650);el.textContent=Math.round(to*(1-(1-k)**3));if(k<1&&S===run)requestAnimationFrame(f)})(t0);
+}
+function drawChart(){
+  const box=$('#chart'),h=S.history;if(!h.length||$('#results').hidden)return;
+  const W=Math.max(300,box.clientWidth),H=210,m={l:38,r:24,t:12,b:26};
+  const top=Math.max(20,Math.ceil(Math.max(...h.map(p=>Math.max(p.wpm,p.raw)))/20)*20);
+  const t0=h[0].t,t1=h[h.length-1].t;
+  const x=t=>t1===t0?(m.l+W-m.r)/2:m.l+(t-t0)/(t1-t0)*(W-m.l-m.r), y=v=>H-m.b-v/top*(H-m.t-m.b);
+  const path=k=>h.map((p,i)=>(i?'L':'M')+x(p.t).toFixed(1)+' '+y(p[k]).toFixed(1)).join(' ');
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Velocidad a lo largo del test"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".28"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>`;
+  for(let i=0;i<=4;i++){const v=top*i/4;s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${m.l-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`}
+  const every=Math.max(1,Math.ceil(h.length/8));
+  h.forEach((p,i)=>{if(i%every===0||i===h.length-1&&i%every>every/2)s+=`<text x="${x(p.t)}" y="${H-6}" text-anchor="middle">${p.t}s</text>`});
+  s+=`<path d="${path('raw')}" fill="none" stroke="var(--sub)" stroke-width="1.5" stroke-linejoin="round" opacity=".8"/>`;
+  if(h.length>1)s+=`<path d="${path('wpm')} L${x(t1)} ${y(0)} L${x(t0)} ${y(0)} Z" fill="url(#g)"/>`;
+  s+=`<path d="${path('wpm')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  h.forEach(p=>{if(p.err)s+=`<circle cx="${x(p.t)}" cy="${y(Math.min(p.raw,top))}" r="3.5" fill="var(--err)"/>`});
+  const l=h[h.length-1];s+=`<circle cx="${x(l.t)}" cy="${y(l.wpm)}" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/>`;
+  s+=`<g id="hov" visibility="hidden"><line id="hov-l" y1="${m.t}" y2="${H-m.b}" stroke="var(--sub)" stroke-width="1" stroke-dasharray="3 3"/><circle id="hov-r" r="4" fill="var(--sub)" stroke="var(--bg)" stroke-width="2"/><circle id="hov-w" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/></g></svg><div class="tip" id="tip" hidden></div>`;
+  box.innerHTML=s;G={h,x,y,W};
+}
+let G=null;
+function hoverChart(e){
+  if(!G)return;const box=$('#chart'),r=box.getBoundingClientRect(),k=G.W/r.width,px=(e.clientX-r.left)*k;
+  let p=G.h[0];for(const q of G.h)if(Math.abs(G.x(q.t)-px)<Math.abs(G.x(p.t)-px))p=q;
+  const X=G.x(p.t),tip=$('#tip');
+  $('#hov').setAttribute('visibility','visible');
+  $('#hov-l').setAttribute('x1',X);$('#hov-l').setAttribute('x2',X);
+  $('#hov-r').setAttribute('cx',X);$('#hov-r').setAttribute('cy',G.y(Math.min(p.raw,G.y.top||Infinity)));
+  $('#hov-w').setAttribute('cx',X);$('#hov-w').setAttribute('cy',G.y(p.wpm));
+  tip.innerHTML=`<b>segundo ${p.t}</b><span>ppm<em>${Math.round(p.wpm)}</em></span><span>en bruto<em>${Math.round(p.raw)}</em></span><span>errores<em>${p.err}</em></span>`;
+  tip.hidden=false;const left=X/k+14;tip.style.left=(left+tip.offsetWidth>r.width?X/k-14-tip.offsetWidth:left)+'px';
+}
+$('#chart').addEventListener('pointermove',hoverChart);$('#chart').addEventListener('pointerdown',hoverChart);
+$('#chart').addEventListener('pointerleave',()=>{if(!G)return;$('#hov').setAttribute('visibility','hidden');$('#tip').hidden=true});
+
+/* ---------- boot ---------- */
+function boot(data){
+  if(data&&data.cfg)cfg=Object.assign(cfg,data.cfg);
+  palButtons();reset();applyLook();
+  new ResizeObserver(()=>{relayout();drawChart()}).observe($('main'));
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(relayout);
+  focusInput();
+}
+window.claude?.hot?.snapshot?.(()=>({cfg}));
+window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
+</script>
+</body>
+</html>
