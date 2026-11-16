@@ -72,7 +72,7 @@ kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var
 /* one flag at a time */
 .solo{display:grid;justify-items:center;gap:22px;padding:22px 0 60px}
 .frame{position:relative;width:min(560px,100%);aspect-ratio:4/3}
-.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:14px;box-shadow:0 0 0 1px var(--line);filter:drop-shadow(0 18px 40px color-mix(in srgb,#000 38%,transparent))}
+.frame img{position:absolute;inset:0;margin:auto;border-radius:10px;box-shadow:0 0 0 1px var(--line);filter:drop-shadow(0 18px 40px color-mix(in srgb,#000 38%,transparent))}
 .solo p{margin:0;color:var(--sub);display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px}
 .dots{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;max-width:560px}
 .dots i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background-color .4s,transform .4s}
@@ -82,7 +82,8 @@ kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var
 /* the wall */
 .wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:20px 14px;padding:6px 0 30px}
 .tile{margin:0;display:grid;gap:6px;align-content:start;animation:pop .45s cubic-bezier(.2,.8,.2,1) backwards}
-.tile img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;box-shadow:0 0 0 1px var(--line);transition:opacity .6s,filter .6s,box-shadow .4s,transform .4s cubic-bezier(.2,.8,.2,1)}
+.tile .cell{aspect-ratio:4/3;display:grid;place-items:center}
+.tile img{display:block;border-radius:6px;box-shadow:0 0 0 1px var(--line);transition:opacity .6s,filter .6s,box-shadow .4s,transform .4s cubic-bezier(.2,.8,.2,1)}
 .tile figcaption{min-height:34px;font-size:11.5px;line-height:1.3;color:var(--accent);text-align:center;overflow-wrap:anywhere}
 .tile figcaption small{display:block;color:var(--sub);font-size:10.5px}
 .tile.on img{opacity:.42;filter:saturate(.5);box-shadow:0 0 0 2px var(--accent)}
@@ -182,7 +183,7 @@ kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var
       <p><span><kbd>tab</kbd> saltar y volver luego</span><span><kbd>enter</kbd> borrar lo escrito</span></p>
     </section>
     <section class="wall" id="wall" hidden></section>
-    <p class="note" style="padding-bottom:40px">Banderas actuales: flag-icons (MIT). Las históricas están redibujadas de forma simplificada.</p>
+    <p class="note" style="padding-bottom:40px">Banderas actuales: flag-icons (MIT). Banderas históricas: Wikimedia Commons, vía niemela/flags. <a href="CREDITS.md" style="color:inherit">Fuente de cada una</a>.</p>
   </div>
 </main>
 
@@ -236,7 +237,9 @@ const REGIONS={eu:'Europa',af:'África',as:'Asia',na:'América del Norte',sa:'Am
 const SETS={world:['eu','af','as','na','sa','oc'],eu:['eu'],af:['af'],as:['as'],am:['na','sa'],oc:['oc'],hi:['hi']};
 const HASH={world:'mundo',eu:'europa',af:'africa',as:'asia',am:'america',oc:'oceania',hi:'historicas'};
 const fromHash=()=>Object.keys(HASH).find(k=>'#'+HASH[k]===location.hash);
-const src=id=>'flags/'+id.toLowerCase()+'.svg';
+const src=id=>'flags/'+id.toLowerCase()+'.'+(FLAGS[id].f||'svg');
+// each flag keeps its own proportions inside a 4:3 cell
+const fit=id=>{const ar=FLAGS[id].ar||4/3;return `aspect-ratio:${ar};height:auto;width:${ar>=4/3?100:(ar/(4/3)*100).toFixed(1)}%`};
 
 let cfg=Object.assign({set:'eu',mode:'one',palette:'medianoche',custom:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],timer:'on',glow:1},store.get('ondeo.cfg',{}));
 const save=()=>store.set('ondeo.cfg',cfg);
@@ -313,7 +316,7 @@ function buildWall(review){
     if(SETS[cfg.set].length>1)s+=`<div class="grp-h" data-r="${r}">${REGIONS[r]}<span><b>${ids.filter(id=>G.found.has(id)).length}</b>/${ids.length}</span></div>`;
     for(const id of ids){
       const on=G.found.has(id),cls=on?' on':review?' miss':'';
-      s+=`<figure class="tile${cls}" data-id="${id}" style="animation-delay:${Math.min(n++*6,500)}ms"><img src="${src(id)}" loading="lazy" alt="${on||review?FLAGS[id].n:'Bandera por adivinar'}"><figcaption>${on||review?caption(id):''}</figcaption></figure>`;
+      s+=`<figure class="tile${cls}" data-id="${id}" style="animation-delay:${Math.min(n++*6,500)}ms"><div class="cell"><img src="${src(id)}" style="${fit(id)}" loading="lazy" alt="${on||review?FLAGS[id].n:'Bandera por adivinar'}"></div><figcaption>${on||review?caption(id):''}</figcaption></figure>`;
     }
   }
   wall.innerHTML=s;wall.hidden=false;wall.classList.toggle('review',!!review);
@@ -322,12 +325,12 @@ function showFlag(first){
   const id=G.queue[0],img=$('#flag');if(!id)return;
   const dots=$('#dots').children;
   if(dots.length){[...dots].forEach((d,i)=>{d.className=G.found.has(G.ids[i])?'on':G.ids[i]===id?'cur':''})}
-  if(first||reduced.matches){img.src=src(id)}
+  if(first||reduced.matches){img.src=src(id);img.style.cssText=fit(id)}
   else{
     // the answered flag slides away while the next one arrives
     const old=img.cloneNode();old.removeAttribute('id');$('#frame').append(old);
     old.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX(-46px) scale(.96)'}],{duration:320,easing:'cubic-bezier(.4,0,.8,.4)'}).onfinish=()=>old.remove();
-    img.src=src(id);
+    img.src=src(id);img.style.cssText=fit(id);
     img.animate([{opacity:0,transform:'translateX(46px) scale(.96)'},{opacity:1,transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.8,.2,1)'});
   }
   if(G.queue[1])new Image().src=src(G.queue[1]);

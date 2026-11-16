@@ -10,4 +10,4 @@ Tres juegos estáticos, sin dependencias ni compilación:
 `index.html` es el índice que enlaza a los tres.
 
 Fronteras actuales: Natural Earth. Fronteras históricas: [historical-basemaps](https://github.com/aourednik/historical-basemaps) de André Ourednik (GPL-3.0).
-Banderas actuales: [flag-icons](https://github.com/lipis/flag-icons) (MIT). Las históricas están redibujadas de forma simplificada.
+Banderas actuales: [flag-icons](https://github.com/lipis/flag-icons) (MIT). Banderas históricas: Wikimedia Commons, vía [niemela/flags](https://github.com/niemela/flags); la fuente de cada una está en `ondeo/CREDITS.md`.
