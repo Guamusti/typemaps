@@ -136,6 +136,18 @@ main>.games:last-child{margin-bottom:60px}
 .hlbl{font-size:10px;text-anchor:middle;fill:var(--text);paint-order:stroke;stroke:var(--bg);stroke-width:2.5px;pointer-events:none;font-family:var(--mono)}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pair .crumb{display:block;margin:0 0 6px 4px}
 @media(max-width:620px){.opts4{grid-template-columns:1fr 1fr}.pair{grid-template-columns:1fr}}
+.qz-q{margin-bottom:6px}
+.qz-o{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.qz-o.wide{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.qz-o button{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 14px;border-radius:14px;background:var(--alt);min-height:64px;font-size:15px;transition:background-color .2s,box-shadow .2s}
+.qz-o.wide button{flex-direction:column;padding:14px}
+.qz-o button:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 16%,var(--alt))}
+.qz-o button.right{background:color-mix(in srgb,var(--accent) 34%,var(--bg));box-shadow:0 0 0 2px var(--accent)}
+.qz-o button.wrong{background:color-mix(in srgb,var(--err) 30%,var(--bg));box-shadow:0 0 0 2px var(--err)}
+.qz-o button.dim{opacity:.45}
+.qz-o .kbd{position:absolute;top:6px;left:9px;font-size:10.5px;color:var(--sub)}
+.qz-o .flag{max-width:200px}.mini-flag{width:38px;flex:none}.mini-flag .flag{width:38px}
+svg.duel{width:100%;max-width:200px;height:auto}svg.duel path{fill:var(--text);fill-rule:evenodd}
 /* más o menos */
 .hl{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
 .hl-c{padding:18px;border-radius:16px;background:var(--bg);text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:background-color .3s}
@@ -782,6 +794,106 @@ game({id:'rellena',group:'Con mapa',title:'Rellena el continente',desc:'El mapa 
     $('#rl-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.rl',region);$$('#rl-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));setup()};
     stopGame=()=>T&&T.stop();
     setup();
+  }});
+
+
+/* ---------- a generic quiz: a question, a few options, rounds or lives or a clock ---------- */
+// gen() returns (or resolves to) {q, opts:[{html,ok}], wide, after}
+function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,variant=null}){
+  game({id,group,title,desc,
+    rec:()=>{const b=REC[id]?.best;return b!=null?(time?`mejor: ${b} en ${time} s`:`mejor: ${b} de ${rounds}`):''},
+    start(main){
+      let n,right,busy,cur,T=null,running=false,ended=false;
+      main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="qz-n"></span>${time?'<span class="clock" id="qz-t"></span>':''}</div>
+        <div class="qz-q" id="qz-q"></div><div class="qz-o" id="qz-o"></div><div class="msg" id="qz-msg"></div><div class="end" id="qz-end" hidden></div></div>`;
+      const score=()=>{setScore(`<span><b>${right}</b>aciertos</span><span><b>${REC[id]?.best??0}</b>récord</span>`);$('#qz-n').textContent=time?'':`${Math.min(n+1,rounds)} de ${rounds}`};
+      async function next(){
+        if(ended)return;busy=true;$('#qz-msg').textContent='';
+        cur=await gen();if(location.hash!=='#'+id||ended)return;
+        $('#qz-q').innerHTML=cur.q;
+        $('#qz-o').className='qz-o'+(cur.wide?' wide':'')+(cur.opts.length===2?' two':cur.opts.length===3?' three':'');
+        $('#qz-o').innerHTML=cur.opts.map((o,i)=>`<button type="button" data-i="${i}"><span class="kbd">${i+1}</span>${o.html}</button>`).join('');busy=false;score();
+      }
+      function answer(i){
+        if(busy||ended||!cur||!cur.opts[i])return;busy=true;if(time&&!running){running=true;T=timerBar($('#qz-t'),time,finish)}
+        const ok=cur.opts[i].ok;if(ok)right++;n++;
+        $$('#qz-o button').forEach((b,j)=>{b.disabled=true;b.className=cur.opts[j].ok?'right':j===i?'wrong':'dim'});
+        $('#qz-msg').innerHTML=(ok?'¡Sí! ':'No. ')+(cur.after||'');$('#qz-msg').className='msg '+(ok?'ok':'bad');score();
+        setTimeout(()=>{if(ended||location.hash!=='#'+id)return;if(!time&&n>=rounds)finish();else next()},time?(ok?450:1300):(ok?1100:2300));
+      }
+      function finish(){if(ended)return;ended=true;T&&T.stop();const r=saveScore(id,right);score();$('#qz-n').textContent='';
+        endCard($('#qz-end'),{big:time?`${right}`:`${right} de ${rounds}`,sub:time?`aciertos en ${time} segundos`:title,rec:recLine(r,time?'':` de ${rounds}`),again:reset})}
+      function reset(){T&&T.stop();n=0;right=0;ended=false;running=false;$('#qz-end').hidden=true;if(time)$('#qz-t').textContent=time+' s';next()}
+      $('#qz-o').onclick=e=>{const b=e.target.closest('[data-i]');if(b)answer(+b.dataset.i)};
+      const key=e=>{if(/^[1-4]$/.test(e.key)&&document.activeElement.tagName!=='INPUT')answer(+e.key-1)};
+      document.addEventListener('keydown',key);stopGame=()=>{document.removeEventListener('keydown',key);T&&T.stop();ended=true};
+      reset();
+    }});
+}
+const opt=(html,ok)=>({html,ok});
+
+/* Banderas parecidas */
+const LOOKALIKE=[['TD','RO','AD','MD'],['ID','MC','PL'],['IE','CI','IT'],['IT','MX','IE'],['NL','LU','FR'],['AU','NZ'],['SN','ML','GN','CM'],['NO','IS','DK','FI','SE'],['SI','SK','RU','RS'],['VE','EC','CO'],['HN','NI','SV','GT'],['JO','PS','SD','KW'],['EG','IQ','SY','YE'],['QA','BH'],['AT','LV','LB'],['BE','DE'],['FR','NL','RU','LU'],['AR','UY','GT'],['BJ','GW','GH'],['CR','TH'],['MY','LR','US'],['HT','LI'],['GA','RW','UA'],['NE','IN','CI'],['SL','GA'],['CL','CZ','PH','CU','PR'],['DO','PA'],['BO','GH','LT'],['ET','GH','BO'],['TN','TR'],['PK','DZ'],['JP','BD','PW','LA'],['BA','KN'],['KE','SS'],['ZA','VU'],['HR','SK','SI','RS'],['MK','KG'],['TJ','HU','BG','IR']];
+quizGame({id:'parecidas',title:'Banderas parecidas',desc:'Banderas casi iguales: elige la que te piden. Diez rondas.',
+  gen(){const g=shuffle(rnd(LOOKALIKE).filter(k=>C[k])).slice(0,4);const ans=rnd(g);
+    return {q:`<p class="q">¿Cuál es la bandera de <em>${esc(C[ans].n)}</em>?</p>`,wide:true,opts:g.map(k=>opt(`${flagImg(k)}<span class="cap">${''}</span>`,k===ans)),after:`Las otras: ${esc(listEs(g.filter(k=>k!==ans).map(k=>C[k].n)))}`}}});
+
+/* Intruso */
+const LANDLOCKED=new Set('AF AD AM AT AZ BY BT BO BW BF BI CF TD CZ ET HU KZ XK KG LA LS LI LU MW ML MD MN NP NE MK PY RW SM RS SK SS CH TJ TM UG UZ VA ZM ZW'.split(' '));
+const pickN=(list,n)=>shuffle([...list]).slice(0,n);
+quizGame({id:'intruso',title:'El intruso',desc:'Cuatro países y uno no encaja: otro continente, sin frontera, con costa… Diez rondas.',
+  gen(){
+    const big=CODES.filter(k=>C[k].km2>=20000);
+    const kinds=[
+      ()=>{const rs=['eu','af','as','sa','na','oc'];const r=rnd(rs);const same=big.filter(k=>C[k].r===r),other=big.filter(k=>C[k].r!==r);
+        const g=pickN(same,3),x=rnd(other);return {g,x,why:`${C[x].n} está en ${REGION[C[x].r]}; los otros, en ${REGION[r]}`}},
+      ()=>{const X=rnd(CODES.filter(k=>C[k].b.length>=3));const g=pickN(C[X].b,3);const x=rnd(big.filter(k=>k!==X&&!C[X].b.includes(k)&&C[k].r===C[X].r));if(!x)return null;
+        return {g,x,why:`${C[x].n} no limita con ${C[X].n}; los otros, sí`,q:`¿Cuál <em>no</em> limita con ${esc(C[X].n)}?`}},
+      ()=>{const reg=rnd(['eu','af','as','sa']);const ll=CODES.filter(k=>LANDLOCKED.has(k)&&C[k].r===reg);if(ll.length<3)return null;const g=pickN(ll,3);const x=rnd(big.filter(k=>!LANDLOCKED.has(k)&&C[k].r===reg));
+        return {g,x,why:`${C[x].n} tiene costa; ${listEs(g.map(k=>C[k].n))} no tienen salida al mar`,q:'Tres no tienen salida al mar: ¿cuál sí la tiene?'}},
+      ()=>{const S=big.filter(k=>C[k].ll[1]<-3),N=big.filter(k=>C[k].ll[1]>3);const south=Math.random()<.5;const g=pickN(south?S:N,3),x=rnd(south?N:S);
+        return {g,x,why:`${C[x].n} está en el hemisferio ${south?'norte':'sur'}; los otros, en el ${south?'sur':'norte'}`}},
+      ()=>{const many=big.filter(k=>C[k].pop>=1e8),few=big.filter(k=>C[k].pop<3e7);const g=pickN(many,3),x=rnd(few);
+        return {g,x,why:`${C[x].n} tiene ${fmtPop(C[x].pop)} de habitantes; los otros, más de 100 millones`}}];
+    let r=null;while(!r)r=rnd(kinds)();
+    const all=shuffle([...r.g,r.x]);
+    return {q:`<p class="q">${r.q||'¿Cuál es el <em>intruso</em>?'}</p>`,opts:all.map(k=>opt(`<span class="mini-flag">${flagImg(k)}</span>${esc(C[k].n)}`,k===r.x)),after:esc(r.why)}}});
+
+/* Más al norte, al sur, al este o al oeste: a quick clock game */
+quizGame({id:'brujula',title:'Brújula',desc:'¿Cuál está más al norte, al sur, al este o al oeste? Todas las que puedas en 45 segundos.',time:45,
+  gen(){const pool=CODES.filter(k=>C[k].km2>=20000);let a,b,d;
+    for(;;){a=rnd(pool);b=rnd(pool);d=rnd(['n','s','e','o']);const ax=d==='n'||d==='s'?1:0;if(a!==b&&Math.abs(C[a].ll[ax]-C[b].ll[ax])>3)break}
+    const ax=d==='n'||d==='s'?1:0,sign=d==='n'||d==='e'?1:-1,win=sign*(C[a].ll[ax]-C[b].ll[ax])>0?a:b;
+    const W={n:'al norte',s:'al sur',e:'al este',o:'al oeste'}[d];
+    return {q:`<p class="q">¿Cuál está más <em>${W}</em>?</p>`,opts:[a,b].map(k=>opt(`<span class="mini-flag">${flagImg(k)}</span>${esc(C[k].n)}`,k===win)),after:`${esc(C[win].n)} está más ${W}`}}});
+
+/* Duelo de siluetas: the real outline against its mirror images */
+quizGame({id:'duelo',title:'Duelo de siluetas',desc:'Tres siluetas de un país: solo una es la de verdad; las otras están volteadas. Diez rondas.',
+  async gen(){const k=rnd(CODES.filter(k=>C[k].d&&C[k].km2>=30000));const d=await loadSil(k);
+    const T=[['',true],['scale(-1,1)',false],['scale(1,-1)',false],['rotate(180)',false]];const pick=[T[0],...pickN(T.slice(1),2)];
+    return {q:`<p class="q">¿Cuál es la silueta real de <em>${esc(C[k].n)}</em>?</p>`,wide:true,
+      opts:shuffle(pick).map(([t,ok])=>opt(`<svg class="duel" viewBox="0 0 200 200"><g transform="translate(100 100) ${t} translate(-100 -100)"><path d="${d}"/></g></svg>`,ok)),after:''}}});
+
+/* Bandera mal pintada: the real flag against copies with swapped or changed colours */
+const FLAGTXT={};
+const getFlag=k=>FLAGTXT[k]||(FLAGTXT[k]=fetch(`${FB}${k.toLowerCase()}.svg`).then(r=>{if(!r.ok)throw 0;return r.text()}));
+const hexes=t=>{const m=new Map();for(const x of t.matchAll(/#([0-9a-f]{6}|[0-9a-f]{3})\b/gi)){let h=x[1].toLowerCase();if(h.length===3)h=h.split('').map(c=>c+c).join('');m.set(h,(m.get(h)||0)+1)}return [...m.keys()]};
+const recolor=(t,map)=>t.replace(/#([0-9a-f]{6}|[0-9a-f]{3})\b/gi,(all,h)=>{h=h.toLowerCase();if(h.length===3)h=h.split('').map(c=>c+c).join('');return map[h]?'#'+map[h]:all});
+const cdist=(a,b)=>{const p=h=>[0,2,4].map(i=>parseInt(h.substr(i,2),16));const x=p(a),y=p(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])};
+const svgURI=t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(t);
+const POOLC=['ce1126','0038a8','009639','fcd116','ffffff','000000','ff8200','75aadb','6c0b2d'];
+quizGame({id:'mal-pintada',title:'Bandera mal pintada',desc:'Cuatro versiones de una bandera y solo una tiene los colores bien. Diez rondas.',
+  async gen(){
+    for(;;){const k=rnd(CODES);let t;try{t=await getFlag(k)}catch(e){continue}
+      const cols=hexes(t);if(cols.length<2||cols.length>7)continue;
+      const fakes=new Set(),out=[];
+      for(let tries=0;tries<30&&out.length<3;tries++){const map={};
+        // only clearly different colours, or the fake would look identical
+        if(Math.random()<.5){const [a,b]=pickN(cols.slice(0,4),2);if(cdist(a,b)<140)continue;map[a]=b;map[b]=a}else{const a=rnd(cols.slice(0,4));const nc=rnd(POOLC.filter(c=>cols.every(x=>cdist(x,c)>=140)));if(!nc)continue;map[a]=nc}
+        const v=recolor(t,map);if(v===t||fakes.has(v))continue;fakes.add(v);out.push(v)}
+      if(out.length<3)continue;
+      const opts=shuffle([opt(`<img class="flag" src="${svgURI(t)}" alt="">`,true),...out.map(v=>opt(`<img class="flag" src="${svgURI(v)}" alt="">`,false))]);
+      return {q:`<p class="q">¿Cuál es la bandera correcta de <em>${esc(C[k].n)}</em>?</p>`,wide:true,opts,after:''}}
   }});
 
 /* ---------- hub and routing ---------- */
