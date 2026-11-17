@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mapeo · reto diario</title>
-<meta name="description" content="Cada día, un país: adivínalo por su silueta, y después su capital, su población y sus fronteras.">
+<meta name="description" content="Cada día, un país: adivínalo por su silueta, y después su bandera, su capital, su población y sus vecinos.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -83,6 +83,15 @@ header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-b
 .opts button.right{background:color-mix(in srgb,var(--accent) 35%,var(--bg));color:var(--text)}
 .opts button.wrong{background:color-mix(in srgb,var(--err) 35%,var(--bg))}
 .opts button.dim{opacity:.45}
+.flags button{padding:10px;display:grid;place-items:center}
+.flags img{width:100%;max-width:220px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;display:block;box-shadow:0 0 0 1px var(--line)}
+.flags button.right{box-shadow:0 0 0 3px var(--accent)}.flags button.wrong{box-shadow:0 0 0 3px var(--err)}
+.flags button.right,.flags button.wrong{background:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{padding:6px 11px;border-radius:9px;background:color-mix(in srgb,var(--accent) 22%,var(--bg))}
+.chip.miss{background:color-mix(in srgb,var(--err) 25%,var(--bg))}
+.chip.left{background:transparent;border:1px dashed var(--line);color:var(--sub)}
+.giveup{margin-top:14px;font-size:12.5px}
 .extra{margin-top:12px;font-size:12.5px;color:var(--sub)}
 .extra b{color:var(--text);font-weight:400}
 
@@ -121,27 +130,39 @@ header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-b
     <div class="guesses" id="guesses"></div>
     <div class="world" id="world" hidden></div>
   </section>
+  <section class="step locked" id="sf">
+    <h2>2 · Su bandera<span></span></h2>
+    <p class="q" id="sf-q">¿Cuál es su bandera?</p>
+    <div class="opts flags" id="sf-o"></div>
+  </section>
   <section class="step locked" id="s2">
-    <h2>2 · Su capital<span id="s2-n">0/3</span></h2>
+    <h2>3 · Su capital<span id="s2-n">0/3</span></h2>
     <p class="q" id="s2-q">¿Cuál es su capital?</p>
     <div class="field"><input id="c-in" autocomplete="off" spellcheck="false" placeholder="Escribe la capital…" aria-label="Capital"></div>
     <div class="msg" id="s2-msg">Tres intentos; cada fallo te da una pista.</div>
   </section>
   <section class="step locked" id="s3">
-    <h2>3 · Su población<span></span></h2>
+    <h2>4 · Su población<span></span></h2>
     <p class="q" id="s3-q">¿Cuántos habitantes tiene?</p>
     <div class="opts" id="s3-o"></div>
     <div class="extra" id="s3-x"></div>
   </section>
   <section class="step locked" id="s4">
-    <h2>4 · Sus fronteras<span></span></h2>
-    <p class="q" id="s4-q">¿Con cuántos países limita por tierra?</p>
+    <h2>5 · Sus vecinos<span id="s4-n"></span></h2>
+    <p class="q" id="s4-q">¿Con qué países limita por tierra?</p>
+    <div class="nb" id="s4-nb" hidden>
+      <div class="field"><input id="b-in" list="clist" autocomplete="off" spellcheck="false" placeholder="Escribe un país vecino…" aria-label="País vecino"></div>
+      <div class="msg" id="s4-msg">Nómbralos todos; los fallos no penalizan, pero cuentan.</div>
+      <div class="chips" id="s4-chips"></div>
+      <button class="ghost giveup" id="b-give" type="button">me rindo</button>
+    </div>
     <div class="opts" id="s4-o"></div>
     <div class="extra" id="s4-x"></div>
   </section>
   <section class="end" id="end" hidden></section>
-  <p class="foot">Siluetas y datos: Natural Earth. Población aproximada (estimaciones de 2019).</p>
+  <p class="foot">Siluetas y datos: Natural Earth. Población aproximada (estimaciones de 2019). Banderas: flag-icons (MIT).</p>
 </main>
+<datalist id="clist"></datalist>
 <script src="reto-data.js"></script>
 <script>
 const $=s=>document.querySelector(s);
@@ -313,6 +334,32 @@ function drawOpts(box,vals,chosen,right,label,onPick){
     else b.onclick=()=>onPick(v);box.append(b)}
 }
 
+/* ---------- flags: today's plus three from the same part of the world ---------- */
+const FB=window.claude?'flags/':'../ondeo/flags/';
+function flagOptions(){
+  const same=Object.keys(C).filter(k=>k!==ANS&&C[k].r===A.r).sort(),other=Object.keys(C).filter(k=>k!==ANS&&C[k].r!==A.r).sort();
+  const pick=[];const take=list=>{const k=list.splice(R()*list.length|0,1)[0];if(k)pick.push(k)};
+  while(pick.length<3&&same.length)take(same);while(pick.length<3)take(other);
+  const all=[ANS,...pick];for(let i=all.length-1;i>0;i--){const j=R()*(i+1)|0;[all[i],all[j]]=[all[j],all[i]]}return all;
+}
+const FLAGS=flagOptions();
+/* ---------- neighbours: name them all ---------- */
+if(!S.nb)S.nb=[];if(!S.nbx)S.nbx=[];
+const NBN=A.b.length;
+const nbDone=()=>NBN?(S.nb.length>=NBN||!!S.nbg):S.bor!=null;
+$('#clist').innerHTML=Object.keys(C).map(k=>`<option value="${C[k].n.replace(/"/g,'&quot;')}">`).join('');
+$('#b-in').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||nbDone())return;e.preventDefault();
+  const v=$('#b-in').value,k=findCountry(v),m=$('#s4-msg');$('#b-in').value='';
+  if(!k){m.textContent='No conozco ese país';m.className='msg bad';return}
+  if(k===ANS){m.textContent=`Ese es ${A.n}`;m.className='msg bad';return}
+  if(S.nb.includes(k)||S.nbx.includes(k)){m.textContent='Ese ya lo has dicho';m.className='msg bad';return}
+  if(A.b.includes(k)){S.nb.push(k);m.textContent=`${C[k].n}, sí`;m.className='msg ok'}
+  else{S.nbx.push(k);m.textContent=`${C[k].n} no limita con ${A.n}`;m.className='msg bad'}
+  save();render();if(!nbDone())$('#b-in').focus();
+});
+$('#b-give').onclick=()=>{S.nbg=1;save();render()};
+
 /* ---------- drawing the whole page from the state ---------- */
 function render(){
   drawGuesses();
@@ -320,11 +367,18 @@ function render(){
   $('#g-in').disabled=d1;$('#sil').className='sil'+(d1?(won1?' won':' lost'):'');
   if(d1){$('#g-in').placeholder=A.n;drawWorld();if(!won1&&!$('#s1-msg').classList.contains('bad')){$('#s1-msg').textContent=`Era ${A.n}`;$('#s1-msg').className='msg bad'}
     else if(won1&&$('#s1-msg').className==='msg'){$('#s1-msg').textContent=`¡Es ${A.n}! A la ${S.g.indexOf(ANS)+1}.ª`;$('#s1-msg').className='msg ok'}}
-  // step 2
-  $('#s2').classList.toggle('locked',!d1);
+  // flag
+  $('#sf').classList.toggle('locked',!d1);
+  $('#sf-q').innerHTML=`¿Cuál es la bandera de <em></em>?`;$('#sf-q em').textContent=d1?A.n:'este país';
+  {const box=$('#sf-o');box.innerHTML='';for(const k of FLAGS){const b=document.createElement('button');b.type='button';
+    b.innerHTML=`<img src="${FB}${k.toLowerCase()}.svg" alt="${S.flag!=null?C[k].n:'Bandera'}" loading="lazy">`;
+    if(S.flag!=null){b.disabled=true;b.className=k===ANS?'right':k===S.flag?'wrong':'dim';b.title=C[k].n}else b.onclick=()=>{S.flag=k;save();render()};box.append(b)}}
+  const df=S.flag!=null;
+  // capital
+  $('#s2').classList.toggle('locked',!df);
   $('#s2-q').innerHTML=`¿Cuál es la capital de <em></em>?`;$('#s2-q em').textContent=d1?A.n:'este país';
   const d2=s2done(),won2=S.cap.some(capOK);
-  $('#s2-n').textContent=`${S.cap.length}/3`;$('#c-in').disabled=!d1||d2;
+  $('#s2-n').textContent=`${S.cap.length}/3`;$('#c-in').disabled=!df||d2;
   const m2=$('#s2-msg');
   if(won2){m2.textContent=`¡Sí, ${A.cap.n}!`+(S.cap.length>1?` A la ${S.cap.length}.ª`:'');m2.className='msg ok'}
   else if(d2){m2.textContent=`Era ${A.cap.n}`;m2.className='msg bad'}
@@ -337,10 +391,27 @@ function render(){
   // step 4
   const d3=S.pop!=null;$('#s4').classList.toggle('locked',!d3);
   $('#s4-q').innerHTML=`¿Con cuántos países limita <em></em> por tierra?`;$('#s4-q em').textContent=d1?A.n:'este país';
-  drawOpts($('#s4-o'),BORS,S.bor,A.b.length,v=>v===0?'Ninguno':v===1?'1 país':v+' países',v=>{S.bor=v;save();render()});
-  $('#s4-x').innerHTML='';if(S.bor!=null){const x=$('#s4-x');x.textContent=A.b.length?'Limita con '+listEs(A.b.map(k=>C[k].n).sort((a,b)=>a.localeCompare(b,'es')))+'.':'No tiene fronteras terrestres con ningún país.'}
-  if(d1&&!d2&&document.activeElement!==$('#c-in')&&S.cap.length===0)setTimeout(()=>$('#c-in').focus({preventScroll:true}),400);
-  if(S.bor!=null)finish();
+  $('#s4-x').textContent='';
+  if(!NBN){
+    // an island state: the question becomes how many neighbours it has
+    $('#s4-q').innerHTML=`¿Con cuántos países limita <em></em> por tierra?`;$('#s4-q em').textContent=A.n;$('#s4-n').textContent='';
+    drawOpts($('#s4-o'),BORS,S.bor,0,v=>v===0?'Ninguno':v===1?'1 país':v+' países',v=>{S.bor=v;save();render()});
+    if(S.bor!=null)$('#s4-x').textContent='No tiene fronteras terrestres con ningún país.';
+  }else{
+    $('#s4-o').hidden=true;$('#s4-nb').hidden=false;
+    $('#s4-q').innerHTML=`¿Con qué países limita <em></em> por tierra?`;$('#s4-q em').textContent=d1?A.n:'este país';
+    $('#s4-n').textContent=`${S.nb.length}/${NBN}`;
+    const done=nbDone();$('#b-in').disabled=!d3||done;$('#b-give').hidden=done;
+    const ch=$('#s4-chips');ch.innerHTML='';
+    const add=(t,c)=>{const e=document.createElement('span');e.className='chip'+(c?' '+c:'');e.textContent=t;ch.append(e)};
+    for(const k of S.nb)add(C[k].n);
+    if(done)for(const k of A.b.filter(k=>!S.nb.includes(k)).sort((a,b)=>C[a].n.localeCompare(C[b].n,'es')))add(C[k].n,'miss');
+    else for(let i=S.nb.length;i<NBN;i++)add('?','left');
+    if(done){const m=$('#s4-msg');m.textContent=S.nb.length===NBN?`¡Todos! ${NBN===1?'Su único vecino':'Los '+NBN}${S.nbx.length?`, con ${S.nbx.length} ${S.nbx.length===1?'fallo':'fallos'}`:', sin fallos'}`:`Te faltaron ${NBN-S.nb.length} (en rojo)`;m.className='msg '+(S.nb.length===NBN?'ok':'bad')}
+    if(d3&&!done&&S.nb.length===0&&!S.nbx.length&&document.activeElement!==$('#b-in'))setTimeout(()=>$('#b-in').focus({preventScroll:true}),400);
+  }
+  if(df&&!d2&&document.activeElement!==$('#c-in')&&S.cap.length===0)setTimeout(()=>$('#c-in').focus({preventScroll:true}),400);
+  if(nbDone())finish();
 }
 const listEs=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' y '+a[a.length-1];
 
@@ -349,8 +420,9 @@ function result(){
   const won1=S.g.includes(ANS);
   const sq=S.g.map(k=>k===ANS?'🟩':(p=>p>=90?'🟨':p>=75?'🟧':'🟥')(prox(dist(C[k].ll,A.ll))));
   const capN=S.cap.findIndex(capOK)+1;
-  const pts=(won1?1:0)+(capN?1:0)+(S.pop===sig(A.pop)?1:0)+(S.bor===A.b.length?1:0);
-  return {won1,sq,capN,pts};
+  const flag=S.flag===ANS,pop=S.pop===sig(A.pop),nbAll=NBN?S.nb.length===NBN:S.bor===0;
+  const pts=(won1?1:0)+(flag?1:0)+(capN?1:0)+(pop?1:0)+(nbAll?1:0);
+  return {won1,sq,capN,pts,flag,pop,nbAll,nbTxt:NBN?`${S.nb.length}/${NBN}`:(nbAll?'✓':'✗')};
 }
 let ended=false;
 function finish(){
@@ -366,8 +438,8 @@ function finish(){
   if(ended)return;ended=true;
   const e=$('#end');e.hidden=false;
   const share=shareText(r);
-  e.innerHTML=`<div class="big">${r.pts} de 4</div><div class="line">${r.sq.join('')}</div>
-    <div class="sub">${r.won1?`País a la ${S.g.length}.ª`:'País sin adivinar'} · capital ${r.capN?`a la ${r.capN}.ª`:'fallada'} · población ${S.pop===sig(A.pop)?'✓':'✗'} · fronteras ${S.bor===A.b.length?'✓':'✗'}</div>
+  e.innerHTML=`<div class="big">${r.pts} de 5</div><div class="line">${r.sq.join('')}</div>
+    <div class="sub">${r.won1?`País a la ${S.g.length}.ª`:'País sin adivinar'} · bandera ${r.flag?'✓':'✗'} · capital ${r.capN?`a la ${r.capN}.ª`:'fallada'} · población ${r.pop?'✓':'✗'} · vecinos ${r.nbTxt}</div>
     <div class="acts"><button class="btn" id="share" type="button">compartir</button>${FREE?'<button class="btn soft" id="again" type="button">otro país</button>':'<a class="btn soft" href="#libre" style="text-decoration:none">modo ilimitado</a>'}</div>
     <div class="sub" style="margin-top:14px" id="next"></div>`;
   $('#share').onclick=async()=>{
@@ -381,11 +453,11 @@ function finish(){
   if(!render.first)setTimeout(()=>e.scrollIntoView({behavior:'smooth',block:'center'}),250);
 }
 function shareText(r){
-  return `Mapeo · ${FREE?'ilimitado':'reto '+today.toLocaleDateString('es',{day:'numeric',month:'short'})} · ${r.pts}/4\n🗺️ ${r.sq.join('')}${r.won1?'':' ✗'}\n🏛️ ${r.capN?`✓ ${r.capN}/3`:'✗'}  👥 ${S.pop===sig(A.pop)?'✓':'✗'}  🧱 ${S.bor===A.b.length?'✓':'✗'}\n${location.origin.startsWith('http')&&!/claude/.test(location.host)?location.origin+location.pathname:'typemaps.vercel.app/mapeo/reto.html'}`;
+  return `Mapeo · ${FREE?'ilimitado':'reto '+today.toLocaleDateString('es',{day:'numeric',month:'short'})} · ${r.pts}/5\n🗺️ ${r.sq.join('')}${r.won1?'':' ✗'}\n🚩 ${r.flag?'✓':'✗'}  🏛️ ${r.capN?`✓ ${r.capN}/3`:'✗'}  👥 ${r.pop?'✓':'✗'}  🧱 ${r.nbTxt}\n${location.origin.startsWith('http')&&!/claude/.test(location.host)?location.origin+location.pathname:'typemaps.vercel.app/mapeo/reto.html'}`;
 }
 function drawStreak(){
   if(FREE){const F=store.get('mapeo.reto.libre.stats',{played:0,pts:0,found:0});
-    $('#streak').innerHTML=`<span title="Partidas en modo ilimitado"><b>${F.played}</b>${F.played===1?'partida':'partidas'}</span><span title="Puntos de media, sobre 4"><b>${F.played?(F.pts/F.played).toLocaleString('es',{maximumFractionDigits:1}):'–'}</b>media</span>`;return}
+    $('#streak').innerHTML=`<span title="Partidas en modo ilimitado"><b>${F.played}</b>${F.played===1?'partida':'partidas'}</span><span title="Puntos de media, sobre 5"><b>${F.played?(F.pts/F.played).toLocaleString('es',{maximumFractionDigits:1}):'–'}</b>media</span>`;return}
   const y=new Date(today);y.setDate(y.getDate()-1);
   const live=ST.last===TODAY||ST.last===dkey(y)?ST.streak:0;
   $('#streak').innerHTML=`<span title="Días seguidos completando el reto"><b>${live}</b>${live===1?'día':'días seguidos'}</span><span title="Tu mejor racha"><b>${ST.best}</b>mejor</span>`;
