@@ -86,6 +86,30 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 .zoom button:hover{color:var(--text)}
 #tip{position:absolute;padding:5px 10px;border-radius:9px;background:var(--alt);border:1px solid var(--line);font-size:12px;white-space:nowrap;pointer-events:none;transform:translate(-50%,-140%)}
 
+/* regions map, modes */
+.pick select{appearance:none;font:inherit;color:var(--text);background-color:var(--alt);border:0;border-radius:12px;padding:10px 36px 10px 14px;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);
+  background-position:calc(100% - 19px) 52%,calc(100% - 14px) 52%;background-size:5px 5px;background-repeat:no-repeat;transition:background-color .45s}
+.pick select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.count em{display:block;margin-top:6px;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);min-height:1em}
+.ask{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:6px 0 8px;border-bottom:2px solid var(--accent)}
+.ask span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
+.ask b{font-weight:400;font-size:24px;line-height:1.2}
+#hint.bad{color:var(--err)}
+.land.off,.mk.off{fill:color-mix(in srgb,var(--land) 42%,var(--bg));pointer-events:none}
+.land.late,.mk.late{fill:color-mix(in srgb,var(--accent) 52%,var(--land))}
+.land.bad,.mk.bad{fill:var(--err)!important;transition:none}
+.land.tgt,.mk.tgt{fill:var(--text);animation:tgt 1.2s ease-in-out infinite}
+@keyframes tgt{50%{fill:color-mix(in srgb,var(--text) 45%,var(--accent))}}
+[data-mode="click"] .land:not(.off):not(.on):not(.late):not(.miss),[data-mode="click"] .mk:not(.off){cursor:pointer}
+[data-mode="click"] .land:not(.off):not(.on):not(.late):not(.miss):hover{fill:color-mix(in srgb,var(--land) 72%,var(--text))}
+[data-mode="click"] .stage{cursor:default}
+#map path.cb{fill:none;stroke:var(--sub);stroke-width:1.3;pointer-events:none}
+#map path.fr{fill:color-mix(in srgb,var(--alt) 38%,var(--bg));stroke:var(--line);stroke-width:1}
+.sub-map #map path.land{stroke-width:.45}
+.lbl.learn{font-weight:500}
+.chip.late{background:color-mix(in srgb,var(--accent) 22%,var(--alt))}
+
 /* immersive mode: only the map, with the control row floating over it */
 .full header,.full .board,.full main .note{display:none}
 .full .wrap{max-width:none;padding:0}
@@ -93,7 +117,7 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 .full #map{height:100%;max-height:none}
 .full .bar{position:fixed;z-index:5;top:14px;left:50%;transform:translateX(-50%);width:min(780px,calc(100% - 28px));padding:10px 20px 14px;align-items:center;
   background:color-mix(in srgb,var(--alt) 84%,transparent);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:18px}
-.full .count{font-size:40px}.full .count small{font-size:20px}
+.full .count{font-size:40px}.full .count small{font-size:20px}.full .count em{display:none}
 .full #inp{font-size:18px}
 .full #hint{position:static;margin-top:4px;min-height:16px}
 .full .glow{display:none}
@@ -156,11 +180,19 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
     <div class="seg" id="maps" aria-label="Mapa">
       <button type="button" data-map="europe">Europa</button>
       <button type="button" data-map="world">Mundo</button>
+      <button type="button" data-map="sub">Regiones</button>
     </div>
     <div class="seg" id="maps-h" aria-label="Europa en otra época" title="Europa en otra época">
       <button type="button" data-map="e1914">1914</button>
       <button type="button" data-map="e1920">1920</button>
       <button type="button" data-map="e1938">1938</button>
+    </div>
+    <label class="pick" id="pick" hidden><select id="subc" aria-label="País de las regiones"><option value="ES">España</option></select></label>
+    <div class="seg soft" data-key="mode" aria-label="Modo de juego">
+      <button type="button" data-val="type" title="Escribe todos los nombres que sepas">escribir</button>
+      <button type="button" data-val="click" title="Te decimos un nombre y lo señalas en el mapa">señalar</button>
+      <button type="button" data-val="learn" title="Aprende unos pocos cada vez hasta saberlos todos">aprender</button>
+      <button type="button" data-val="explore" title="Mira el mapa con todos los nombres">explorar</button>
     </div>
     <button class="ghost push" id="open-settings" type="button">ajustes</button>
   </div>
@@ -169,19 +201,22 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 <main>
   <div class="wrap">
     <div class="bar">
-      <div class="count"><span id="n">0</span><small>/<span id="total">0</span></small></div>
+      <div class="count"><span id="n">0</span><small>/<span id="total">0</span></small><em id="count-l"></em></div>
       <div class="field" id="play">
+        <div class="ask" id="ask" hidden><span id="ask-l">Señala</span><b id="ask-n"></b></div>
         <input id="inp" type="text" placeholder="Escribe un país…" aria-label="Escribe el nombre de un país" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         <div id="hint" aria-live="polite"></div>
       </div>
       <div class="side" id="side">
         <span id="clock">5:00</span>
+        <button class="ghost" id="skip" type="button">saltar</button>
         <button class="ghost" id="giveup" type="button">rendirse</button>
         <button class="ghost" id="restart" type="button">reiniciar</button>
       </div>
       <div class="done" id="done" hidden>
         <b id="d-title"></b><span id="d-detail"></span><span id="d-best"></span>
         <button class="btn" id="again" type="button">Jugar otra vez</button>
+        <button class="ghost" id="d-alt" type="button" hidden></button>
       </div>
     </div>
 
@@ -197,7 +232,7 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
     </div>
 
     <div class="board" id="board"></div>
-    <p class="note" style="padding-bottom:40px">Fronteras actuales: Natural Earth. Fronteras históricas: historical-basemaps de André Ourednik (GPL-3.0), aproximadas.</p>
+    <p class="note" style="padding-bottom:40px">Fronteras actuales: Natural Earth. Regiones: Natural Earth y geoBoundaries para Letonia, Ucrania, Moldavia, Montenegro, Islandia, Finlandia, Luxemburgo, Bosnia y Herzegovina, Chipre y Macedonia del Norte (datos de © colaboradores de OpenStreetMap, ODbL, y de sus agencias cartográficas, CC BY). Eslovenia y Macedonia del Norte, por regiones estadísticas. Fronteras históricas: historical-basemaps de André Ourednik (GPL-3.0), aproximadas.</p>
   </div>
 </main>
 
@@ -237,6 +272,7 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v)
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
 const NS='http://www.w3.org/2000/svg';
 const reduced=matchMedia('(prefers-reduced-motion:reduce)');
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 // [fondo, paneles, texto, secundario, acento, error]
 const PALETTES=[
@@ -254,10 +290,11 @@ const PALETTES=[
 ];
 const REGIONS={eu:'Europa',af:'África',as:'Asia',na:'América del Norte',sa:'América del Sur',oc:'Oceanía'};
 const LIMIT={europe:300,world:900,e1914:180,e1920:180,e1938:180};
-const HASH={europe:'europa',world:'mundo',e1914:'europa-1914',e1920:'europa-1920',e1938:'europa-1938'};
+const HASH={europe:'europa',world:'mundo',sub:'regiones',e1914:'europa-1914',e1920:'europa-1920',e1938:'europa-1938'};
 const fromHash=()=>Object.keys(HASH).find(k=>'#'+HASH[k]===location.hash);
+const MASTER=3; // correct answers in a row that count as learned
 
-let cfg=Object.assign({map:'europe',palette:'medianoche',custom:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],timer:'on',labels:'flash',glow:1},store.get('mapeo.cfg',{}));
+let cfg=Object.assign({map:'europe',subc:'ES',mode:'type',palette:'medianoche',custom:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],timer:'on',labels:'flash',glow:1},store.get('mapeo.cfg',{}));
 const save=()=>store.set('mapeo.cfg',cfg);
 const root=document.documentElement, body=document.body, svg=$('#map'), stage=$('#stage'), inp=$('#inp');
 
@@ -284,15 +321,22 @@ function syncUI(){
   $$('.seg[data-key]').forEach(s=>[...s.children].forEach(b=>b.setAttribute('aria-pressed',String(cfg[s.dataset.key])===b.dataset.val)));
   $$('[data-pal]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pal===cfg.palette));
   $$('[data-map]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.map===cfg.map));
+  $('#pick').hidden=cfg.map!=='sub';
   const c=activeColors();for(let i=0;i<6;i++)$('#c-'+i).value=c[i];
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   const seg=b.closest('.seg[data-key]');
-  if(seg&&b.dataset.val!==undefined){const k=seg.dataset.key;cfg[k]=k==='glow'?+b.dataset.val:b.dataset.val;save();applyLook();if(k==='timer')newGame();if(k==='labels')syncLabels();return}
+  if(seg&&b.dataset.val!==undefined){
+    const k=seg.dataset.key;cfg[k]=k==='glow'?+b.dataset.val:b.dataset.val;save();applyLook();
+    if(k==='timer'||k==='mode'){start();focusInput()}
+    if(k==='labels')syncLabels();
+    return;
+  }
   if(b.dataset.pal){cfg.palette=b.dataset.pal;save();applyLook();return}
-  if(b.dataset.map){cfg.map=b.dataset.map;save();syncUI();try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}newGame();focusInput()}
+  if(b.dataset.map){cfg.map=b.dataset.map;save();syncUI();try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}start();focusInput()}
 });
+$('#subc').addEventListener('change',e=>{cfg.subc=e.target.value;save();start();focusInput()});
 for(let i=0;i<6;i++)$('#c-'+i).addEventListener('input',e=>{
   if(cfg.palette!=='custom'){cfg.custom=[...activeColors()];cfg.palette='custom'}
   cfg.custom[i]=e.target.value;save();palButtons();applyLook();
@@ -302,14 +346,17 @@ $('#open-settings').onclick=()=>openDrawer(true);$('#close-settings').onclick=()
 
 /* ---------- map view: pan and zoom with the same exponential smoothing as Tecleo's caret ---------- */
 const V={x:0,y:0,k:1}, T={x:0,y:0,k:1};let M=null,els={},marks=[],viewG,fxG,lblG,vraf=0,vlast=0;
+const maxK=()=>M&&M.sub?160:40;
+const fsBase=()=>M.w/(M.sub?118:82), mkBase=()=>M.w/(M.sub?900:230);
 function clampT(){
-  T.k=Math.max(1,Math.min(40,T.k));
+  T.k=Math.max(1,Math.min(maxK(),T.k));
   T.x=Math.min(0,Math.max(M.w-M.w*T.k,T.x));T.y=Math.min(0,Math.max(M.h-M.h*T.k,T.y));
 }
 function drawView(){
   viewG.setAttribute('transform',`translate(${V.x.toFixed(2)} ${V.y.toFixed(2)}) scale(${V.k.toFixed(4)})`);
-  if(drawView.k!==V.k){drawView.k=V.k;const r=(M.w/230/V.k).toFixed(3);for(const m of marks)m.setAttribute('r',r);
-    const fs=(M.w/82/V.k).toFixed(3),sw=(M.w/560/V.k).toFixed(3);for(const t of lblG.children){t.setAttribute('font-size',fs);t.setAttribute('stroke-width',sw)}}
+  if(drawView.k!==V.k){drawView.k=V.k;const r=(mkBase()/V.k).toFixed(4);for(const m of marks)m.setAttribute('r',r);
+    const fs=(fsBase()/V.k).toFixed(4),sw=(fsBase()/7/V.k).toFixed(4);for(const t of lblG.children){t.setAttribute('font-size',fs);t.setAttribute('stroke-width',sw)}
+    cullLabels();}
 }
 function stepView(now){
   const dt=Math.min(48,Math.max(1,now-vlast));vlast=now;const a=1-Math.exp(-dt/85);
@@ -323,12 +370,26 @@ function moveView(snap){
   if(!vraf){vlast=performance.now();vraf=requestAnimationFrame(stepView)}
 }
 function svgPoint(e){const m=svg.getScreenCTM();return m?new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()):{x:0,y:0}}
-function zoomAt(px,py,f,snap){const k=Math.max(1,Math.min(40,T.k*f)),r=k/T.k;T.x=px-(px-T.x)*r;T.y=py-(py-T.y)*r;T.k=k;moveView(snap)}
+function zoomAt(px,py,f,snap){const k=Math.max(1,Math.min(maxK(),T.k*f)),r=k/T.k;T.x=px-(px-T.x)*r;T.y=py-(py-T.y)*r;T.k=k;moveView(snap)}
+function fitBox(b,snap,fill=.86){
+  const w=Math.max(b[2]-b[0],1),h=Math.max(b[3]-b[1],1);
+  T.k=Math.max(1,Math.min(maxK(),fill*Math.min(M.w/w,M.h/h)));
+  T.x=M.w/2-(b[0]+w/2)*T.k;T.y=M.h/2-(b[1]+h/2)*T.k;moveView(snap);
+}
+const item=id=>M.byId[id];
 function flyTo(id){
-  const el=els[id];if(!el)return;let cx,cy,k;
-  if(el.tagName==='path'){const b=el.getBBox();cx=b.x+b.width/2;cy=b.y+b.height/2;k=Math.min(14,.45*Math.min(M.w/Math.max(b.width,1),M.h/Math.max(b.height,1)))}
-  else{cx=+el.getAttribute('cx');cy=+el.getAttribute('cy');k=10}
-  T.k=Math.max(1.6,k);T.x=M.w/2-cx*T.k;T.y=M.h/2-cy*T.k;moveView();
+  const it=item(id);if(!it)return;const z=Math.max(it.z||4,1.5);
+  fitBox([it.c[0]-z,it.c[1]-z,it.c[0]+z,it.c[1]+z],false,M.sub?.35:.45);
+}
+// keep a target on screen and big enough to see, without throwing away the context around it
+function reveal(id){
+  const it=item(id);if(!it)return;
+  const rect=svg.getBoundingClientRect(),px=rect.width/M.w;
+  const onScreen=(it.z||2)*V.k*px;
+  const x=it.c[0]*T.k+T.x,y=it.c[1]*T.k+T.y;
+  const inside=x>M.w*.08&&x<M.w*.92&&y>M.h*.08&&y<M.h*.92;
+  if(onScreen<16){const need=Math.min(maxK(),16/((it.z||2)*px)*1.6);T.k=Math.max(T.k,need);T.x=M.w/2-it.c[0]*T.k;T.y=M.h/2-it.c[1]*T.k;moveView()}
+  else if(!inside){T.x=M.w/2-it.c[0]*T.k;T.y=M.h/2-it.c[1]*T.k;moveView()}
 }
 stage.addEventListener('wheel',e=>{e.preventDefault();const p=svgPoint(e);zoomAt(p.x,p.y,Math.exp(-e.deltaY*.0018))},{passive:false});
 const ptrs=new Map();let pinch=0,moved=0;
@@ -338,17 +399,20 @@ stage.addEventListener('pointermove',e=>{
   const prev=ptrs.get(e.pointerId);if(!prev){hover(e);return}
   const p=svgPoint(e);
   if(ptrs.size===1){const dx=p.x-prev.x,dy=p.y-prev.y;moved+=Math.abs(dx)+Math.abs(dy);
-    if(moved>2){stage.classList.add('drag');try{stage.setPointerCapture(e.pointerId)}catch(err){}T.x+=dx;T.y+=dy;moveView(true)}
+    if(moved>4){stage.classList.add('drag');try{stage.setPointerCapture(e.pointerId)}catch(err){}T.x+=dx;T.y+=dy;moveView(true)}
   }else if(ptrs.size===2){ptrs.set(e.pointerId,p);const [a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y);
     if(pinch>0)zoomAt((a.x+b.x)/2,(a.y+b.y)/2,d/pinch,true);pinch=d;return}
   ptrs.set(e.pointerId,p);
 });
-const endPtr=e=>{ptrs.delete(e.pointerId);pinch=0;stage.classList.remove('drag')};
+const endPtr=e=>{
+  const was=ptrs.has(e.pointerId)&&ptrs.size===1&&moved<=4;ptrs.delete(e.pointerId);pinch=0;stage.classList.remove('drag');
+  if(was&&e.type==='pointerup'){const t=e.target.closest&&e.target.closest('[data-id]');if(t)mapClick(t.dataset.id,t)}
+};
 stage.addEventListener('pointerup',endPtr);stage.addEventListener('pointercancel',endPtr);
 stage.addEventListener('pointerleave',()=>{$('#tip').hidden=true});
-stage.addEventListener('dblclick',e=>{if(e.target.closest('.zoom'))return;const p=svgPoint(e);zoomAt(p.x,p.y,2)});
+stage.addEventListener('dblclick',e=>{if(e.target.closest('.zoom')||cfg.mode==='click')return;const p=svgPoint(e);zoomAt(p.x,p.y,2)});
 $('#z-in').onclick=()=>zoomAt(M.w/2,M.h/2,1.7);$('#z-out').onclick=()=>zoomAt(M.w/2,M.h/2,1/1.7);
-$('#z-reset').onclick=()=>{T.x=0;T.y=0;T.k=1;moveView()};
+$('#z-reset').onclick=()=>fitScope();
 function setFull(on){
   body.classList.toggle('full',on);$('#z-full').textContent=on?'✕':'⛶';$('#z-full').setAttribute('aria-label',on?'Salir de pantalla completa':'Pantalla completa');
   try{if(on)root.requestFullscreen?.().catch(()=>{});else if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{})}catch(err){}
@@ -356,153 +420,354 @@ function setFull(on){
 }
 $('#z-full').onclick=()=>setFull(!body.classList.contains('full'));
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&body.classList.contains('full'))setFull(false)});
+const known=id=>G&&(G.ended||G.found.has(id)||cfg.mode==='explore'||(cfg.mode==='learn'&&(G.lv[id]||0)>=MASTER));
 function hover(e){
   const t=e.target.closest&&e.target.closest('[data-id]'),tip=$('#tip');
-  if(!t||!(G.ended||G.found.has(t.dataset.id))){tip.hidden=true;return}
+  if(!t||!G||!G.in.has(t.dataset.id)||!known(t.dataset.id)){tip.hidden=true;return}
   const r=stage.getBoundingClientRect();tip.textContent=COUNTRIES[t.dataset.id].n;tip.hidden=false;
   tip.style.left=(e.clientX-r.left)+'px';tip.style.top=(e.clientY-r.top)+'px';
 }
 
+/* ---------- loading the regions map on demand ---------- */
+function ensure(map,cb){
+  if(MAPS[map])return cb();
+  hint('Cargando el mapa de regiones…');$('#n').textContent='·';
+  const s=document.createElement('script');s.src='subdiv.js';
+  s.onload=()=>{fillPick();cb()};
+  s.onerror=()=>hint('No se pudo cargar el mapa de regiones. Recarga la página para intentarlo de nuevo.','bad');
+  document.head.append(s);
+}
+function fillPick(){
+  const sel=$('#subc'),cs=MAPS.sub.countries,count={};
+  for(const it of MAPS.sub.items){const r=COUNTRIES[it.id].r;count[r]=(count[r]||0)+1}
+  const opts=Object.keys(cs).sort((a,b)=>cs[a].n.localeCompare(cs[b].n,'es'));
+  sel.innerHTML=`<option value="all">Toda Europa · ${MAPS.sub.items.length}</option>`+opts.map(c=>`<option value="${c}">${cs[c].n} · ${count[c]}</option>`).join('');
+  if(!cs[cfg.subc]&&cfg.subc!=='all')cfg.subc='ES';
+  sel.value=cfg.subc;
+}
+
 /* ---------- game ---------- */
-let G=null,tick=0;
+let G=null,tick=0,nextT=0;
+const scopeKey=()=>cfg.map+(cfg.map==='sub'?'.'+cfg.subc:'');
 function buildMap(){
   M=MAPS[cfg.map];svg.setAttribute('viewBox',`0 0 ${M.w} ${M.h}`);
+  if(!M.byId){M.byId={};for(const it of M.items)M.byId[it.id]=it}
+  body.classList.toggle('sub-map',!!M.sub);
   let s=`<g id="view"><path class="ctx" d="${M.ctx}"/>`;
+  if(M.fr)s+=`<path class="fr" d="${M.fr}"/>`;
   for(const it of M.items)if(it.d)s+=`<path class="land" data-id="${it.id}" d="${it.d}"/>`;
-  for(const it of M.items)if(it.m)s+=`<circle class="mk" data-id="${it.id}" cx="${it.c[0]}" cy="${it.c[1]}" r="4"/>`;
+  if(M.cb)s+=`<path class="cb" d="${M.cb}"/>`;
+  for(const it of M.items)if(it.m)s+=`<circle class="mk" data-id="${it.id}" cx="${it.c[0]}" cy="${it.c[1]}" r="1"/>`;
   svg.innerHTML=s+'<g id="fx"></g><g id="lbl"></g></g>';
   viewG=$('#view');fxG=$('#fx');lblG=$('#lbl');els={};marks=$$('.mk');
-  // a country with a marker answers through both its shape and its dot
+  // a place with a marker answers through both its shape and its dot
   for(const el of $$('#view [data-id]'))(els[el.dataset.id]=els[el.dataset.id]||[]).push(el);
   for(const k in els){const a=els[k];els[k]=a.find(x=>x.tagName==='path')||a[0];els[k].all=a}
   T.x=T.y=0;T.k=1;drawView.k=0;moveView(true);
 }
+const cls=(id,c,on=true)=>els[id]&&els[id].all.forEach(x=>x.classList.toggle(c,on));
+function scopeBox(){
+  if(M.sub&&cfg.subc!=='all'){const b=[1e9,1e9,-1e9,-1e9];
+    for(const id of G.ids){const el=els[id];let x0,y0,x1,y1;
+      if(el.tagName==='path'){const r=el.getBBox();x0=r.x;y0=r.y;x1=r.x+r.width;y1=r.y+r.height}else{const it=item(id);x0=x1=it.c[0];y0=y1=it.c[1]}
+      b[0]=Math.min(b[0],x0);b[1]=Math.min(b[1],y0);b[2]=Math.max(b[2],x1);b[3]=Math.max(b[3],y1)}
+    return b}
+  return [0,0,M.w,M.h];
+}
+function fitScope(snap){const b=scopeBox();if(b[2]-b[0]>=M.w*.95){T.x=T.y=0;T.k=1;moveView(snap)}else fitBox(b,snap,.92)}
+function groupsFor(){
+  if(cfg.map==='world')return Object.keys(REGIONS).map(r=>({r,label:REGIONS[r]}));
+  if(M.sub){const cs=M.countries,list=cfg.subc==='all'?Object.keys(cs).sort((a,b)=>cs[a].n.localeCompare(cs[b].n,'es')):[cfg.subc];
+    return list.map(r=>({r,label:cs[r].n+(cs[r].k?` · ${cs[r].k}`:'')}))}
+  return [{r:'eu',label:M.title||'Europa'}];
+}
 function buildBoard(){
   const board=$('#board');board.innerHTML='';
-  const regs=cfg.map==='world'?Object.keys(REGIONS):['eu'];
-  for(const r of regs){
-    const tot=G.ids.filter(id=>COUNTRIES[id].r===r).length;
+  for(const {r,label} of groupsFor()){
+    const tot=G.ids.filter(id=>COUNTRIES[id].r===r).length;if(!tot)continue;
     const d=document.createElement('section');d.className='grp';d.dataset.r=r;
-    d.innerHTML=`<h2>${cfg.map==='world'?REGIONS[r]:M.title||'Europa'}<span><b>0</b>/${tot}</span></h2><div class="meter"><i></i></div><div class="chips"><span class="empty">Aún ninguno</span></div>`;
+    d.innerHTML=`<h2>${label}<span><b>0</b>/${tot}</span></h2><div class="meter"><i></i></div><div class="chips"><span class="empty">${cfg.mode==='explore'?'':'Aún ninguno'}</span></div>`;
     d.total=tot;d.got=0;board.append(d);
   }
 }
-function chip(id,miss){
+function chip(id,kind){
   const c=COUNTRIES[id],g=$(`.grp[data-r="${c.r}"]`);if(!g)return;
   const e=g.querySelector('.empty');if(e)e.remove();
-  const b=document.createElement('button');b.type='button';b.className='chip'+(miss?' miss':'');b.textContent=c.n;b.dataset.go=id;
+  const b=document.createElement('button');b.type='button';b.className='chip'+(kind==='miss'?' miss':kind==='late'?' late':'');b.textContent=c.n;b.dataset.go=id;
   g.querySelector('.chips').append(b);
-  if(!miss){g.got++;g.querySelector('b').textContent=g.got;g.querySelector('.meter i').style.transform=`scaleX(${g.got/g.total})`}
+  if(kind!=='miss'){g.got++;g.querySelector('b').textContent=g.got;g.querySelector('.meter i').style.transform=`scaleX(${g.got/g.total})`}
 }
-$('#board').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){flyTo(b.dataset.go);stage.scrollIntoView({block:'nearest',behavior:'smooth'})}});
-$('#board').addEventListener('pointerover',e=>{const b=e.target.closest('[data-go]');if(b)els[b.dataset.go].all.forEach(x=>x.classList.add('hl'))});
-$('#board').addEventListener('pointerout',e=>{const b=e.target.closest('[data-go]');if(b)els[b.dataset.go].all.forEach(x=>x.classList.remove('hl'))});
+$('#board').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){flyTo(b.dataset.go);flash(b.dataset.go);stage.scrollIntoView({block:'nearest',behavior:'smooth'})}});
+$('#board').addEventListener('pointerover',e=>{const b=e.target.closest('[data-go]');if(b)cls(b.dataset.go,'hl')});
+$('#board').addEventListener('pointerout',e=>{const b=e.target.closest('[data-go]');if(b)cls(b.dataset.go,'hl',false)});
 
+function start(saved){ensure(cfg.map,()=>newGame(saved))}
 function newGame(saved){
-  clearInterval(tick);buildMap();
-  const ids=M.items.map(i=>i.id),look=new Map();
-  for(const id of ids){const c=COUNTRIES[id];look.set(norm(c.n),id);for(const a of c.a)if(!look.has(a))look.set(a,id)}
-  G={ids,look,keys:[...look.keys()],found:new Set(),order:[],started:false,ended:false,t0:0,elapsed:0,carry:'',lastId:''};
+  clearInterval(tick);clearTimeout(nextT);buildMap();
+  const all=M.items.map(i=>i.id);
+  const ids=M.sub&&cfg.subc!=='all'?all.filter(id=>COUNTRIES[id].r===cfg.subc):all;
+  const look=new Map();
+  for(const id of ids){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a]){if(!look.has(k))look.set(k,[]);if(!look.get(k).includes(id))look.get(k).push(id)}}
+  G={ids,in:new Set(ids),look,keys:[...look.keys()],found:new Set(),order:[],started:false,ended:false,t0:0,elapsed:0,carry:'',lastId:'',
+     right:0,errors:0,queue:[],cur:null,tries:0,lv:{},active:[],pending:[],last:null,card:null};
+  for(const id of all)if(!G.in.has(id))cls(id,'off');
+  body.dataset.mode=cfg.mode;
   buildBoard();
   $('#total').textContent=ids.length;$('#n').textContent=0;
   $('#play').hidden=false;$('#side').hidden=false;$('#done').hidden=true;inp.disabled=false;inp.value='';hint('');
-  if(saved&&saved.map===cfg.map){
-    for(const id of saved.found||[])if(look.has(norm(COUNTRIES[id].n)))mark(id,true);
+  $('#d-alt').hidden=true;$('#again').textContent='Jugar otra vez';
+  setupMode();
+  fitScope(true);
+  if(saved&&saved.map===cfg.map&&cfg.mode==='type'){
+    for(const id of saved.found||[])if(G.in.has(id))mark(id,true);
     G.elapsed=saved.elapsed||0;
     if(saved.ended)finish(saved.reason||'stop',true);else if(G.order.length){G.started=true;G.t0=performance.now()-G.elapsed*1000;tick=setInterval(onTick,250)}
   }
   showClock();
 }
+function setupMode(){
+  const m=cfg.mode,ask=$('#ask');
+  ask.hidden=m!=='click';inp.hidden=m==='click';
+  $('#clock').hidden=m==='learn'||m==='explore';
+  $('#skip').hidden=!(m==='click'||m==='learn');$('#skip').textContent=m==='learn'?'no lo sé':'saltar';
+  $('#giveup').hidden=m==='learn'||m==='explore';
+  $('#restart').hidden=m==='explore';$('#restart').textContent=m==='learn'?'borrar progreso':'reiniciar';
+  $('#count-l').textContent={type:'escritas',click:'a la primera',learn:'aprendidas',explore:''}[m];
+  const what=M.sub?'una región':'un país';
+  inp.placeholder={type:M.sub?'Escribe una región…':'Escribe un país…',learn:'¿Cómo se llama la zona resaltada?',explore:`Busca ${what}…`}[m]||'';
+  if(m==='explore'){$('#n').textContent=G.ids.length;$('#count-l').textContent=M.sub?'regiones':'en el mapa';exploreBoard();syncLabels();return}
+  if(m==='click'){G.queue=shuffle([...G.ids]);nextAsk();hint(M.sub?'Haz clic en la región que se pide':'Haz clic en el país que se pide');return}
+  if(m==='learn'){learnStart();return}
+}
 const fmt=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const limit=()=>LIMIT[cfg.map]||Math.max(120,G.ids.length*7);
+const counting=()=>cfg.timer==='on'&&cfg.mode==='type';
 function showClock(){
-  const c=$('#clock'),lim=LIMIT[cfg.map];
-  if(cfg.timer==='on'){const left=lim-G.elapsed;c.textContent=fmt(left);c.classList.toggle('low',left<=30&&!G.ended)}
+  const c=$('#clock');
+  if(counting()){const left=limit()-G.elapsed;c.textContent=fmt(left);c.classList.toggle('low',left<=30&&!G.ended)}
   else{c.textContent=fmt(G.elapsed);c.classList.remove('low')}
 }
 function onTick(){
   G.elapsed=(performance.now()-G.t0)/1000;showClock();
-  if(cfg.timer==='on'&&G.elapsed>=LIMIT[cfg.map])finish('time');
+  if(counting()&&G.elapsed>=limit())finish('time');
 }
-function hint(t,ok){const h=$('#hint');h.textContent=t;h.classList.toggle('ok',!!ok)}
-function label(id,keep){
-  const it=M.items.find(i=>i.id===id),t=document.createElementNS(NS,'text');
-  t.setAttribute('class','lbl');t.setAttribute('x',it.c[0]);t.setAttribute('y',it.c[1]);t.dataset.l=id;
-  t.setAttribute('font-size',(M.w/82/V.k).toFixed(3));t.setAttribute('stroke-width',(M.w/560/V.k).toFixed(3));
+function begin(){if(!G.started){G.started=true;G.t0=performance.now();tick=setInterval(onTick,250)}}
+function hint(t,c){const h=$('#hint');h.textContent=t;h.className=c||''}
+function label(id,keep,cls2){
+  const it=item(id),t=document.createElementNS(NS,'text');
+  t.setAttribute('class','lbl'+(cls2?' '+cls2:''));t.setAttribute('x',it.c[0]);t.setAttribute('y',it.c[1]);t.dataset.l=id;
+  t.setAttribute('font-size',(fsBase()/V.k).toFixed(4));t.setAttribute('stroke-width',(fsBase()/7/V.k).toFixed(4));
   t.textContent=COUNTRIES[id].n;lblG.append(t);
   if(!keep)setTimeout(()=>{t.style.opacity=0;setTimeout(()=>t.remove(),650)},1700);
+  return t;
 }
 function syncLabels(){
   if(!G)return;lblG.innerHTML='';
+  if(cfg.mode==='explore'){for(const id of G.ids)label(id,true,'ex');cullLabels();return}
   if(cfg.labels==='keep')for(const id of G.order)label(id,true);
 }
-function mark(id,quiet){
+// in explore mode a name shows only once its place is big enough on screen to hold it
+function cullLabels(){
+  if(!G||cfg.mode!=='explore')return;
+  const fs=fsBase()/V.k;
+  for(const t of lblG.children){const it=item(t.dataset.l);t.style.display=(it.z||0)>=COUNTRIES[it.id].n.length*fs*.5?'':'none'}
+}
+function ripple(id){
+  if(reduced.matches)return;
+  const it=item(id),c=document.createElementNS(NS,'circle');
+  c.setAttribute('class','rip');c.setAttribute('cx',it.c[0]);c.setAttribute('cy',it.c[1]);c.setAttribute('r',M.w/260/V.k);fxG.append(c);
+  c.animate([{transform:'scale(1)',opacity:.5},{transform:'scale(14)',opacity:0}],{duration:800,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>c.remove();
+}
+function flash(id){cls(id,'hl');setTimeout(()=>cls(id,'hl',false),900)}
+function mark(id,quiet,kind){
   G.found.add(id);G.order.push(id);
-  els[id].all.forEach(x=>x.classList.add('on'));chip(id);$('#n').textContent=G.order.length;
+  cls(id,kind==='late'?'late':'on');chip(id,kind);
   if(cfg.labels==='keep')label(id,true);
   if(quiet)return;
   if(cfg.labels==='flash')label(id);
-  if(!reduced.matches){
-    const it=M.items.find(i=>i.id===id),c=document.createElementNS(NS,'circle');
-    c.setAttribute('class','rip');c.setAttribute('cx',it.c[0]);c.setAttribute('cy',it.c[1]);c.setAttribute('r',M.w/260/V.k);fxG.append(c);
-    c.animate([{transform:'scale(1)',opacity:.5},{transform:'scale(14)',opacity:0}],{duration:800,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>c.remove();
-  }
+  ripple(id);
 }
+
+/* type: write every name you know */
 function accept(id,typed){
-  if(!G.started){G.started=true;G.t0=performance.now();tick=setInterval(onTick,250)}
-  mark(id);G.carry=typed;G.lastId=id;inp.value='';hint(COUNTRIES[id].n,true);
+  begin();mark(id);G.carry=typed;G.lastId=id;inp.value='';hint(COUNTRIES[id].n,'ok');
+  $('#n').textContent=G.order.length;
   if(G.order.length===G.ids.length)finish('all');
 }
-inp.addEventListener('input',()=>{
-  if(G.ended)return;
-  const n=norm(inp.value);if(!n){return}
-  const id=G.look.get(n);
-  if(id&&!G.found.has(id)){accept(id,n);return}
+function typeInput(){
+  const n=norm(inp.value);if(!n)return;
+  const free=k=>(G.look.get(k)||[]).filter(id=>!G.found.has(id));
+  let ids=free(n);
+  if(ids.length){accept(ids[0],n);return}
   if(G.carry){
     // lets "niger" + "ia" count as Nigeria, and swallows the rest of a long name whose short form already counted
-    const comb=G.carry+n,id2=G.look.get(comb);
-    if(id2&&!G.found.has(id2)){accept(id2,comb);return}
-    if(id2&&id2===G.lastId){inp.value='';G.carry=comb;return}
+    const comb=G.carry+n;ids=free(comb);
+    if(ids.length){accept(ids[0],comb);return}
+    if((G.look.get(comb)||[]).includes(G.lastId)){inp.value='';G.carry=comb;return}
     if(!G.keys.some(k=>k.startsWith(comb)))G.carry='';
   }
-  if(id)hint('Ya lo tienes: '+COUNTRIES[id].n);else if($('#hint').textContent.startsWith('Ya'))hint('');
+  if(G.look.has(n))hint('Ya lo tienes: '+COUNTRIES[G.look.get(n)[0]].n);else if($('#hint').textContent.startsWith('Ya'))hint('');
+}
+
+/* click: find the named place on the map */
+function nextAsk(){
+  for(const id of G.ids)cls(id,'bad',false);
+  G.cur=G.queue.shift();G.tries=0;
+  if(!G.cur){finish('all');return}
+  $('#ask-n').textContent=COUNTRIES[G.cur].n;
+  $('#ask-l').textContent=`Señala · quedan ${G.queue.length+1}`;
+}
+function mapClick(id,el){
+  if(!G||G.ended)return;
+  if(cfg.mode==='explore'){if(G.in.has(id)){flash(id);hint(COUNTRIES[id].n,'ok')}return}
+  if(cfg.mode!=='click'||!G.cur||!G.in.has(id)||G.found.has(id)||G.busy)return;
+  begin();
+  if(id===G.cur){
+    const first=G.tries===0;if(first)G.right++;
+    mark(id,false,first?null:'late');$('#n').textContent=G.right;
+    hint(first?'¡Eso es!':`Bien, a la ${G.tries+1}.ª`,'ok');
+    nextAsk();return;
+  }
+  G.tries++;G.errors++;
+  cls(id,'bad');setTimeout(()=>cls(id,'bad',false),650);
+  if(G.tries>=3){
+    // after three misses, show where it was and move on
+    G.busy=true;const miss=G.cur;cls(miss,'tgt');reveal(miss);hint(`Estaba aquí: ${COUNTRIES[miss].n}`,'bad');
+    nextT=setTimeout(()=>{cls(miss,'tgt',false);cls(miss,'miss');chip(miss,'miss');G.found.add(miss);G.busy=false;nextAsk()},1600);
+  }else hint(`No, eso es ${known(id)?COUNTRIES[id].n:'otro sitio'}. Te quedan ${3-G.tries}`,'bad');
+}
+function skipAsk(){if(!G.cur||G.busy)return;G.queue.push(G.cur);nextAsk();hint('Saltada, volverá al final')}
+
+/* learn: a few new places at a time; each comes back until you name it three times in a row */
+const learnKey=()=>'mapeo.learn.'+scopeKey();
+function learnOrder(){
+  // neighbours together: sweep the map in bands so each batch is a small patch of it
+  const pts=G.ids.map(id=>({id,x:item(id).c[0],y:item(id).c[1]}));
+  const ys=pts.map(p=>p.y),y0=Math.min(...ys),y1=Math.max(...ys),bands=Math.max(1,Math.round(Math.sqrt(pts.length/5)));
+  const bh=(y1-y0)/bands||1;
+  return pts.sort((a,b)=>{const ba=Math.min(bands-1,(a.y-y0)/bh|0),bb=Math.min(bands-1,(b.y-y0)/bh|0);return ba-bb||(ba%2?b.x-a.x:a.x-b.x)}).map(p=>p.id);
+}
+function learnStart(){
+  const saved=store.get(learnKey(),{});
+  for(const id of G.ids)G.lv[id]=Math.min(MASTER,saved[id]||0);
+  for(const id of G.ids)if(G.lv[id]>=MASTER){G.found.add(id);cls(id,'on');chip(id)}
+  G.pending=learnOrder().filter(id=>G.lv[id]<MASTER);G.active=[];G.wait={};G.seen={};
+  learnProgress();
+  if(!G.pending.length){learnDone(true);return}
+  learnNext();
+}
+function learnProgress(){$('#n').textContent=G.ids.filter(id=>G.lv[id]>=MASTER).length}
+function learnSave(){const o={};for(const id of G.ids)if(G.lv[id])o[id]=G.lv[id];store.set(learnKey(),o)}
+function learnNext(){
+  while(G.active.length<4&&G.pending.length){const id=G.pending.shift();G.active.push(id);G.wait[id]=0}
+  if(!G.active.length){learnDone();return}
+  for(const id of G.active)G.wait[id]--;
+  const pool=G.active.filter(id=>id!==G.last||G.active.length===1);
+  pool.sort((a,b)=>G.wait[a]-G.wait[b]||(G.seen[a]?1:0)-(G.seen[b]?1:0));
+  const id=pool[0];G.last=id;G.card={id,show:!G.seen[id],missed:false};
+  lblG.innerHTML='';
+  cls(id,'tgt');reveal(id);
+  if(G.card.show){label(id,true,'learn');hint(`Nueva: ${COUNTRIES[id].n}. Escríbela para fijarla`)}
+  else hint(`${'●'.repeat(G.lv[id])}${'○'.repeat(MASTER-G.lv[id])}  ¿Cómo se llama?`);
+  inp.value='';
+}
+function learnAnswer(ok){
+  const c=G.card;if(!c)return;const id=c.id;
+  if(c.show){
+    // the name was on screen: copying it introduces the place, it does not count as recall
+    G.seen[id]=1;G.wait[id]=c.missed?1:2;cls(id,'tgt',false);ripple(id);learnNext();return;
+  }
+  if(ok){
+    G.lv[id]++;G.seen[id]=1;cls(id,'tgt',false);ripple(id);label(id);
+    if(G.lv[id]>=MASTER){G.active=G.active.filter(x=>x!==id);G.found.add(id);cls(id,'on');chip(id);hint(`${COUNTRIES[id].n}: aprendida`,'ok')}
+    else{G.wait[id]=[0,3,5][G.lv[id]]||5;hint(COUNTRIES[id].n,'ok')}
+    learnSave();learnProgress();
+    G.card=null;nextT=setTimeout(learnNext,reduced.matches?0:420);
+  }else{
+    // wrong or "no lo sé": show the name and ask to copy it, then it comes back soon
+    G.lv[id]=0;learnSave();learnProgress();
+    G.card={id,show:true,missed:true};lblG.innerHTML='';label(id,true,'learn');
+    hint(`Es ${COUNTRIES[id].n}. Escríbela y volverá enseguida`,'bad');inp.value='';
+  }
+}
+function learnInput(){
+  const c=G.card;if(!c)return;
+  const n=norm(inp.value);if(!n)return;
+  const keys=[norm(COUNTRIES[c.id].n),...COUNTRIES[c.id].a];
+  if(keys.includes(n)){begin();learnAnswer(true)}
+}
+function learnDone(already){
+  G.ended=true;clearInterval(tick);inp.disabled=true;
+  $('#play').hidden=true;$('#side').hidden=true;$('#done').hidden=false;
+  $('#d-title').textContent=already?'Ya las tienes todas aprendidas':'¡Aprendidas todas!';
+  $('#d-detail').textContent=`${G.ids.length} ${M.sub?'regiones':'lugares'}`+(already?'':` en ${fmt(G.elapsed)}`)+'. Ponlas a prueba sin ayuda o empieza de cero.';
+  $('#d-best').textContent='';
+  $('#again').textContent='Examen: señalar';$('#d-alt').hidden=false;$('#d-alt').textContent='Empezar de cero';
+}
+
+/* explore: every name, to look around before testing yourself */
+function exploreBoard(){
+  const by={};for(const id of G.ids)(by[COUNTRIES[id].r]=by[COUNTRIES[id].r]||[]).push(id);
+  for(const [r,list] of Object.entries(by)){const g=$(`.grp[data-r="${r}"]`);if(!g)continue;g.querySelector('.empty')?.remove();
+    for(const id of list.sort((a,b)=>COUNTRIES[a].n.localeCompare(COUNTRIES[b].n,'es'))){const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=COUNTRIES[id].n;b.dataset.go=id;g.querySelector('.chips').append(b)}
+    g.querySelector('b').textContent=list.length;g.querySelector('.meter i').style.transform='scaleX(1)'}
+}
+function exploreInput(){
+  const n=norm(inp.value);if(!n)return;
+  const ids=G.look.get(n);if(ids){flyTo(ids[0]);flash(ids[0]);hint(COUNTRIES[ids[0]].n,'ok');inp.value=''}
+}
+
+inp.addEventListener('input',()=>{
+  if(!G||G.ended)return;
+  if(cfg.mode==='type')typeInput();else if(cfg.mode==='learn')learnInput();else if(cfg.mode==='explore')exploreInput();
 });
 inp.addEventListener('keydown',e=>{
+  if(!G||G.ended)return;
+  if(e.key==='Tab'&&cfg.mode==='learn'){e.preventDefault();if(G.card&&!G.card.show){begin();learnAnswer(false)}return}
   if(e.key!=='Enter'||!inp.value.trim())return;
-  // Enter on something that is not a country: shake and clear, so a typo never blocks the next answer
   if(!reduced.matches)inp.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}],{duration:220});
-  inp.value='';G.carry='';hint('No está en este mapa');
+  if(cfg.mode==='learn'){if(G.card&&!G.card.show){begin();learnAnswer(false)}else{inp.value='';hint(`Copia el nombre: ${COUNTRIES[G.card.id].n}`,'bad')}return}
+  // Enter on something that is not on the map: shake and clear, so a typo never blocks the next answer
+  inp.value='';G.carry='';hint('No está en este mapa','bad');
 });
 function finish(reason,quiet){
-  G.ended=true;G.reason=reason;clearInterval(tick);inp.disabled=true;
-  const n=G.order.length,tot=G.ids.length;
+  if(cfg.mode==='learn')return;
+  G.ended=true;G.reason=reason;clearInterval(tick);clearTimeout(nextT);inp.disabled=true;
+  if(G.cur)cls(G.cur,'tgt',false);
+  const n=cfg.mode==='click'?G.right:G.order.length,tot=G.ids.length;
   const missed=G.ids.filter(id=>!G.found.has(id)).sort((a,b)=>COUNTRIES[a].n.localeCompare(COUNTRIES[b].n,'es'));
-  for(const id of missed){els[id].all.forEach(x=>x.classList.add('miss'));chip(id,true)}
-  $('#play').hidden=true;$('#side').hidden=true;$('#done').hidden=false;
-  $('#d-title').textContent=reason==='all'?'Mapa completo':reason==='time'?'Se acabó el tiempo':'Partida terminada';
-  $('#d-detail').textContent=`${Math.round(n/tot*100)}% en ${fmt(G.elapsed)}`+(missed.length?` · te han faltado ${missed.length}, en rojo en el mapa`:'');
-  const key='mapeo.pb.'+cfg.map,pb=store.get(key,null),better=!pb||n>pb.n||(n===pb.n&&G.elapsed<pb.t);
+  for(const id of missed){cls(id,'miss');chip(id,'miss')}
+  $('#play').hidden=true;$('#side').hidden=true;$('#done').hidden=false;$('#d-alt').hidden=true;$('#again').textContent='Jugar otra vez';
+  $('#d-title').textContent=reason==='all'?(cfg.mode==='click'?'Ronda completa':'Mapa completo'):reason==='time'?'Se acabó el tiempo':'Partida terminada';
+  $('#d-detail').textContent=cfg.mode==='click'
+    ?`${n} de ${tot} a la primera · ${G.errors} ${G.errors===1?'fallo':'fallos'} · ${fmt(G.elapsed)}`
+    :`${Math.round(n/tot*100)}% en ${fmt(G.elapsed)}`+(missed.length?` · te han faltado ${missed.length}, en rojo en el mapa`:'');
+  const key='mapeo.pb.'+scopeKey()+(cfg.mode==='click'?'.click':''),pb=store.get(key,null),better=!pb||n>pb.n||(n===pb.n&&G.elapsed<pb.t);
   if(!quiet&&better&&n)store.set(key,{n,t:Math.round(G.elapsed)});
   $('#d-best').textContent=pb?(better&&!quiet&&n?'Nueva mejor marca':`mejor marca ${pb.n}/${tot} en ${fmt(pb.t)}`):'';
 }
+$('#skip').onclick=()=>{if(cfg.mode==='click')skipAsk();else if(cfg.mode==='learn'&&G.card&&!G.card.show){begin();learnAnswer(false)}focusInput()};
 $('#giveup').onclick=()=>{if(!G.ended)finish('stop')};
-$('#restart').onclick=()=>{newGame();focusInput()};
-$('#again').onclick=()=>{newGame();focusInput()};
-const focusInput=()=>{if(!body.classList.contains('open')&&G&&!G.ended)inp.focus({preventScroll:true})};
+$('#restart').onclick=()=>{if(cfg.mode==='learn')store.set(learnKey(),{});start();focusInput()};
+$('#again').onclick=()=>{if(cfg.mode==='learn'&&G.ended){cfg.mode='click';save();syncUI()}start();focusInput()};
+$('#d-alt').onclick=()=>{store.set(learnKey(),{});start();focusInput()};
+const focusInput=()=>{if(!body.classList.contains('open')&&G&&!G.ended&&cfg.mode!=='click')inp.focus({preventScroll:true})};
 document.addEventListener('keydown',e=>{
   if(body.classList.contains('open')){if(e.key==='Escape')openDrawer(false);return}
   if(e.key==='Escape'){if(body.classList.contains('full'))setFull(false);else openDrawer(true);return}
   const a=document.activeElement;
-  if(a!==inp&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!(a&&/^(INPUT|BUTTON)$/.test(a.tagName)))focusInput();
+  if(a!==inp&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!(a&&/^(INPUT|BUTTON|SELECT)$/.test(a.tagName)))focusInput();
 });
 
 /* ---------- boot ---------- */
 function boot(data){
   if(data&&data.cfg)Object.assign(cfg,data.cfg);
-  cfg.map=fromHash()||(MAPS[cfg.map]?cfg.map:'europe');
-  palButtons();applyLook();newGame(data&&data.game);focusInput();
+  cfg.map=fromHash()||(MAPS[cfg.map]||cfg.map==='sub'?cfg.map:'europe');
+  if(!['type','click','learn','explore'].includes(cfg.mode))cfg.mode='type';
+  palButtons();applyLook();start(data&&data.game);focusInput();
 }
-window.addEventListener('hashchange',()=>{const m=fromHash();if(m&&m!==cfg.map){cfg.map=m;save();syncUI();newGame()}});
-window.claude?.hot?.snapshot?.(()=>({cfg,game:G&&{map:cfg.map,found:G.order,elapsed:G.elapsed,ended:G.ended,reason:G.reason}}));
+window.addEventListener('hashchange',()=>{const m=fromHash();if(m&&m!==cfg.map){cfg.map=m;save();syncUI();start()}});
+window.claude?.hot?.snapshot?.(()=>({cfg,game:G&&cfg.mode==='type'&&{map:cfg.map,found:G.order,elapsed:G.elapsed,ended:G.ended,reason:G.reason}}));
 window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
 </script>
 </body>

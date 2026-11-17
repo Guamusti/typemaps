@@ -3,7 +3,7 @@
 Tres juegos estáticos, sin dependencias ni compilación:
 
 - `tecleo/`: test de mecanografía con citas.
-- `mapeo/`: escribe los países y colorea el mapa (Europa, mundo y Europa en 1914, 1920 y 1938).
+- `mapeo/`: países y regiones en el mapa (Europa, mundo, regiones de primer nivel de cada país europeo y Europa en 1914, 1920 y 1938), con modos escribir, señalar, aprender y explorar. Fuentes en `mapeo/CREDITS.md`.
 
 - `ondeo/`: test de banderas, actuales por continente e históricas.
 
