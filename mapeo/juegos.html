@@ -165,6 +165,9 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:12px 0 4px}
 .ach{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
 .ach .a{padding:9px 11px;border-radius:10px;background:var(--bg);opacity:.5}.ach .a.on{opacity:1;background:color-mix(in srgb,var(--accent) 16%,var(--bg))}
 .ach .a b{display:block;font-weight:500;font-size:13px}.ach .a small{color:var(--sub);font-size:11px}.ach .a.on b{color:var(--accent)}
+.hub-tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:4px 0 6px}.srch{flex:1;min-width:220px}
+.sm-seg{padding:3px}.sm-seg button{padding:4px 10px;font-size:12.5px}.hl-r{display:flex;align-items:center;gap:16px}
+.qz-kb{margin:4px 0 6px}
 .flagbox.sm .flag{width:min(150px,40vw)}
 .cmap{margin-top:4px}.cmap .gmap{max-height:52vh}
 .gmap .city{fill:var(--err)}.gmap .cityr{fill:none;stroke:var(--err);stroke-width:1.2;vector-effect:non-scaling-stroke}
@@ -276,6 +279,24 @@ function countryBox(input,box,onPick,opts={}){
   box.addEventListener('mousedown',e=>{const b=e.target.closest('button');if(b){e.preventDefault();input.value='';hide();onPick(b.dataset.k,b.textContent)}});
   input.addEventListener('blur',()=>setTimeout(hide,120));
 }
+// a box that suggests from any list of strings (Tab completes, Enter answers)
+function textBox(input,box,getList,onPick){
+  let idx=-1;const list=()=>{const t=norm(input.value);if(!t)return [];const L=getList();return L.filter(x=>norm(x).startsWith(t)).concat(L.filter(x=>!norm(x).startsWith(t)&&norm(x).includes(t))).slice(0,6)};
+  const hide=()=>{box.hidden=true;idx=-1};
+  const show=()=>{const l=list();if(!l.length){hide();return}idx=0;box.innerHTML='';l.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.textContent=x;if(!i)b.className='on';box.append(b)});box.hidden=false};
+  input.addEventListener('input',show);
+  input.addEventListener('keydown',e=>{const bs=[...box.children];
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(box.hidden)return;e.preventDefault();idx=(idx+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle('on',i===idx));return}
+    if(e.key==='Tab'){const b=!box.hidden&&bs[Math.max(0,idx)];if(b){e.preventDefault();input.value=b.textContent;hide()}}
+    if(e.key==='Enter'){e.preventDefault();const v=input.value;hide();input.value='';onPick(v)}
+    if(e.key==='Escape')hide()});
+  box.addEventListener('mousedown',e=>{const b=e.target.closest('button');if(b){e.preventDefault();input.value=b.textContent;hide();input.focus()}});
+  input.addEventListener('blur',()=>setTimeout(hide,120));
+}
+// how you answer the test games: tapping options, or typing with the keyboard
+const INPUT={mode:store.get('mapeo.juegos.kb','opt')};
+const inputSeg=()=>`<span class="seg sm-seg" id="in-seg" title="Cómo respondes en los juegos tipo test"><button type="button" data-m="opt" aria-pressed="${INPUT.mode==='opt'}">opciones</button><button type="button" data-m="kb" aria-pressed="${INPUT.mode==='kb'}">teclado</button></span>`;
+function bindInputSeg(after){const el=$('#in-seg');if(!el)return;el.onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;INPUT.mode=b.dataset.m;store.set('mapeo.juegos.kb',INPUT.mode);$$('#in-seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));after&&after()}}
 const fieldHTML=(id,ph)=>`<div class="field"><input id="${id}" autocomplete="off" spellcheck="false" placeholder="${ph}" aria-label="${ph}"><div class="sug" id="${id}-sug" hidden></div></div>`;
 
 /* ---------- records ---------- */
@@ -845,28 +866,46 @@ function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,lives=null
     rec:()=>{const b=REC[id]?.best;return b!=null?(time?`mejor: ${b} en ${time} s`:lives?`mejor: ${b} seguidas`:`mejor: ${b} de ${rounds}`):''},
     start(main){
       let n,right,busy,cur,T=null,running=false,ended=false,lost=0;
-      main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="qz-n"></span>${time?'<span class="clock" id="qz-t"></span>':''}${lives?'<span class="lives" id="qz-l"></span>':''}</div>
-        <div class="qz-q" id="qz-q"></div><div class="qz-o" id="qz-o"></div><div class="msg" id="qz-msg"></div><div class="end" id="qz-end" hidden></div></div>`;
+      main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="qz-n"></span><span class="hl-r">${inputSeg()}${time?'<span class="clock" id="qz-t"></span>':''}${lives?'<span class="lives" id="qz-l"></span>':''}</span></div>
+        <div class="qz-q" id="qz-q"></div><div class="qz-kb" id="qz-kb" hidden>${fieldHTML('qz-in','Escribe la respuesta…')}</div><div class="qz-o" id="qz-o"></div><div class="msg" id="qz-msg"></div><div class="end" id="qz-end" hidden></div></div>`;
+      let kbList=[];
+      textBox($('#qz-in'),$('#qz-in-sug'),()=>kbList,txt=>typed(txt));
+      bindInputSeg(()=>{if(cur&&!busy)showMode()});
       const score=()=>{setScore(`<span><b>${right}</b>aciertos</span><span><b>${REC[id]?.best??0}</b>récord</span>`);$('#qz-n').textContent=time?'':lives?(cur&&cur.tag?cur.tag:''):`${Math.min(n+1,rounds)} de ${rounds}`;if(lives)$('#qz-l').innerHTML='<i class="on"></i>'.repeat(lives-lost)+'<i></i>'.repeat(lost)};
       async function next(){
         if(ended)return;busy=true;$('#qz-msg').textContent='';
         cur=await gen();if(here()!==id||ended)return;
         $('#qz-q').innerHTML=cur.q;if(cur.mount)cur.mount($('#qz-q'));
         $('#qz-o').className='qz-o'+(cur.wide?' wide':'')+(cur.opts.length===2?' two':cur.opts.length===3?' three':'');
-        $('#qz-o').innerHTML=cur.opts.map((o,i)=>`<button type="button" data-i="${i}"><span class="kbd">${i+1}</span>${o.html}</button>`).join('');busy=false;score();
+        $('#qz-o').innerHTML=cur.opts.map((o,i)=>`<button type="button" data-i="${i}"><span class="kbd">${i+1}</span>${o.html}</button>`).join('');busy=false;score();showMode();
       }
-      function answer(i){
+      // keyboard mode: the options stay hidden and you type the answer (only when every option has a name)
+      const txt=o=>o.html.replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').trim();
+      function showMode(){
+        const texts=cur.opts.map(txt),can=cur.kb!==false&&texts.every(Boolean);const kb=INPUT.mode==='kb'&&can;
+        $('#qz-kb').hidden=!kb;$('#qz-o').hidden=kb;
+        if(kb){const isC=texts.every(t=>NAMES.some(x=>x.n===t));cur.isC=isC;kbList=isC?NAMES.map(x=>x.n):[...new Set([...(cur.pool||[]),...texts])];
+          $('#qz-in').disabled=false;$('#qz-in').value='';$('#qz-in').focus({preventScroll:true})}
+      }
+      function typed(t){
+        if(busy||ended||!cur)return;const texts=cur.opts.map(txt),ri=cur.opts.findIndex(o=>o.ok),right_=texts[ri];
+        let ok=norm(t)===norm(right_)||(cur.kbOk||[]).some(x=>norm(x)===norm(t));if(!ok&&cur.isC){const k=findCountry(t);ok=!!k&&C[k].n===right_}
+        if(!norm(t))return;
+        $('#qz-in').disabled=true;$('#qz-o').hidden=false;
+        const wi=ok?ri:cur.opts.findIndex(o=>!o.ok);answer(wi,ok?null:`«${esc(t)}» no. Era <b>${esc(right_)}</b>. `);
+      }
+      function answer(i,typedMsg){
         if(busy||ended||!cur||!cur.opts[i])return;busy=true;if(time&&!running){running=true;T=timerBar($('#qz-t'),time,finish)}
         const ok=cur.opts[i].ok;if(ok)right++;else lost++;n++;
-        $$('#qz-o button').forEach((b,j)=>{b.disabled=true;b.className=cur.opts[j].ok?'right':j===i?'wrong':'dim'});
-        $('#qz-msg').innerHTML=(ok?'¡Sí! ':'No. ')+(cur.after||'');$('#qz-msg').className='msg '+(ok?'ok':'bad');score();
+        $$('#qz-o button').forEach((b,j)=>{b.disabled=true;b.className=cur.opts[j].ok?'right':j===i&&!typedMsg?'wrong':'dim'});
+        $('#qz-msg').innerHTML=(ok?'¡Sí! ':typedMsg||'No. ')+(cur.after||'');$('#qz-msg').className='msg '+(ok?'ok':'bad');score();
         setTimeout(()=>{if(ended||here()!==id)return;if(lives?lost>=lives:!time&&n>=rounds)finish();else next()},time?(ok?450:1300):(ok?1100:2300));
       }
       function finish(){if(ended)return;ended=true;T&&T.stop();const r=saveScore(id,right);score();$('#qz-n').textContent='';
         endCard($('#qz-end'),{big:time||lives?`${right}`:`${right} de ${rounds}`,sub:time?`aciertos en ${time} segundos`:lives?'aciertos antes de perder las tres vidas':title,rec:recLine(r,time||lives?'':` de ${rounds}`),again:reset})}
       function reset(){T&&T.stop();n=0;right=0;lost=0;ended=false;running=false;$('#qz-end').hidden=true;if(time)$('#qz-t').textContent=time+' s';next()}
       $('#qz-o').onclick=e=>{const b=e.target.closest('[data-i]');if(b)answer(+b.dataset.i)};
-      const key=e=>{if(/^[1-4]$/.test(e.key)&&document.activeElement.tagName!=='INPUT')answer(+e.key-1)};
+      const key=e=>{if(/^[1-4]$/.test(e.key)&&document.activeElement.tagName!=='INPUT'&&$('#qz-o').hidden===false)answer(+e.key-1)};
       document.addEventListener('keydown',key);stopGame=()=>{document.removeEventListener('keydown',key);T&&T.stop();ended=true};
       reset();
     }});
@@ -896,9 +935,14 @@ quizGame({id:'intruso',title:'El intruso',desc:'Cuatro países y uno no encaja: 
         return {g,x,why:`${C[x].n} está en el hemisferio ${south?'norte':'sur'}; los otros, en el ${south?'sur':'norte'}`}},
       ()=>{const many=big.filter(k=>C[k].pop>=1e8),few=big.filter(k=>C[k].pop<3e7);const g=pickN(many,3),x=rnd(few);
         return {g,x,why:`${C[x].n} tiene ${fmtPop(C[x].pop)} de habitantes; los otros, más de 100 millones`}}];
-    let r=null;while(!r)r=rnd(kinds)();
+    // reject sets where another criterion would single out a different country
+    const CRIT=[k=>C[k].r,k=>C[k].ll[1]<0,k=>LANDLOCKED.has(k),k=>C[k].pop>=1e8];
+    const odd=(f,list)=>{const v=list.map(f);const c=new Map();v.forEach(x=>c.set(x,(c.get(x)||0)+1));if(c.size!==2)return null;const [a]=[...c].find(([,n])=>n===1)||[];return a===undefined?null:list[v.indexOf(a)]};
+    let r=null;for(let t=0;t<200&&!r;t++){const c=rnd(kinds)();if(!c)continue;if(c.q){r=c;break}
+      const all=[...c.g,c.x];if(CRIT.every(f=>{const o=odd(f,all);return o===null||o===c.x}))r=c}
+    if(!r)r=kinds[1]()||kinds[0]();
     const all=shuffle([...r.g,r.x]);
-    return {q:`<p class="q">${r.q||'¿Cuál es el <em>intruso</em>?'}</p>`,opts:all.map(k=>opt(`<span class="mini-flag">${flagImg(k)}</span>${esc(C[k].n)}`,k===r.x)),after:esc(r.why)}}});
+    return {kb:false,q:`<p class="q">${r.q||'¿Cuál es el <em>intruso</em>?'}</p>`,opts:all.map(k=>opt(`<span class="mini-flag">${flagImg(k)}</span>${esc(C[k].n)}`,k===r.x)),after:esc(r.why)}}});
 
 /* Más al norte, al sur, al este o al oeste: a quick clock game */
 quizGame({id:'brujula',title:'Brújula',desc:'¿Cuál está más al norte, al sur, al este o al oeste? Todas las que puedas en 45 segundos.',time:45,
@@ -906,7 +950,7 @@ quizGame({id:'brujula',title:'Brújula',desc:'¿Cuál está más al norte, al su
     for(;;){a=rnd(pool);b=rnd(pool);d=rnd(['n','s','e','o']);const ax=d==='n'||d==='s'?1:0;if(a!==b&&Math.abs(C[a].ll[ax]-C[b].ll[ax])>3)break}
     const ax=d==='n'||d==='s'?1:0,sign=d==='n'||d==='e'?1:-1,win=sign*(C[a].ll[ax]-C[b].ll[ax])>0?a:b;
     const W={n:'al norte',s:'al sur',e:'al este',o:'al oeste'}[d];
-    return {q:`<p class="q">¿Cuál está más <em>${W}</em>?</p>`,opts:[a,b].map(k=>opt(`<span class="mini-flag">${flagImg(k)}</span>${esc(C[k].n)}`,k===win)),after:`${esc(C[win].n)} está más ${W}`}}});
+    return {kb:false,q:`<p class="q">¿Cuál está más <em>${W}</em>?</p>`,opts:[a,b].map(k=>opt(`<span class="mini-flag">${flagImg(k)}</span>${esc(C[k].n)}`,k===win)),after:`${esc(C[win].n)} está más ${W}`}}});
 
 /* Duelo de siluetas: the real outline against its mirror images */
 quizGame({id:'duelo',title:'Duelo de siluetas',desc:'Tres siluetas de un país: solo una es la de verdad; las otras están volteadas. Diez rondas.',
@@ -1008,7 +1052,7 @@ quizGame({id:'vecino-historico',group:'Historia',title:'¿Quién era su vecino?'
     await loadScript('data.js');
     for(;;){const y=rnd(TYEARS),M=await loadYear(y);const X=rnd(M.items.filter(it=>it.nb&&it.nb.length>=2&&it.nb.length<M.items.length-4));if(!X)continue;
       const yes=rnd(X.nb),no=pickN(M.items.filter(it=>it.id!==X.id&&!X.nb.includes(it.id)).map(it=>it.id),3);if(no.length<3)continue;
-      return {q:`<p class="q">En <em>${y}</em>, ¿cuál limitaba con <em>${esc(hName(X.id))}</em>?</p>`,opts:shuffle([yes,...no]).map(id=>opt(esc(hName(id)),id===yes)),
+      return {kbOk:X.nb.map(hName),pool:M.items.map(it=>hName(it.id)),q:`<p class="q">En <em>${y}</em>, ¿cuál limitaba con <em>${esc(hName(X.id))}</em>?</p>`,opts:shuffle([yes,...no]).map(id=>opt(esc(hName(id)),id===yes)),
         after:`Sus vecinos en ${y}: ${esc(listEs(X.nb.map(hName)))}`}}
   }});
 
@@ -1019,7 +1063,7 @@ quizGame({id:'bandera-epoca',group:'Historia',title:'Bandera histórica → épo
     const H=Object.entries(window.FLAGS).filter(([k,v])=>k.startsWith('h-')&&v.y);
     const [k,v]=rnd(H);const others=pickN([...new Set(H.filter(([k2,v2])=>v2.y!==v.y).map(([,v2])=>v2.y))],3);
     const f=v.f||'svg';
-    return {q:`<p class="q">¿Cuándo ondeaba la bandera de <em>${esc(v.n)}</em>?</p><div class="flagbox"><img class="flag" style="aspect-ratio:${v.ar||4/3};object-fit:contain;width:min(300px,70vw)" src="flags/${k}.${f}" alt=""></div>`,
+    return {kb:false,q:`<p class="q">¿Cuándo ondeaba la bandera de <em>${esc(v.n)}</em>?</p><div class="flagbox"><img class="flag" style="aspect-ratio:${v.ar||4/3};object-fit:contain;width:min(300px,70vw)" src="flags/${k}.${f}" alt=""></div>`,
       opts:shuffle([v.y,...others]).map(y=>opt(esc(y),y===v.y)),after:`${esc(v.n)}: ${esc(v.y)}`}
   }});
 
@@ -1035,14 +1079,14 @@ quizGame({id:'monedas',title:'Monedas',desc:'¿Qué moneda se usa en cada país?
       const others=[...new Set(CODES.filter(x=>G[x]&&!G[x].c.some(c=>G[k].c.includes(c))).flatMap(x=>G[x].c).map(curName).filter(n=>n&&!mine.includes(n)))];
       const near=others.filter(n=>CODES.some(x=>G[x]&&C[x].r===C[k].r&&G[x].c.map(curName).includes(n)));
       const wrong=pickN(near.length>=3?near:others,3);
-      return {q:`<p class="q">¿Qué moneda se usa en <em>${esc(C[k].n)}</em>?</p><div class="flagbox sm">${flagImg(k)}</div>`,opts:shuffle([ans,...wrong]).map(n=>opt(esc(cap1(n)),n===ans)),after:`${esc(C[k].n)}: ${esc(listEs(mine.map(cap1)))}`}}}});
+      return {pool:[...new Set(CODES.filter(x=>G[x]).flatMap(x=>G[x].c).map(curName).filter(Boolean).map(cap1))],q:`<p class="q">¿Qué moneda se usa en <em>${esc(C[k].n)}</em>?</p><div class="flagbox sm">${flagImg(k)}</div>`,opts:shuffle([ans,...wrong]).map(n=>opt(esc(cap1(n)),n===ans)),after:`${esc(C[k].n)}: ${esc(listEs(mine.map(cap1)))}`}}}});
 quizGame({id:'idiomas',title:'Idiomas',desc:'¿Cuál de estos idiomas es oficial en el país? Diez rondas.',
   async gen(){await loadScript('geo.js');const G=GEO.meta;
     for(;;){const k=rnd(CODES.filter(k=>G[k]&&G[k].l.length));const mine=G[k].l.map(langName).filter(Boolean);if(!mine.length)continue;const ans=rnd(mine);
       const pool=[...new Set(CODES.filter(x=>G[x]&&x!==k).flatMap(x=>G[x].l).map(langName).filter(n=>n&&!mine.includes(n)))];
       const near=[...new Set(CODES.filter(x=>G[x]&&C[x].r===C[k].r&&x!==k).flatMap(x=>G[x].l).map(langName).filter(n=>n&&!mine.includes(n)))];
       const wrong=pickN(near.length>=3?near:pool,3);
-      return {q:`<p class="q">¿Qué idioma es oficial en <em>${esc(C[k].n)}</em>?</p><div class="flagbox sm">${flagImg(k)}</div>`,opts:shuffle([ans,...wrong]).map(n=>opt(esc(cap1(n)),n===ans)),after:`En ${esc(C[k].n)}: ${esc(listEs(mine))}`}}}});
+      return {kbOk:mine,pool:[...new Set(CODES.filter(x=>G[x]).flatMap(x=>G[x].l).map(langName).filter(Boolean).map(cap1))],q:`<p class="q">¿Qué idioma es oficial en <em>${esc(C[k].n)}</em>?</p><div class="flagbox sm">${flagImg(k)}</div>`,opts:shuffle([ans,...wrong]).map(n=>opt(esc(cap1(n)),n===ans)),after:`En ${esc(C[k].n)}: ${esc(listEs(mine))}`}}}});
 quizGame({id:'prefijos',title:'Prefijos telefónicos',desc:'¿De qué país es cada prefijo? Diez rondas.',
   async gen(){await loadScript('geo.js');const G=GEO.meta;
     const uniq=CODES.filter(k=>G[k]&&G[k].p&&G[k].p!=='+1'&&CODES.filter(x=>G[x]&&G[x].p===G[k].p).length===1);
@@ -1059,7 +1103,7 @@ quizGame({id:'ciudades',group:'Con mapa',title:'Ciudades',desc:'Las grandes ciud
       return {q:`<p class="q">¿Qué ciudad es este punto?</p><div class="panel mappanel cmap"></div>`,
         mount(el){const V=mapView(el.querySelector('.cmap'),MAPS.world,{onClick(){}});V.cls(c.c,'on');const w=80,h=40;V.view([c.xy[0]-w/2,c.xy[1]-h/2,w,h]);
           V.svg.insertAdjacentHTML('beforeend',`<circle cx="${c.xy[0]}" cy="${c.xy[1]}" r=".9" class="city"/><circle cx="${c.xy[0]}" cy="${c.xy[1]}" r="2.2" class="cityr"/>`)},
-        opts:shuffle([c,...wrong]).map(x=>opt(esc(x.n),x===c)),after:`${esc(c.n)}, en ${esc(C[c.c].n)} · unos ${fmtPop(c.p)} de habitantes`.replace(' mil de',' mil')};
+        pool:CI.map(x=>x.n),opts:shuffle([c,...wrong]).map(x=>opt(esc(x.n),x===c)),after:`${esc(c.n)}, en ${esc(C[c.c].n)} · unos ${fmtPop(c.p)} de habitantes`.replace(' mil de',' mil')};
     }
     const wrong=pickN(CODES.filter(k=>k!==c.c&&C[k].r===C[c.c].r),3);
     return {q:`<p class="q">¿En qué país está <em>${esc(c.n)}</em>?</p>`,opts:shuffle([c.c,...wrong]).map(x=>opt(`<span class="mini-flag">${flagImg(x)}</span>${esc(C[x].n)}`,x===c.c)),after:`${esc(c.n)} está en ${esc(C[c.c].n)}`};
@@ -1079,8 +1123,22 @@ quizGame({id:'fisico',group:'Con mapa',title:'Ríos, mares y montañas',desc:'Se
         let w=Math.max(f.b[2]-f.b[0],f.b[3]-f.b[1]*0)*1.8,h=(f.b[3]-f.b[1])*1.8;w=Math.max(w,h*2,70);w=Math.min(w,1000);h=w/2;
         V.view([cx-w/2,cy-h/2,w,h]);
         V.svg.insertAdjacentHTML('beforeend',`<path class="phys ${kind}" d="${f.d}"/>`)},
-      opts:shuffle([f,...wrong]).map(x=>opt(esc(x.n),x===f)),after:esc(f.n)}}});
+      pool:P.filter(x=>PHK[x.k]===kind).map(x=>x.n),opts:shuffle([f,...wrong]).map(x=>opt(esc(x.n),x===f)),after:esc(f.n)}}});
 
+
+
+/* three classic quick tests, also feeding the marathon */
+const sameRegion=(k,n,f=()=>true)=>{const s=CODES.filter(x=>x!==k&&C[x].r===C[k].r&&f(x));return pickN(s.length>=n?s:CODES.filter(x=>x!==k&&f(x)),n)};
+quizGame({id:'capital-test',title:'País → capital',desc:'¿Cuál es la capital? Cuatro opciones de la misma zona. Diez rondas.',
+  gen(){const k=rnd(CODES.filter(x=>C[x].cap));const w=sameRegion(k,3,x=>C[x].cap);
+    return {pool:CODES.filter(x=>C[x].cap).map(x=>C[x].cap.n),kbOk:[C[k].cap.n,...C[k].cap.a],q:`<p class="q">¿Cuál es la capital de <em>${esc(C[k].n)}</em>?</p><div class="flagbox sm">${flagImg(k)}</div>`,
+      opts:shuffle([k,...w]).map(x=>opt(esc(C[x].cap.n),x===k)),after:`${esc(C[k].cap.n)} es la capital de ${esc(C[k].n)}`}}});
+quizGame({id:'bandera-test',title:'Bandera → país',desc:'¿De qué país es la bandera? Cuatro opciones de la misma zona. Diez rondas.',
+  gen(){const k=rnd(CODES);const w=sameRegion(k,3);
+    return {q:`<p class="q">¿De qué país es esta bandera?</p><div class="flagbox">${flagImg(k)}</div>`,opts:shuffle([k,...w]).map(x=>opt(esc(C[x].n),x===k)),after:`Es ${esc(C[k].n)}`}}});
+quizGame({id:'silueta-test',title:'Silueta → país',desc:'¿De qué país es la silueta? Cuatro opciones de la misma zona. Diez rondas.',
+  async gen(){const k=rnd(CODES.filter(x=>C[x].d&&C[x].km2>=10000));const d=await loadSil(k);const w=sameRegion(k,3,x=>C[x].km2>=10000);
+    return {q:`<p class="q">¿De qué país es esta silueta?</p><div class="silbox">${silSVG(d)}</div>`,opts:shuffle([k,...w]).map(x=>opt(esc(C[x].n),x===k)),after:`Es ${esc(C[k].n)}`}}});
 
 /* Maratón: questions from every quiz, mixed, three lives */
 quizGame({id:'maraton',group:'Mezcla',title:'Maratón',desc:'Preguntas de todos los juegos tipo test mezcladas, una tras otra. Tres vidas.',lives:3,mix:false,
@@ -1114,11 +1172,18 @@ function hub(){
   setScore('');$('#crumb-g').textContent='';
   const groups={};for(const g of [...EXTRA,...GAMES])(groups[g.group]=groups[g.group]||[]).push(g);
   let h='<p class="intro">Minijuegos</p><p class="lead">Para jugar un rato sin mapa completo. Los récords se guardan en este navegador; al acabar puedes retar a alguien con las mismas preguntas.</p>';
+  h+=`<div class="hub-tools"><div class="field srch"><input id="hub-q" autocomplete="off" spellcheck="false" placeholder="Buscar un juego…" aria-label="Buscar un juego"></div>${inputSeg()}</div>`;
   h+=`<details class="profd"${store.get('mapeo.juegos.prof',0)?' open':''}><summary>Tu perfil y logros</summary>${profile()}</details>`;
   for(const [gr,list] of Object.entries(groups)){h+=`<h3 class="grp-h">${gr}</h3><div class="games">`;
     for(const g of list){const r=g.rec?g.rec():'';h+=`<a class="card" href="${g.href||'#'+g.id}"><h3>${g.title}</h3><p>${g.desc}</p>${r?`<span class="rec">${r}</span>`:''}</a>`}h+='</div>'}
   $('#main').innerHTML=h;
   $('.profd').addEventListener('toggle',e=>store.set('mapeo.juegos.prof',e.target.open?1:0));
+  bindInputSeg();
+  const q=$('#hub-q');q.addEventListener('input',()=>{const t=norm(q.value);
+    for(const c of $$('.card'))c.hidden=!!t&&!norm(c.textContent).includes(t);
+    for(const g of $$('.games')){const any=[...g.children].some(c=>!c.hidden);g.hidden=!any;g.previousElementSibling.hidden=!any}});
+  q.addEventListener('keydown',e=>{if(e.key==='Enter'){const c=$$('.card').find(c=>!c.hidden);if(c)c.click()}});
+  if(matchMedia('(pointer:fine)').matches)q.focus({preventScroll:true});
 }
 function route(){
   stopGame();stopGame=()=>{};Math.random=RNG0;
