@@ -47,9 +47,10 @@ header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-b
 .q em{color:var(--accent);font-style:italic}
 
 .sil{display:grid;place-items:center;padding:6px 0 18px}
-.sil svg{width:min(260px,70vw);height:auto;overflow:visible}
-.sil path{fill:var(--text);transition:fill .6s}
-.sil.won path{fill:var(--accent)}.sil.lost path{fill:var(--err)}
+.sil{min-height:200px}
+.sil svg{width:min(320px,78vw);height:auto;overflow:visible}
+.sil path{fill:var(--text);stroke:var(--text);stroke-width:.35;stroke-linejoin:round;fill-rule:evenodd;transition:fill .6s,stroke .6s}
+.sil.won path{fill:var(--accent);stroke:var(--accent)}.sil.lost path{fill:var(--err);stroke:var(--err)}
 
 .field{position:relative}
 .field input{width:100%;background:transparent;border:0;border-bottom:2px solid var(--line);padding:8px 0;font-size:20px;outline:none;transition:border-color .2s}
@@ -204,7 +205,9 @@ const prox=d=>Math.max(0,Math.round((1-d/20015)*100));
 const fmtKm=d=>d<10?'0 km':Math.round(d).toLocaleString('es')+' km';
 
 /* ---------- step 1: the silhouette ---------- */
-$('#sil').innerHTML=`<svg viewBox="0 0 200 200" role="img" aria-label="Silueta del país"><path d="${A.d}"/></svg>`;
+// the outline comes in its own small file, at full detail
+{const sc=document.createElement('script');sc.src=`sil/${ANS}.js`;sc.onload=()=>{$('#sil').innerHTML=`<svg viewBox="0 0 200 200" role="img" aria-label="Silueta del país"><path d="${window.SIL}"/></svg>`};
+ sc.onerror=()=>{$('#sil').textContent='No se pudo cargar la silueta. Recarga la página.'};document.head.append(sc)}
 const NAMES=Object.keys(C).map(k=>({k,n:C[k].n,keys:[norm(C[k].n),...C[k].a]}));
 const MAXG=6;
 const s1done=()=>S.g.includes(ANS)||S.g.length>=MAXG;
