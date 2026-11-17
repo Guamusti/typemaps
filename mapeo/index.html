@@ -101,6 +101,9 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 .land.off,.mk.off{fill:color-mix(in srgb,var(--land) 42%,var(--bg));pointer-events:none}
 .land.late,.mk.late{fill:color-mix(in srgb,var(--accent) 52%,var(--land))}
 .land.bad,.mk.bad{fill:var(--err)!important;transition:none}
+.land.lv0,.mk.lv0{fill:color-mix(in srgb,var(--accent) 24%,var(--land))}
+.land.lv1,.mk.lv1{fill:color-mix(in srgb,var(--accent) 45%,var(--land))}
+.land.lv2,.mk.lv2{fill:color-mix(in srgb,var(--accent) 68%,var(--land))}
 .land.tgt,.mk.tgt{fill:var(--text);animation:tgt 1.2s ease-in-out infinite}
 @keyframes tgt{50%{fill:color-mix(in srgb,var(--text) 45%,var(--accent))}}
 [data-mode="click"] .land:not(.off):not(.on):not(.late):not(.miss),[data-mode="click"] .mk:not(.off){cursor:pointer}
@@ -540,7 +543,7 @@ function setupMode(){
   inp.placeholder={type:M.sub?'Escribe una región…':'Escribe un país…',learn:'¿Cómo se llama la zona resaltada?',explore:`Busca ${what}…`}[m]||'';
   if(m==='explore'){$('#n').textContent=G.ids.length;$('#count-l').textContent=M.sub?'regiones':'en el mapa';exploreBoard();syncLabels();return}
   if(m==='click'){G.queue=shuffle([...G.ids]);nextAsk();hint(M.sub?'Haz clic en la región que se pide':'Haz clic en el país que se pide');return}
-  if(m==='learn'){learnStart();return}
+  if(m==='learn'){learnStart();if(!G.ended&&!G.card?.show)hint('Cada acierto oscurece la región; con tres seguidos queda aprendida');return}
 }
 const fmt=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 const limit=()=>LIMIT[cfg.map]||Math.max(120,G.ids.length*7);
@@ -646,6 +649,8 @@ function skipAsk(){if(!G.cur||G.busy)return;G.queue.push(G.cur);nextAsk();hint('
 
 /* learn: a few new places at a time; each comes back until you name it three times in a row */
 const learnKey=()=>'mapeo.learn.'+scopeKey();
+// every place you have typed stays filled, a shade darker with each correct answer
+function paintLv(id){const l=G.lv[id]||0,learned=l>=MASTER;cls(id,'lv0',!learned&&!!G.seen[id]&&l===0);cls(id,'lv1',!learned&&l===1);cls(id,'lv2',!learned&&l===2)}
 function learnOrder(){
   // neighbours together: sweep the map in bands so each batch is a small patch of it
   const pts=G.ids.map(id=>({id,x:item(id).c[0],y:item(id).c[1]}));
@@ -656,14 +661,17 @@ function learnOrder(){
 function learnStart(){
   const saved=store.get(learnKey(),{});
   for(const id of G.ids)G.lv[id]=Math.min(MASTER,saved[id]||0);
-  for(const id of G.ids)if(G.lv[id]>=MASTER){G.found.add(id);cls(id,'on');chip(id)}
-  G.pending=learnOrder().filter(id=>G.lv[id]<MASTER);G.active=[];G.wait={};G.seen={};
+  G.seen={};for(const id of store.get(learnKey()+'.seen',[]))if(G.in.has(id))G.seen[id]=1;
+  for(const id of G.ids){if(G.lv[id])G.seen[id]=1;if(G.lv[id]>=MASTER){G.found.add(id);cls(id,'on');chip(id)}else paintLv(id)}
+  // places already started come back first, before new ones
+  const order=learnOrder();
+  G.pending=[...order.filter(id=>G.seen[id]&&G.lv[id]<MASTER),...order.filter(id=>!G.seen[id])];G.active=[];G.wait={};
   learnProgress();
   if(!G.pending.length){learnDone(true);return}
   learnNext();
 }
 function learnProgress(){$('#n').textContent=G.ids.filter(id=>G.lv[id]>=MASTER).length}
-function learnSave(){const o={};for(const id of G.ids)if(G.lv[id])o[id]=G.lv[id];store.set(learnKey(),o)}
+function learnSave(){const o={};for(const id of G.ids)if(G.lv[id])o[id]=G.lv[id];store.set(learnKey(),o);store.set(learnKey()+'.seen',G.ids.filter(id=>G.seen[id]))}
 function learnNext(){
   while(G.active.length<4&&G.pending.length){const id=G.pending.shift();G.active.push(id);G.wait[id]=0}
   if(!G.active.length){learnDone();return}
@@ -681,17 +689,18 @@ function learnAnswer(ok){
   const c=G.card;if(!c)return;const id=c.id;
   if(c.show){
     // the name was on screen: copying it introduces the place, it does not count as recall
-    G.seen[id]=1;G.wait[id]=c.missed?1:2;cls(id,'tgt',false);ripple(id);learnNext();return;
+    G.seen[id]=1;G.wait[id]=c.missed?1:2;cls(id,'tgt',false);paintLv(id);learnSave();ripple(id);learnNext();return;
   }
   if(ok){
     G.lv[id]++;G.seen[id]=1;cls(id,'tgt',false);ripple(id);label(id);
+    paintLv(id);
     if(G.lv[id]>=MASTER){G.active=G.active.filter(x=>x!==id);G.found.add(id);cls(id,'on');chip(id);hint(`${COUNTRIES[id].n}: aprendida`,'ok')}
     else{G.wait[id]=[0,3,5][G.lv[id]]||5;hint(COUNTRIES[id].n,'ok')}
     learnSave();learnProgress();
     G.card=null;nextT=setTimeout(learnNext,reduced.matches?0:420);
   }else{
     // wrong or "no lo sé": show the name and ask to copy it, then it comes back soon
-    G.lv[id]=0;learnSave();learnProgress();
+    G.lv[id]=0;paintLv(id);learnSave();learnProgress();
     G.card={id,show:true,missed:true};lblG.innerHTML='';label(id,true,'learn');
     hint(`Es ${COUNTRIES[id].n}. Escríbela y volverá enseguida`,'bad');inp.value='';
   }
@@ -755,9 +764,9 @@ function finish(reason,quiet){
 }
 $('#skip').onclick=()=>{if(cfg.mode==='click')skipAsk();else if(cfg.mode==='learn'&&G.card&&!G.card.show){begin();learnAnswer(false)}focusInput()};
 $('#giveup').onclick=()=>{if(!G.ended)finish('stop')};
-$('#restart').onclick=()=>{if(cfg.mode==='learn')store.set(learnKey(),{});start();focusInput()};
+$('#restart').onclick=()=>{if(cfg.mode==='learn'){store.set(learnKey(),{});store.set(learnKey()+'.seen',[])}start();focusInput()};
 $('#again').onclick=()=>{if(cfg.mode==='learn'&&G.ended){cfg.mode='click';save();syncUI()}start();focusInput()};
-$('#d-alt').onclick=()=>{store.set(learnKey(),{});start();focusInput()};
+$('#d-alt').onclick=()=>{store.set(learnKey(),{});store.set(learnKey()+'.seen',[]);start();focusInput()};
 const focusInput=()=>{if(!body.classList.contains('open')&&G&&!G.ended&&cfg.mode!=='click')inp.focus({preventScroll:true})};
 document.addEventListener('keydown',e=>{
   if(body.classList.contains('open')){if(e.key==='Escape')openDrawer(false);return}
