@@ -126,6 +126,8 @@ main>.games:last-child{margin-bottom:60px}
 .chmap{margin-top:14px}
 .gmap .tgt{fill:var(--text);animation:pulse .8s ease-in-out infinite alternate}
 @keyframes pulse{to{fill:var(--err)}}
+.flagbox{display:grid;place-items:center;padding:6px 0 16px}.flagbox .flag{width:min(300px,70vw)}
+.capask{font-family:var(--display);font-size:40px;line-height:1.1;color:var(--accent);white-space:nowrap}.bm-flag:has(.capask){width:auto}
 .bm-ask{display:flex;align-items:center;gap:20px;margin-bottom:14px}.bm-flag{width:130px;flex:none}
 .opts4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
 .opts4 button{padding:14px 10px;border-radius:12px;background:var(--alt);text-align:center;transition:background-color .2s}
@@ -562,25 +564,25 @@ function regionBox(M,ids,svgEl){
 }
 
 /* Bandera → mapa: click the country of each flag */
-game({id:'bandera-mapa',group:'Con mapa',title:'Bandera → mapa',desc:'Te enseñamos una bandera y la señalas en el mapa. Quince por ronda.',
-  rec:()=>{const b=Math.max(0,...RG.map(([r])=>REC['bandera-mapa.'+r]?.best||0));return b?`mejor: ${b} de 15 a la primera`:''},
+function mapAsk({id,title,desc,ask,pref,filter=()=>true}){game({id,group:'Con mapa',title,desc,
+  rec:()=>{const b=Math.max(0,...RG.map(([r])=>REC[id+'.'+r]?.best||0));return b?`mejor: ${b} de 15 a la primera`:''},
   async start(main){
-    let region=store.get('mapeo.juegos.bm','eu'),queue,cur,tries,first,n,busy,V,missed;
+    let region=store.get('mapeo.juegos.'+pref,'eu'),queue,cur,tries,first,n,busy,V,missed;
     main.innerHTML=`<div class="game"><div class="hl-top">${regionSeg('bm-r',region)}<span class="crumb" id="bm-n"></span></div>
       <div class="bm-ask"><div class="bm-flag" id="bm-f"></div><div><p class="q" style="margin:0">¿Dónde está?</p><div class="msg" id="bm-msg">Haz clic en el país. Rueda para acercar, arrastra para mover.</div></div></div>
       <div class="panel mappanel" id="bm-map"><p class="msg">Cargando el mapa…</p></div><div class="end" id="bm-end" hidden></div></div>`;
     try{await loadScript('data.js')}catch(e){$('#bm-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>';return}
-    if(location.hash!=='#bandera-mapa')return;
-    const score=()=>{setScore(`<span><b>${first}</b>a la primera</span><span><b>${REC['bandera-mapa.'+region]?.best||0}</b>récord</span>`);$('#bm-n').textContent=`${Math.min(n+1,15)} de 15`};
+    if(location.hash!=='#'+id)return;
+    const score=()=>{setScore(`<span><b>${first}</b>a la primera</span><span><b>${REC[id+'.'+region]?.best||0}</b>récord</span>`);$('#bm-n').textContent=`${Math.min(n+1,15)} de 15`};
     function setup(){
       const M=region==='eu'?MAPS.europe:MAPS.world;
-      const ids=M.items.map(i=>i.id).filter(k=>C[k]&&inRegion(k,region==='eu'?'eu':region));
+      const ids=M.items.map(i=>i.id).filter(k=>C[k]&&filter(k)&&inRegion(k,region==='eu'?'eu':region));
       V=mapView($('#bm-map'),M,{onClick:click});
       if(region!=='eu'&&region!=='all'){const b=regionBox(M,ids.filter(k=>!['FR','US','RU','NL','GB','DK','NO','CL','EC','PT','ES'].includes(k)||inRegion(k,region)),V.svg);V.svg.setAttribute('viewBox',b.join(' '));V=mapView($('#bm-map'),M,{onClick:click,box:b})}
       for(const it of M.items)if(!ids.includes(it.id))V.cls(it.id,'off');
       queue=shuffle(ids).slice(0,15);n=0;first=0;missed=[];$('#bm-end').hidden=true;$('#bm-msg').textContent='Haz clic en el país. Rueda para acercar, arrastra para mover.';$('#bm-msg').className='msg';next();
     }
-    function next(){busy=false;tries=0;cur=queue[n];if(!cur){end();return}$('#bm-f').innerHTML=flagImg(cur);score()}
+    function next(){busy=false;tries=0;cur=queue[n];if(!cur){end();return}$('#bm-f').innerHTML=ask(cur);score()}
     function click(id){
       if(busy||!cur||!C[id])return;
       if(id===cur){if(!tries)first++;V.cls(id,tries?'late':'on');$('#bm-msg').textContent=`${C[id].n} ✓`;$('#bm-msg').className='msg ok';n++;busy=true;setTimeout(next,450);return}
@@ -589,11 +591,14 @@ game({id:'bandera-mapa',group:'Con mapa',title:'Bandera → mapa',desc:'Te ense�
         const k=cur;setTimeout(()=>{V.cls(k,'tgt',false);V.cls(k,'miss');V.reset();n++;next()},1500)}
       else{$('#bm-msg').textContent=`No, eso es ${C[id].n}. Te quedan ${3-tries}`;$('#bm-msg').className='msg bad'}
     }
-    function end(){cur=null;const r=saveScore('bandera-mapa.'+region,first);score();$('#bm-n').textContent='';
+    function end(){cur=null;const r=saveScore(id+'.'+region,first);score();$('#bm-n').textContent='';
       endCard($('#bm-end'),{big:`${first} de 15`,sub:`a la primera · ${regionName(region)}`+(missed.length?`<br>Fallaste: ${esc(listEs(missed.map(k=>C[k].n)))}`:''),rec:recLine(r,' de 15'),again:setup})}
-    $('#bm-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.bm',region);$$('#bm-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));setup()};
+    $('#bm-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.'+pref,region);$$('#bm-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));setup()};
     setup();
-  }});
+  }})}
+mapAsk({id:'bandera-mapa',title:'Bandera → mapa',desc:'Te enseñamos una bandera y la señalas en el mapa. Quince por ronda.',pref:'bm',ask:k=>flagImg(k)});
+mapAsk({id:'capital-mapa',title:'Capital → mapa',desc:'Te decimos una capital y señalas su país en el mapa. Quince por ronda.',pref:'cm',filter:k=>!!C[k].cap,ask:k=>`<div class="capask">${esc(C[k].cap.n)}</div>`});
+
 
 
 /* historical maps: data.js holds 1914, 1920 and 1938; the other years come one file each */
@@ -706,6 +711,77 @@ game({id:'hoy',group:'Historia',title:'¿Qué hay hoy aquí?',desc:'Se resalta u
     function reset(){round=0;found=0;tot=0;$('#hy-end').hidden=true;deal()}
     try{await loadScript('data.js')}catch(e){return}
     reset();
+  }});
+
+
+/* Banderas contrarreloj */
+game({id:'banderas-reloj',group:'Rápidos',title:'Banderas contrarreloj',desc:'Un minuto para nombrar todas las banderas que puedas.',
+  rec:()=>{const b=Math.max(0,...RG.map(([r])=>REC['banderas-reloj.'+r]?.best||0));return b?`mejor: ${b} banderas`:''},
+  start(main){
+    let region=store.get('mapeo.juegos.br','all'),cur=null,n=0,missed=[],T=null,running=false,bag=[];
+    main.innerHTML=`<div class="game"><div class="hl-top">${regionSeg('br-r',region)}<span class="clock" id="br-t">60 s</span></div>
+      <div class="panel"><div class="flagbox" id="br-f"></div>${fieldHTML('br-in','¿De qué país es?')}
+      <div class="row"><div class="msg" id="br-msg">Escribe para empezar.</div><button class="ghost" id="br-skip" type="button">pasar →</button></div></div>
+      <div class="end" id="br-end" hidden></div></div>`;
+    const pool=()=>CODES.filter(k=>inRegion(k,region));
+    const draw=()=>{if(!bag.length)bag=shuffle(pool());return bag.pop()};
+    const score=()=>setScore(`<span><b>${n}</b>aciertos</span><span><b>${REC['banderas-reloj.'+region]?.best||0}</b>récord</span>`);
+    function show(){cur=draw();$('#br-f').innerHTML=flagImg(cur);const nx=bag[bag.length-1];if(nx)new Image().src=`${FB}${nx.toLowerCase()}.svg`}
+    function reset(){T&&T.stop();n=0;missed=[];running=false;bag=[];$('#br-end').hidden=true;$('#br-in').disabled=false;$('#br-t').textContent='60 s';$('#br-msg').textContent='Escribe para empezar.';$('#br-msg').className='msg';score();show();$('#br-in').focus()}
+    const begin=()=>{if(running)return;running=true;T=timerBar($('#br-t'),60,end)};
+    function end(){running=false;$('#br-in').disabled=true;const r=saveScore('banderas-reloj.'+region,n);score();
+      endCard($('#br-end'),{big:`${n}`,sub:`${n===1?'bandera':'banderas'} en un minuto · ${regionName(region)}`+(missed.length?`<br>Pasaste: ${esc(listEs(missed.map(k=>C[k].n)))}`:''),rec:recLine(r,''),again:reset})}
+    countryBox($('#br-in'),$('#br-in-sug'),k=>{
+      if(!k){$('#br-msg').textContent='No conozco ese país';$('#br-msg').className='msg bad';return}
+      begin();
+      if(k===cur){n++;score();$('#br-msg').textContent=C[k].n+' ✓';$('#br-msg').className='msg ok';show()}
+      else{$('#br-msg').textContent=`No es ${C[k].n}`;$('#br-msg').className='msg bad'}
+    });
+    $('#br-in').addEventListener('input',begin);
+    $('#br-skip').onclick=()=>{begin();missed.push(cur);$('#br-msg').textContent=`Era ${C[cur].n}`;$('#br-msg').className='msg bad';show();$('#br-in').focus()};
+    $('#br-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.br',region);$$('#br-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));reset()};
+    stopGame=()=>T&&T.stop();
+    reset();
+  }});
+
+/* Rellena el continente: name every country while the map fills in */
+game({id:'rellena',group:'Con mapa',title:'Rellena el continente',desc:'El mapa de un continente vacío: escribe todos sus países antes de que acabe el tiempo.',
+  rec:()=>{const r=RG.filter(([r])=>r!=='all').map(([r,t])=>REC['rellena.'+r]?.best!=null?`${t} ${REC['rellena.'+r].best}%`:'').filter(Boolean);return r.length?r.join(' · '):''},
+  async start(main){
+    let region=store.get('mapeo.juegos.rl','eu');if(region==='all')region='eu';
+    let ids,got,T,running,V,done;
+    main.innerHTML=`<div class="game"><div class="hl-top">${regionSeg('rl-r',region).replace('<button type="button" data-r="all" aria-pressed="false">Mundo</button>','').replace('<button type="button" data-r="all" aria-pressed="true">Mundo</button>','')}<span class="clock" id="rl-t"></span></div>
+      <div class="panel">${fieldHTML('rl-in','Escribe un país…')}<div class="row"><div class="msg" id="rl-msg"></div><button class="ghost" id="rl-give" type="button">me rindo</button></div></div>
+      <div class="panel mappanel" id="rl-map" style="margin-top:12px"><p class="msg">Cargando el mapa…</p></div><div class="end" id="rl-end" hidden></div></div>`;
+    try{await loadScript('data.js')}catch(e){$('#rl-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>';return}
+    if(location.hash!=='#rellena')return;
+    const secs=()=>Math.max(120,Math.round(ids.length*6/30)*30);
+    const score=()=>setScore(`<span><b>${got.length}</b>de ${ids.length}</span><span><b>${REC['rellena.'+region]?.best??0}%</b>récord</span>`);
+    function setup(){
+      T&&T.stop();running=false;done=false;got=[];$('#rl-end').hidden=true;$('#rl-in').disabled=false;
+      const M=region==='eu'?MAPS.europe:MAPS.world;ids=M.items.map(i=>i.id).filter(k=>C[k]&&inRegion(k,region));
+      V=mapView($('#rl-map'),M,{onClick(){}});
+      if(region!=='eu'){const b=regionBox(M,ids.filter(k=>!['FR','US','RU','NL','GB','DK','NO','CL','EC','PT','ES'].includes(k)||inRegion(k,region)),V.svg);V=mapView($('#rl-map'),M,{onClick(){},box:b})}
+      for(const it of M.items)if(!ids.includes(it.id))V.cls(it.id,'off');
+      $('#rl-t').textContent=fmtClock(secs());$('#rl-msg').textContent=`${ids.length} países. El reloj empieza al escribir.`;$('#rl-msg').className='msg';score();$('#rl-in').focus();
+    }
+    const fmtClock=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+    function begin(){if(running||done)return;running=true;const t0=performance.now(),S=secs();let raf;const tick=t=>{if(!running)return;const left=Math.max(0,S-(t-t0)/1000);$('#rl-t').textContent=fmtClock(Math.ceil(left));$('#rl-t').classList.toggle('low',left<=20);if(left<=0){end();return}raf=requestAnimationFrame(tick)};raf=requestAnimationFrame(tick);T={stop(){running=false;cancelAnimationFrame(raf)}}}
+    function end(){if(done)return;done=true;T&&T.stop();$('#rl-in').disabled=true;const miss=ids.filter(k=>!got.includes(k));for(const k of miss)V.cls(k,'miss');
+      const pct=Math.round(got.length/ids.length*100),r=saveScore('rellena.'+region,pct);score();
+      endCard($('#rl-end'),{big:`${got.length} de ${ids.length}`,sub:`${pct}% de ${regionName(region)}`+(miss.length&&miss.length<=25?`<br>Faltaron: ${esc(listEs(miss.map(k=>C[k].n).sort((a,b)=>a.localeCompare(b,'es'))))}`:miss.length?`<br>Faltaron ${miss.length}, en rojo en el mapa`:''),rec:recLine(r,'%'),again:setup})}
+    countryBox($('#rl-in'),$('#rl-in-sug'),k=>{
+      if(done)return;const m=$('#rl-msg');
+      if(!k){m.textContent='No conozco ese país';m.className='msg bad';return}
+      if(!ids.includes(k)){m.textContent=`${C[k].n} no está en ${regionName(region)}`;m.className='msg bad';return}
+      if(got.includes(k)){m.textContent='Ese ya está';m.className='msg bad';return}
+      begin();got.push(k);V.cls(k,'on');m.textContent=C[k].n+' ✓';m.className='msg ok';score();if(got.length===ids.length)end();
+    },{exclude:()=>new Set(got)});
+    $('#rl-in').addEventListener('input',begin);
+    $('#rl-give').onclick=()=>{if(!done)end()};
+    $('#rl-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.rl',region);$$('#rl-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));setup()};
+    stopGame=()=>T&&T.stop();
+    setup();
   }});
 
 /* ---------- hub and routing ---------- */
