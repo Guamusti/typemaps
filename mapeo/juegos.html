@@ -82,6 +82,21 @@ main>.games:last-child{margin-bottom:60px}
 .chip.miss{background:color-mix(in srgb,var(--err) 25%,var(--bg))}
 .chip.left{background:transparent;border:1px dashed var(--line);color:var(--sub)}
 
+.clock{font-variant-numeric:tabular-nums;font-size:22px;font-family:var(--display)}.clock.low{color:var(--err)}
+.silbox{display:grid;place-items:center;min-height:260px;padding-bottom:12px}
+.silbox svg{width:min(280px,70vw);height:auto}.silbox path{fill:var(--text);stroke:var(--text);stroke-width:.35;stroke-linejoin:round;fill-rule:evenodd;transition:fill .25s}
+.silbox.hit path{fill:var(--accent);stroke:var(--accent)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lives{display:flex;gap:6px}.lives i{width:12px;height:12px;border-radius:50%;background:var(--line)}.lives i.on{background:var(--err)}
+.sublbl{color:var(--sub);margin:0}.big-q{font-family:var(--display);font-size:46px;line-height:1.1;margin:4px 0 16px;color:var(--accent)}
+.olist{display:grid;gap:8px;margin-bottom:12px}
+.ocard{display:grid;grid-template-columns:30px 54px minmax(0,1fr) auto;align-items:center;gap:14px;padding:10px 14px;border-radius:12px;background:var(--bg);text-align:left;transition:background-color .2s}
+.ocard:hover{background:color-mix(in srgb,var(--accent) 10%,var(--bg))}
+.ocard .flag{width:54px}.ocard .opos{font-family:var(--display);font-size:26px;color:var(--accent);text-align:center}
+.ocard .onm{font-size:15px}.ocard .oval{color:var(--sub);font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right}
+.ocard.set{background:color-mix(in srgb,var(--accent) 14%,var(--bg))}
+.ocard.good{background:color-mix(in srgb,var(--accent) 22%,var(--bg))}.ocard.bad{background:color-mix(in srgb,var(--err) 20%,var(--bg))}
+.btn:disabled{opacity:.4;cursor:default}
 /* más o menos */
 .hl{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
 .hl-c{padding:18px;border-radius:16px;background:var(--bg);text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:background-color .3s}
@@ -242,6 +257,120 @@ game({id:'mas-menos',group:'Rápidos',title:'Más o menos',desc:'¿Tiene más o 
     $('#mm-m').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.dataset.m===metric)return;metric=b.dataset.m;store.set('mapeo.juegos.mm',metric);reset()};
     const key=e=>{if(e.key==='ArrowUp'){e.preventDefault();answer(1)}if(e.key==='ArrowDown'){e.preventDefault();answer(-1)}};
     document.addEventListener('keydown',key);stopGame=()=>document.removeEventListener('keydown',key);
+    reset();
+  }});
+
+
+/* region filter shared by several games */
+const RG=[['all','Mundo'],['eu','Europa'],['af','África'],['as','Asia'],['am','América'],['oc','Oceanía']];
+const inRegion=(k,r)=>r==='all'||(r==='am'?['na','sa'].includes(C[k].r):C[k].r===r);
+const regionSeg=(id,cur)=>`<div class="seg" id="${id}">${RG.map(([v,t])=>`<button type="button" data-r="${v}" aria-pressed="${v===cur}">${t}</button>`).join('')}</div>`;
+const regionName=r=>RG.find(x=>x[0]===r)[1];
+
+/* silhouettes come one file per country */
+const SILS={};
+function loadSil(k){
+  if(SILS[k])return Promise.resolve(SILS[k]);
+  return new Promise((res,rej)=>{const s=document.createElement('script');s.src=`sil/${k}.js`;s.onload=()=>{SILS[k]=window.SIL;s.remove();res(SILS[k])};s.onerror=rej;document.head.append(s)});
+}
+const silSVG=d=>`<svg viewBox="0 0 200 200" role="img" aria-label="Silueta"><path d="${d}"/></svg>`;
+
+function timerBar(el,secs,onEnd){
+  const t0=performance.now();let raf=0,stopped=false,extra=0;
+  const tick=t=>{if(stopped)return;const left=Math.max(0,secs+extra-(t-t0)/1000);el.textContent=Math.ceil(left)+' s';el.classList.toggle('low',left<=10);if(left<=0){stopped=true;onEnd();return}raf=requestAnimationFrame(tick)};
+  raf=requestAnimationFrame(tick);
+  return {stop(){stopped=true;cancelAnimationFrame(raf)},add(s){extra+=s}};
+}
+
+/* Siluetas contrarreloj: as many outlines as you can name in a minute */
+game({id:'siluetas',group:'Rápidos',title:'Siluetas contrarreloj',desc:'Un minuto para reconocer todas las siluetas de países que puedas.',
+  rec:()=>{const b=Math.max(0,...RG.map(([r])=>REC['siluetas.'+r]?.best||0));return b?`mejor: ${b} siluetas`:''},
+  start(main){
+    let region=store.get('mapeo.juegos.sr','all'),cur=null,next=null,n=0,missed=[],T=null,running=false;
+    main.innerHTML=`<div class="game"><div class="hl-top">${regionSeg('sr-r',region)}<span class="clock" id="sr-t">60 s</span></div>
+      <div class="panel"><div class="silbox" id="sr-s"></div>${fieldHTML('sr-in','¿Qué país es?')}
+      <div class="row"><div class="msg" id="sr-msg">Escribe para empezar. Enter acepta la sugerencia.</div><button class="ghost" id="sr-skip" type="button">pasar →</button></div></div>
+      <div class="end" id="sr-end" hidden></div></div>`;
+    const pool=()=>CODES.filter(k=>C[k].d&&C[k].km2>=(region==='all'?10000:1500)&&inRegion(k,region));
+    let bag=[];const draw=()=>{if(!bag.length)bag=shuffle(pool());return bag.pop()};
+    const score=()=>setScore(`<span><b>${n}</b>aciertos</span><span><b>${REC['siluetas.'+region]?.best||0}</b>récord</span>`);
+    async function show(){cur=next||draw();next=draw();const d=await loadSil(cur);$('#sr-s').innerHTML=silSVG(d);loadSil(next).catch(()=>{})}
+    function reset(){T&&T.stop();n=0;missed=[];running=false;bag=[];next=null;$('#sr-end').hidden=true;$('#sr-in').disabled=false;$('#sr-t').textContent='60 s';$('#sr-msg').textContent='Escribe para empezar. Enter acepta la sugerencia.';$('#sr-msg').className='msg';score();show();$('#sr-in').focus()}
+    const begin=()=>{if(running)return;running=true;T=timerBar($('#sr-t'),60,end)};
+    function end(){running=false;$('#sr-in').disabled=true;const r=saveScore('siluetas.'+region,n);score();
+      endCard($('#sr-end'),{big:`${n}`,sub:`${n===1?'silueta':'siluetas'} en un minuto · ${regionName(region)}`+(missed.length?`<br>Pasaste: ${esc(listEs(missed.map(k=>C[k].n)))}`:''),rec:recLine(r,''),again:reset})}
+    countryBox($('#sr-in'),$('#sr-in-sug'),k=>{
+      if(!k){$('#sr-msg').textContent='No conozco ese país';$('#sr-msg').className='msg bad';return}
+      begin();
+      if(k===cur){n++;score();$('#sr-msg').textContent=C[k].n+' ✓';$('#sr-msg').className='msg ok';$('#sr-s').classList.add('hit');setTimeout(()=>$('#sr-s').classList.remove('hit'),300);show()}
+      else{$('#sr-msg').textContent=`No es ${C[k].n}`;$('#sr-msg').className='msg bad'}
+    });
+    $('#sr-in').addEventListener('input',begin,{once:false});
+    $('#sr-skip').onclick=()=>{if(!running)begin();missed.push(cur);$('#sr-msg').textContent=`Era ${C[cur].n}`;$('#sr-msg').className='msg bad';show();$('#sr-in').focus()};
+    $('#sr-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.sr',region);$$('#sr-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));reset()};
+    stopGame=()=>T&&T.stop();
+    reset();
+  }});
+
+/* Capital → país: name the country of each capital; three lives */
+game({id:'capitales',group:'Rápidos',title:'Capital → país',desc:'Te damos una capital y escribes de qué país es. Tres vidas.',
+  rec:()=>{const b=Math.max(0,...RG.map(([r])=>REC['capitales.'+r]?.best||0));return b?`mejor: ${b} seguidas`:''},
+  start(main){
+    let region=store.get('mapeo.juegos.cp','all'),cur,n=0,lives=3,bag=[],wrong=[];
+    main.innerHTML=`<div class="game"><div class="hl-top">${regionSeg('cp-r',region)}<span class="lives" id="cp-l"></span></div>
+      <div class="panel"><p class="sublbl">¿De qué país es la capital…?</p><p class="big-q" id="cp-q"></p>${fieldHTML('cp-in','Escribe el país…')}
+      <div class="msg" id="cp-msg"></div></div><div class="end" id="cp-end" hidden></div></div>`;
+    const pool=()=>CODES.filter(k=>C[k].cap&&inRegion(k,region));
+    const score=()=>{setScore(`<span><b>${n}</b>aciertos</span><span><b>${REC['capitales.'+region]?.best||0}</b>récord</span>`);$('#cp-l').innerHTML='<i class="on"></i>'.repeat(lives)+'<i></i>'.repeat(3-lives)};
+    const next=()=>{if(!bag.length)bag=shuffle(pool());cur=bag.pop();$('#cp-q').textContent=C[cur].cap.n};
+    function reset(){n=0;lives=3;bag=[];wrong=[];$('#cp-end').hidden=true;$('#cp-in').disabled=false;$('#cp-msg').textContent='';score();next();$('#cp-in').focus()}
+    countryBox($('#cp-in'),$('#cp-in-sug'),k=>{
+      if(!k){$('#cp-msg').textContent='No conozco ese país';$('#cp-msg').className='msg bad';return}
+      if(k===cur){n++;$('#cp-msg').textContent=`${C[cur].cap.n} · ${C[cur].n} ✓`;$('#cp-msg').className='msg ok'}
+      else{lives--;wrong.push(cur);$('#cp-msg').textContent=`No: ${C[cur].cap.n} es la capital de ${C[cur].n}`;$('#cp-msg').className='msg bad'}
+      score();
+      if(lives<=0){$('#cp-in').disabled=true;const r=saveScore('capitales.'+region,n);score();
+        endCard($('#cp-end'),{big:`${n}`,sub:`${n===1?'capital':'capitales'} · ${regionName(region)}<br>Fallaste: ${esc(listEs(wrong.map(k=>`${C[k].cap.n} (${C[k].n})`)))}`,rec:recLine(r,''),again:reset});return}
+      next();
+    });
+    $('#cp-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.cp',region);$$('#cp-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));reset()};
+    reset();
+  }});
+
+/* Ordenar: put five countries in order; five rounds */
+game({id:'ordenar',group:'Rápidos',title:'Ordenar',desc:'Cinco países: ordénalos por población, superficie o de norte a sur. Cinco rondas.',
+  rec:()=>{const b=Math.max(0,...['pop','km2','lat'].map(m=>REC['ordenar.'+m]?.best||0));return b?`mejor: ${b} de 25`:''},
+  start(main){
+    let metric=store.get('mapeo.juegos.or','pop'),round=0,total=0,set=[],picked=[],checked=false;
+    const M={pop:{t:'población',q:'de más a menos habitantes',v:k=>C[k].pop,f:k=>fmtPop(C[k].pop)},km2:{t:'superficie',q:'de mayor a menor superficie',v:k=>C[k].km2,f:k=>fmtKm2(C[k].km2)},
+      lat:{t:'norte → sur',q:'de norte a sur',v:k=>C[k].ll[1],f:k=>{const l=C[k].ll[1];return Math.abs(l).toFixed(1).replace('.',',')+'° '+(l>=0?'N':'S')}}};
+    main.innerHTML=`<div class="game"><div class="hl-top"><div class="seg" id="or-m">${Object.entries(M).map(([k,m])=>`<button type="button" data-m="${k}" aria-pressed="${k===metric}">${m.t}</button>`).join('')}</div><span class="crumb" id="or-n"></span></div>
+      <p class="q" id="or-q"></p><div class="panel"><div class="olist" id="or-l"></div>
+      <div class="row"><div class="msg" id="or-msg">Pulsa los países en orden; pulsa uno ya puesto para quitarlo.</div><button class="btn" id="or-go" type="button" disabled>comprobar</button></div></div>
+      <div class="end" id="or-end" hidden></div></div>`;
+    const pool=CODES.filter(k=>C[k].pop&&C[k].km2>=1000);
+    const score=()=>setScore(`<span><b>${total}</b>puntos</span><span><b>${REC['ordenar.'+metric]?.best||0}</b>récord</span>`);
+    function deal(){
+      // spread values so no two are near-ties
+      for(let tries=0;tries<300;tries++){const s=shuffle([...pool]).slice(0,5);const v=s.map(M[metric].v).sort((a,b)=>a-b);let ok=true;for(let i=1;i<5;i++){const a=v[i-1],b=v[i];if(metric==='lat'?b-a<1.5:b/a<1.15)ok=false}if(ok){set=s;break}}
+      picked=[];checked=false;draw();$('#or-q').innerHTML=`Ordénalos <em>${M[metric].q}</em>`;$('#or-n').textContent=`ronda ${round+1} de 5`;$('#or-go').textContent='comprobar';
+    }
+    function draw(){
+      const right=[...set].sort((a,b)=>M[metric].v(b)-M[metric].v(a));
+      $('#or-l').innerHTML=set.map(k=>{const i=picked.indexOf(k),ok=checked&&right[i]===k;
+        return `<button type="button" class="ocard${i>=0?' set':''}${checked?(ok?' good':' bad'):''}" data-k="${k}"><span class="opos">${i>=0?i+1:''}</span>${flagImg(k)}<span class="onm">${esc(C[k].n)}</span><span class="oval">${checked?M[metric].f(k)+(ok?'':` · era ${right.indexOf(k)+1}.º`):''}</span></button>`}).join('');
+      $('#or-go').disabled=!checked&&picked.length<5;
+    }
+    $('#or-l').onclick=e=>{const b=e.target.closest('[data-k]');if(!b||checked)return;const k=b.dataset.k,i=picked.indexOf(k);if(i>=0)picked.splice(i,1);else picked.push(k);draw();if(picked.length===5)$('#or-go').focus()};
+    $('#or-go').onclick=()=>{
+      if(!checked){checked=true;const right=[...set].sort((a,b)=>M[metric].v(b)-M[metric].v(a));const pts=picked.filter((k,i)=>right[i]===k).length;total+=pts;round++;score();draw();
+        $('#or-msg').textContent=pts===5?'¡Perfecto!':`${pts} de 5 en su sitio`;$('#or-msg').className='msg '+(pts>=3?'ok':'bad');$('#or-go').textContent=round<5?'siguiente':'ver resultado';$('#or-go').disabled=false;return}
+      if(round<5){$('#or-msg').textContent='Pulsa los países en orden; pulsa uno ya puesto para quitarlo.';$('#or-msg').className='msg';deal();return}
+      const r=saveScore('ordenar.'+metric,total);score();$('#or-go').disabled=true;
+      endCard($('#or-end'),{big:`${total} de 25`,sub:`Ordenar por ${M[metric].t}`,rec:recLine(r,' de 25'),again:reset});
+    };
+    function reset(){round=0;total=0;$('#or-end').hidden=true;$('#or-msg').textContent='Pulsa los países en orden; pulsa uno ya puesto para quitarlo.';$('#or-msg').className='msg';score();deal()}
+    $('#or-m').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;metric=b.dataset.m;store.set('mapeo.juegos.or',metric);$$('#or-m button').forEach(x=>x.setAttribute('aria-pressed',x===b));reset()};
     reset();
   }});
 
