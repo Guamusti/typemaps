@@ -141,6 +141,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 .full .glow{display:none}
 
 /* names */
+.era{margin:26px 0 -8px;color:var(--sub);font-size:15px;line-height:1.5}.era b{color:var(--text);font-weight:500;margin-right:10px}
 .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:26px 34px;padding:30px 0 34px}
 .grp h2{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 8px;font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
 .grp h2 span{font-variant-numeric:tabular-nums}
@@ -230,12 +231,9 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
       <button type="button" data-map="europe">Europa</button>
       <button type="button" data-map="world">Mundo</button>
       <button type="button" data-map="sub">Regiones</button>
+      <button type="button" data-map="hist" title="Europa en otra época">Historia</button>
     </div>
-    <div class="seg" id="maps-h" aria-label="Europa en otra época" title="Europa en otra época">
-      <button type="button" data-map="e1914">1914</button>
-      <button type="button" data-map="e1920">1920</button>
-      <button type="button" data-map="e1938">1938</button>
-    </div>
+    <label class="pick" id="ypick" hidden><span class="pick-l">Año</span><select id="year" aria-label="Año del mapa histórico"></select></label>
     <label class="pick" id="pick" hidden><span class="pick-l">Regiones de</span><select id="subc" aria-label="País de las regiones"><option value="ES">España</option></select></label>
     <div class="seg soft" data-key="mode" aria-label="Modo de juego">
       <button type="button" data-val="type" title="Escribe todos los nombres que sepas">escribir</button>
@@ -281,6 +279,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
       <div id="tip" hidden></div>
     </div>
 
+    <p class="era" id="era" hidden></p>
     <div class="board" id="board"></div>
     <p class="note" style="padding-bottom:40px">Fronteras actuales: Natural Earth. Regiones: Natural Earth y geoBoundaries para Letonia, Ucrania, Moldavia, Montenegro, Islandia, Finlandia, Luxemburgo, Bosnia y Herzegovina, Chipre y Macedonia del Norte (datos de © colaboradores de OpenStreetMap, ODbL, y de sus agencias cartográficas, CC BY). Eslovenia y Macedonia del Norte, por regiones estadísticas. Fronteras históricas: historical-basemaps de André Ourednik (GPL-3.0), aproximadas.</p>
   </div>
@@ -368,8 +367,12 @@ const PALETTES=[
   {id:'tiza',name:'Tiza',c:['#ffffff','#f0f0f0','#111111','#8a8a8a','#1a1a1a','#e0352b']},
 ];
 const REGIONS={eu:'Europa',af:'África',as:'Asia',na:'América del Norte',sa:'América del Sur',oc:'Oceanía'};
-const LIMIT={europe:300,world:900,e1914:180,e1920:180,e1938:180};
-const HASH={europe:'europa',world:'mundo',sub:'regiones',e1914:'europa-1914',e1920:'europa-1920',e1938:'europa-1938'};
+const YEARS=[1492,1530,1650,1715,1783,1815,1880,1900,1914,1920,1930,1938,1945,1960,1994];
+const NOTES={e1914:'Vísperas de la Primera Guerra Mundial: la Europa de los grandes imperios.',e1920:'Tras los tratados de paz de la Primera Guerra Mundial: nacen nuevos estados.',e1938:'Antes de la Segunda Guerra Mundial: Alemania se ha anexionado Austria.'};
+const isHist=m=>/^e\d{4}$/.test(m);
+const LIMIT={europe:300,world:900};
+const HASH={europe:'europa',world:'mundo',sub:'regiones'};
+for(const y of YEARS){LIMIT['e'+y]=180;HASH['e'+y]='europa-'+y}
 const fromHash=()=>Object.keys(HASH).find(k=>'#'+HASH[k]===location.hash);
 const MASTER=3; // correct answers in a row that count as learned
 
@@ -404,8 +407,9 @@ function palButtons(){
 function syncUI(){
   $$('.seg[data-key]').forEach(s=>[...s.children].forEach(b=>b.setAttribute('aria-pressed',String(cfg[s.dataset.key])===b.dataset.val)));
   $$('[data-pal]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pal===cfg.palette));
-  $$('[data-map]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.map===cfg.map));
+  $$('[data-map]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.map===cfg.map||b.dataset.map==='hist'&&isHist(cfg.map)));
   $('#pick').hidden=cfg.map!=='sub';
+  $('#ypick').hidden=!isHist(cfg.map);if(isHist(cfg.map))$('#year').value=cfg.map;
   const c=activeColors();for(let i=0;i<6;i++)$('#c-'+i).value=c[i];
 }
 document.addEventListener('click',e=>{
@@ -418,9 +422,11 @@ document.addEventListener('click',e=>{
     return;
   }
   if(b.dataset.pal){cfg.palette=b.dataset.pal;save();applyLook();return}
-  if(b.dataset.map){cfg.map=b.dataset.map;save();syncUI();try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}start();focusInput()}
+  if(b.dataset.map){if(b.dataset.map==='hist'&&isHist(cfg.map))return;cfg.map=b.dataset.map==='hist'?(isHist(cfg.hist)?cfg.hist:'e1914'):b.dataset.map;if(isHist(cfg.map))cfg.hist=cfg.map;save();syncUI();try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}start();focusInput()}
 });
 $('#subc').addEventListener('change',e=>{cfg.subc=e.target.value;save();start();focusInput()});
+$('#year').innerHTML=YEARS.map(y=>`<option value="e${y}">${y}</option>`).join('');
+$('#year').addEventListener('change',e=>{cfg.map=cfg.hist=e.target.value;save();syncUI();try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}start();focusInput()});
 for(let i=0;i<6;i++)$('#c-'+i).addEventListener('input',e=>{
   if(cfg.palette!=='custom'){cfg.custom=[...activeColors()];cfg.palette='custom'}
   cfg.custom[i]=e.target.value;save();palButtons();applyLook();
@@ -526,10 +532,12 @@ function hover(e){
 /* ---------- loading the regions map on demand ---------- */
 function ensure(map,cb){
   if(MAPS[map])return cb();
-  hint('Cargando el mapa de regiones…');$('#n').textContent='·';
-  const s=document.createElement('script');s.src='subdiv.js';
-  s.onload=()=>{fillPick();cb()};
-  s.onerror=()=>hint('No se pudo cargar el mapa de regiones. Recarga la página para intentarlo de nuevo.','bad');
+  const sub=map==='sub',src=sub?'subdiv.js':isHist(map)?'hist/'+map+'.js':null;if(!src)return cb();
+  const what=sub?'el mapa de regiones':'Europa en '+map.slice(1);
+  hint('Cargando '+what+'…');$('#n').textContent='·';
+  const s=document.createElement('script');s.src=src;
+  s.onload=()=>{if(sub)fillPick();if(cfg.map===map)cb()};
+  s.onerror=()=>hint('No se pudo cargar '+what+'. Recarga la página para intentarlo de nuevo.','bad');
   document.head.append(s);
 }
 function fillPick(){
@@ -543,7 +551,7 @@ function fillPick(){
 
 /* ---------- records of "señalar": best complete round per map / country ---------- */
 const REC=store.get('mapeo.rec',{});
-const MAPNAME={europe:'Europa',world:'Mundo',e1914:'Europa en 1914',e1920:'Europa en 1920',e1938:'Europa en 1938','sub.all':'Toda Europa (regiones)'};
+const MAPNAME={europe:'Europa',world:'Mundo','sub.all':'Toda Europa (regiones)'};for(const y of YEARS)MAPNAME['e'+y]='Europa en '+y;
 // rounds played before this view existed only kept a count: bring them in as they were
 for(const k of Object.keys((()=>{try{return localStorage}catch(e){return {}}})())){
   const m=k.match(/^mapeo\.pb\.(.+)\.click$/);if(!m||REC[m[1]])continue;const pb=store.get(k,null);
@@ -679,6 +687,7 @@ function newGame(saved,smooth){
   for(const id of all)if(!G.in.has(id))cls(id,'off');
   if(M.sub&&cfg.subc!=='all')paintRecords(all);
   body.dataset.mode=cfg.mode;
+  const note=M.note||NOTES[cfg.map],era=$('#era');era.hidden=!note;if(note){era.innerHTML='';const b=document.createElement('b');b.textContent=cfg.map.slice(1);era.append(b,note)}
   buildBoard();
   $('#total').textContent=ids.length;$('#n').textContent=0;
   $('#play').hidden=false;$('#side').hidden=false;$('#done').hidden=true;inp.disabled=false;inp.value='';hint('');
@@ -1043,7 +1052,7 @@ $('#imp-file').addEventListener('change',async e=>{const f=e.target.files[0];if(
 /* ---------- boot ---------- */
 function boot(data){
   if(data&&data.cfg)Object.assign(cfg,data.cfg);
-  cfg.map=fromHash()||(MAPS[cfg.map]||cfg.map==='sub'?cfg.map:'europe');
+  cfg.map=fromHash()||(MAPS[cfg.map]||cfg.map==='sub'||isHist(cfg.map)&&YEARS.includes(+cfg.map.slice(1))?cfg.map:'europe');
   if(!['type','click','learn','explore'].includes(cfg.mode))cfg.mode='type';
   palButtons();applyLook();start(data&&data.game);focusInput();
 }
