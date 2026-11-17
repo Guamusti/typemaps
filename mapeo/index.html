@@ -100,6 +100,11 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 #hint.bad{color:var(--err)}
 .land.off,.mk.off{fill:color-mix(in srgb,var(--land) 42%,var(--bg));pointer-events:none}
 .sub-map.one .land.off{pointer-events:auto;cursor:pointer}
+.sub-map .land.off.ra1,.sub-map .mk.off.ra1{fill:var(--accent)}
+.sub-map .land.off.ra2,.sub-map .mk.off.ra2{fill:color-mix(in srgb,var(--accent) 62%,var(--land))}
+.sub-map .land.off.ra3,.sub-map .mk.off.ra3{fill:color-mix(in srgb,var(--accent) 36%,var(--land))}
+.sub-map .land.off.rax,.sub-map .mk.off.rax{fill:color-mix(in srgb,var(--err) 62%,var(--bg))}
+.sub-map.one .land.off.peek:is(.ra1,.ra2,.ra3,.rax){opacity:.78}
 .sub-map .land.off.rec,.sub-map .mk.off.rec{fill:color-mix(in srgb,var(--accent) var(--rf),color-mix(in srgb,var(--land) 42%,var(--bg)))}
 .sub-map.one .land.off.rec.peek{fill:color-mix(in srgb,var(--accent) var(--rf),var(--text) 18%)}
 .sub-map.one .land.off.peek{fill:color-mix(in srgb,var(--land) 78%,var(--bg))}
@@ -547,6 +552,7 @@ const regionCount=cc=>{if(!MAPS.sub)return null;if(!MAPS.sub.count){MAPS.sub.cou
 function recOf(cc){const e=REC['sub.'+cc];return e&&e.best&&e.best.a1!=null?{...e.best,n:e.n||e.best.n||regionCount(cc)}:null}
 function paintRecords(ids){
   for(const id of ids){if(G.in.has(id))continue;const r=recOf(COUNTRIES[id].r);if(!r||!r.n)continue;
+    if(r.att&&id in r.att){const a=r.att[id];for(const el of els[id].all)el.classList.add(a===1?'ra1':a===2?'ra2':a===3?'ra3':'rax');continue}
     const pct=Math.round(28+62*(r.a1/r.n));for(const el of els[id].all){el.classList.add('rec');el.style.setProperty('--rf',pct+'%')}}
 }
 
@@ -891,7 +897,8 @@ function finish(reason,quiet){
   $('#d-title').textContent=reason==='all'?(cfg.mode==='click'?'Ronda completa':'Mapa completo'):reason==='time'?'Se acabó el tiempo':'Partida terminada';
   if(cfg.mode==='click'){
     const c={a1:0,a2:0,a3:0,x:0};for(const id of G.ids){const a=G.att[id];if(a===1)c.a1++;else if(a===2)c.a2++;else if(a===3)c.a3++;else c.x++}
-    const r={...c,t:Math.round(G.elapsed),n:tot,d:Date.now()},prev=REC[scopeKey()]?.best;
+    const att={};for(const id of G.ids)att[id]=G.att[id]||0; // 1, 2, 3, or 0 for missed
+    const r={...c,t:Math.round(G.elapsed),n:tot,d:Date.now(),att},prev=REC[scopeKey()]?.best;
     const played=Object.keys(G.att).length>0;
     const better=!quiet&&played&&recSave(scopeKey(),r,reason==='all');
     $('#d-detail').innerHTML=`<span class="d-break"><span><i class="r1"></i>${c.a1} a la primera</span><span><i class="r2"></i>${c.a2} a la segunda</span><span><i class="r3"></i>${c.a3} a la tercera</span><span><i class="rx"></i>${c.x} ${reason==='all'?(c.x===1?'fallada':'falladas'):'sin acertar'}</span><span>${fmt(G.elapsed)}</span></span>`;
