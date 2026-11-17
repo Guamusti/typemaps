@@ -255,6 +255,8 @@ function countryBox(input,box,onPick,opts={}){
     if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(box.hidden)return;e.preventDefault();idx=(idx+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle('on',i===idx));return}
     if(e.key==='Enter'){e.preventDefault();const b=!box.hidden&&bs[idx];const k=b?b.dataset.k:findCountry(input.value,opts.pool);const raw=input.value;input.value='';hide();onPick(k,raw)}
     if(e.key==='Escape')hide();
+    // Tab completes the box with the highlighted suggestion (Enter then submits it)
+    if(e.key==='Tab'){const l=box.hidden?list():null;const b=!box.hidden&&bs[Math.max(0,idx)];const name=b?b.textContent:l&&l[0]?l[0].n:null;if(name&&input.value.trim()){e.preventDefault();input.value=name;hide()}}
   });
   box.addEventListener('mousedown',e=>{const b=e.target.closest('button');if(b){e.preventDefault();input.value='';hide();onPick(b.dataset.k,b.textContent)}});
   input.addEventListener('blur',()=>setTimeout(hide,120));

@@ -283,6 +283,7 @@ $('#g-in').addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){if($('#sug').hidden)return;e.preventDefault();sugI=(sugI+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle('on',i===sugI));return}
   if(e.key==='Enter'){e.preventDefault();const b=!$('#sug').hidden&&bs[sugI];guess(b?C[b.dataset.k].n:$('#g-in').value)}
   if(e.key==='Escape')hideSug();
+  if(e.key==='Tab'){const b=!$('#sug').hidden&&bs[Math.max(0,sugI)];if(b){e.preventDefault();$('#g-in').value=C[b.dataset.k].n;hideSug()}}
 });
 $('#sug').addEventListener('mousedown',e=>{const b=e.target.closest('button');if(b){e.preventDefault();guess(C[b.dataset.k].n)}});
 $('#g-in').addEventListener('blur',()=>setTimeout(hideSug,120));
