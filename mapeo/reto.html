@@ -88,6 +88,7 @@ header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-b
 .flags button.right{box-shadow:0 0 0 3px var(--accent)}.flags button.wrong{box-shadow:0 0 0 3px var(--err)}
 .flags button.right,.flags button.wrong{background:var(--bg)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fph{display:block;width:100%;max-width:220px;aspect-ratio:4/3;border-radius:6px;background:var(--line)}
 .chip{padding:6px 11px;border-radius:9px;background:color-mix(in srgb,var(--accent) 22%,var(--bg))}
 .chip.miss{background:color-mix(in srgb,var(--err) 25%,var(--bg))}
 .chip.left{background:transparent;border:1px dashed var(--line);color:var(--sub)}
@@ -370,7 +371,8 @@ function render(){
   $('#sf').classList.toggle('locked',!d1);
   $('#sf-q').innerHTML=`¿Cuál es la bandera de <em></em>?`;$('#sf-q em').textContent=d1?A.n:'este país';
   {const box=$('#sf-o');box.innerHTML='';for(const k of FLAGS){const b=document.createElement('button');b.type='button';
-    b.innerHTML=`<img src="${FB}${k.toLowerCase()}.svg" alt="${S.flag!=null?C[k].n:'Bandera'}" loading="lazy">`;
+    // no flags before the country is found: four of them would give it away
+    b.innerHTML=d1?`<img src="${FB}${k.toLowerCase()}.svg" alt="${S.flag!=null?C[k].n:'Bandera'}" loading="lazy">`:'<span class="fph"></span>';
     if(S.flag!=null){b.disabled=true;b.className=k===ANS?'right':k===S.flag?'wrong':'dim';b.title=C[k].n}else b.onclick=()=>{S.flag=k;save();render()};box.append(b)}}
   const df=S.flag!=null;
   // capital

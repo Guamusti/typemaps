@@ -121,6 +121,9 @@ main>.games:last-child{margin-bottom:60px}
 .gmap .bad{fill:var(--err)}.gmap .miss{fill:color-mix(in srgb,var(--err) 60%,var(--bg))}
 .gmap .land.t0{fill:color-mix(in srgb,var(--sub) 30%,var(--bg))}.gmap .land.t1{fill:color-mix(in srgb,var(--sub) 42%,var(--bg))}.gmap .land.t2{fill:color-mix(in srgb,var(--sub) 54%,var(--bg))}.gmap .land.t3{fill:color-mix(in srgb,var(--sub) 36%,var(--bg))}.gmap .land.t4{fill:color-mix(in srgb,var(--sub) 48%,var(--bg))}
 .gmap .land.on{fill:var(--accent)!important}
+.gmap .land.ends,.gmap .mk.ends{fill:var(--text)!important}
+.gmap .land.sol,.gmap .mk.sol{fill:color-mix(in srgb,var(--err) 55%,var(--bg))!important}
+.chmap{margin-top:14px}
 .gmap .tgt{fill:var(--text);animation:pulse .8s ease-in-out infinite alternate}
 @keyframes pulse{to{fill:var(--err)}}
 .bm-ask{display:flex;align-items:center;gap:20px;margin-bottom:14px}.bm-flag{width:130px;flex:none}
@@ -418,9 +421,9 @@ const miniMap=(pts,cls='')=>`<svg class="mini ${cls}" viewBox="0 0 400 200"><pat
 game({id:'cadena',group:'Pensar',title:'Cadena de fronteras',desc:'Ve de un país a otro pasando solo por países vecinos, en el menor número de pasos.',
   rec:()=>{const e=REC.cadena;return e?`${e.perfect||0} cadenas perfectas de ${e.plays}`:''},
   start(main){
-    let a,b,best,chain,miss,done;
+    let a,b,best,chain,miss,done,V=null,VM=null,mapMode=store.get('mapeo.juegos.chm','fr');
     window._t={get best(){return best}};
-    main.innerHTML=`<div class="game"><p class="q" id="ch-q"></p><div class="panel">
+    main.innerHTML=`<div class="game"><div class="hl-top"><span></span><div class="seg" id="ch-mm"><button type="button" data-m="fr">mapa con fronteras</button><button type="button" data-m="pt">solo la ruta</button><button type="button" data-m="no">sin mapa</button></div></div><p class="q" id="ch-q"></p><div class="panel">
       <div class="chain" id="ch-c"></div>${fieldHTML('ch-in','Siguiente país vecino…')}
       <div class="row"><div class="msg" id="ch-msg"></div><span><button class="ghost" id="ch-undo" type="button">deshacer</button> · <button class="ghost" id="ch-give" type="button">ver solución</button></span></div>
       <div id="ch-map"></div></div><div class="end" id="ch-end" hidden></div></div>`;
@@ -428,7 +431,7 @@ game({id:'cadena',group:'Pensar',title:'Cadena de fronteras',desc:'Ve de un paí
     const score=()=>{const e=REC.cadena||{};setScore(`<span><b>${e.perfect||0}</b>perfectas</span><span><b>${e.plays||0}</b>jugadas</span>`)};
     function deal(){
       for(let t=0;t<500;t++){const x=rnd(pool),y=rnd(pool);if(x===y)continue;const p=bfs(x,y);if(p&&p.length>=4&&p.length<=7){a=x;b=y;best=p;break}}
-      chain=[a];miss=[];done=false;$('#ch-end').hidden=true;$('#ch-in').disabled=false;
+      chain=[a];miss=[];done=false;V=null;$('#ch-end').hidden=true;$('#ch-in').disabled=false;
       $('#ch-q').innerHTML=`De <em>${esc(C[a].n)}</em> a <em>${esc(C[b].n)}</em>`;
       $('#ch-msg').textContent=`Se puede en ${best.length-2} ${best.length-2===1?'paso':'pasos'} intermedios. Escribe un vecino de ${C[a].n}.`;$('#ch-msg').className='msg';draw();$('#ch-in').focus();score();
     }
@@ -438,7 +441,20 @@ game({id:'cadena',group:'Pensar',title:'Cadena de fronteras',desc:'Ve de un paí
         (chain[chain.length-1]===b?'':`<span class="ch-a">⋯</span><span class="ch-n end target">${flagImg(b)}<span>${esc(C[b].n)}</span></span>`);
       const line=(path,c)=>`<polyline class="${c}" points="${path.map(k=>C[k].w.join(',')).join(' ')}"/>`;
       let pts=(sol?line(sol,'sol'):'')+line(chain,'path')+[a,b].map(k=>`<circle class="pin" cx="${C[k].w[0]}" cy="${C[k].w[1]}" r="3.2"/>`).join('')+chain.slice(1).map(k=>`<circle class="dot" cx="${C[k].w[0]}" cy="${C[k].w[1]}" r="2"/>`).join('');
-      $('#ch-map').innerHTML=miniMap(pts);
+      if(mapMode==='no'){$('#ch-map').innerHTML='';return}
+      if(mapMode==='pt'||!window.MAPS){$('#ch-map').innerHTML=miniMap(pts);if(mapMode==='fr')loadScript('data.js').then(()=>{V=null;draw(sol)});return}
+      // the real map: shapes and borders, zoomed to the area of the puzzle; clicking a country plays it
+      const eu=best.every(k=>MAPS.europe.items.some(i=>i.id===k)&&C[k].r==='eu'),M=eu?MAPS.europe:MAPS.world;
+      if(!V||VM!==M||V.key!==a+b){
+        V=mapView($('#ch-map'),M,{onClick:k=>{if(C[k]&&!done)pick(k)}});VM=M;V.key=a+b;
+        // frame: around the label points of the shortest path (whole shapes would drag in Siberia or French Guiana)
+        const pts=best.map(k=>M.items.find(i=>i.id===k)).filter(Boolean).map(i=>i.c);
+        let x0=Math.min(...pts.map(p=>p[0])),x1=Math.max(...pts.map(p=>p[0])),y0=Math.min(...pts.map(p=>p[1])),y1=Math.max(...pts.map(p=>p[1]));
+        let w=Math.max((x1-x0)*1.5,M.w/(eu?4:6)),h=Math.max((y1-y0)*1.5,w*M.h/M.w);w=Math.max(w,h*M.w/M.h);h=w*M.h/M.w;w=Math.min(w,M.w);h=Math.min(h,M.h);
+        const box=[(x0+x1)/2-w/2,(y0+y1)/2-h/2,w,h];V=mapView($('#ch-map'),M,{onClick:k=>{if(C[k]&&!done)pick(k)},box});VM=M;V.key=a+b;
+        $('#ch-map').classList.add('chmap');
+      }
+      for(const it of M.items){const k=it.id;V.cls(k,'on',chain.includes(k)&&k!==a);V.cls(k,'ends',k===a||k===b);V.cls(k,'sol',!!sol&&sol.includes(k)&&!chain.includes(k))}
     }
     function finish(gaveUp){
       done=true;$('#ch-in').disabled=true;const steps=chain.length-2,opt=best.length-2,perfect=!gaveUp&&steps===opt&&!miss.length;
@@ -446,7 +462,8 @@ game({id:'cadena',group:'Pensar',title:'Cadena de fronteras',desc:'Ve de un paí
       draw(gaveUp||steps>opt?best:null);
       endCard($('#ch-end'),{big:gaveUp?'Solución':perfect?'¡Perfecta!':`${steps} pasos`,sub:gaveUp?`Una ruta corta: ${esc(best.map(k=>C[k].n).join(' → '))}`:`El mínimo era ${opt}${miss.length?` · ${miss.length} ${miss.length===1?'intento fallido':'intentos fallidos'}`:''}`+(steps>opt?`<br>Ruta corta: ${esc(best.map(k=>C[k].n).join(' → '))}`:''),again:deal});
     }
-    countryBox($('#ch-in'),$('#ch-in-sug'),k=>{
+    countryBox($('#ch-in'),$('#ch-in-sug'),k=>pick(k),{exclude:()=>new Set(chain)});
+    function pick(k){
       if(done)return;const end=chain[chain.length-1],m=$('#ch-msg');
       if(!k){m.textContent='No conozco ese país';m.className='msg bad';return}
       if(chain.includes(k)){m.textContent='Ya está en la cadena';m.className='msg bad';return}
@@ -455,7 +472,10 @@ game({id:'cadena',group:'Pensar',title:'Cadena de fronteras',desc:'Ve de un paí
       if(k===b){draw();finish(false);return}
       if(C[k].b.includes(b)){chain.push(b);draw();m.textContent=`${C[k].n} limita con ${C[b].n}: ¡llegaste!`;m.className='msg ok';finish(false);return}
       const left=bfs(k,b);m.textContent=`${C[k].n} ✓ · desde aquí faltan al menos ${left.length-2}`;m.className='msg ok';draw();
-    },{exclude:()=>new Set(chain)});
+    }
+    const syncMM=()=>$$('#ch-mm button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m===mapMode));syncMM();
+    $('#ch-mm').onclick=e=>{const x=e.target.closest('[data-m]');if(!x)return;mapMode=x.dataset.m;store.set('mapeo.juegos.chm',mapMode);syncMM();V=null;$('#ch-map').classList.remove('chmap');draw()};
+    if(mapMode==='fr')loadScript('data.js').then(()=>{V=null;if(chain)draw()}).catch(()=>{});
     $('#ch-undo').onclick=()=>{if(done||chain.length<2)return;chain.pop();draw();$('#ch-msg').textContent='Deshecho';$('#ch-msg').className='msg';$('#ch-in').focus()};
     $('#ch-give').onclick=()=>{if(!done)finish(true)};
     deal();
