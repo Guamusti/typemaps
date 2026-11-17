@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapeo · juegos</title>
+<meta name="description" content="Minijuegos de geografía: más o menos, siluetas, capitales, fronteras, pistas y mapas históricos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Same family as Mapeo and the reto: palette from Mapeo's settings, serif for big moments, mono for the rest. */
+:root{
+  --bg:#14161f; --alt:#1c1f2b; --text:#e4e6f0; --sub:#5a607a; --accent:#8fb4ff; --err:#ff6b81;
+  --line:color-mix(in srgb,var(--sub) 30%,transparent);
+  --land:color-mix(in srgb,var(--sub) 30%,var(--bg));
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --display:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.5;transition:background-color .45s,color .45s}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;padding:0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+[hidden]{display:none!important}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+.glow{position:fixed;inset:0;pointer-events:none;z-index:0}
+.glow::before{content:"";position:absolute;width:60vw;height:60vw;left:-15vw;top:10%;border-radius:50%;filter:blur(90px);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+header,main{position:relative;z-index:1}
+header .wrap{display:flex;align-items:center;gap:16px;padding-top:22px;padding-bottom:8px}
+.mark{font-family:var(--display);font-style:italic;font-size:34px;line-height:1;text-decoration:none;letter-spacing:-.01em}
+.mark b{color:var(--accent);font-weight:400}
+.crumb{color:var(--sub);font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
+a.crumb:hover{color:var(--text)}
+.push{margin-left:auto}
+.ghost{color:var(--sub);transition:color .2s;text-decoration:none}
+.ghost:hover{color:var(--text)}
+.score{display:flex;gap:18px;color:var(--sub);font-size:12px;white-space:nowrap}
+.score b{font-family:var(--display);font-weight:400;font-size:28px;color:var(--text);margin-right:5px;line-height:1}
+
+/* hub */
+.intro{font-family:var(--display);font-size:40px;line-height:1.1;margin:30px 0 6px}
+.lead{color:var(--sub);margin:0 0 22px}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:14px}
+main>.games:last-child{margin-bottom:60px}
+.card{display:flex;flex-direction:column;gap:6px;text-align:left;padding:18px 18px 16px;border-radius:16px;background:color-mix(in srgb,var(--alt) 75%,transparent);text-decoration:none;transition:background-color .2s,transform .2s}
+.card:hover{background:var(--alt);transform:translateY(-2px)}
+.card h3{margin:0;font-family:var(--display);font-weight:400;font-size:25px;line-height:1.1}
+.card p{margin:0;color:var(--sub);font-size:12.5px}
+.card .rec{margin-top:auto;padding-top:8px;font-size:11.5px;color:var(--accent)}
+.grp-h{margin:26px 0 10px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);font-weight:400}
+
+/* game frame */
+.game{margin:22px 0 60px}
+.q{font-family:var(--display);font-size:34px;line-height:1.15;margin:4px 0 18px}
+.q em{color:var(--accent);font-style:italic}
+.panel{padding:22px 24px 24px;background:color-mix(in srgb,var(--alt) 70%,transparent);border-radius:18px}
+.msg{min-height:22px;margin-top:10px;font-size:12.5px;color:var(--sub)}
+.msg.bad{color:var(--err)}.msg.ok{color:var(--accent)}
+.field{position:relative}
+.field input{width:100%;background:transparent;border:0;border-bottom:2px solid var(--line);padding:8px 0;font-size:20px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--sub)}
+.sug{position:absolute;left:0;right:0;top:100%;margin-top:6px;background:var(--alt);border-radius:12px;padding:5px;z-index:5;box-shadow:0 12px 30px -10px rgba(0,0,0,.45)}
+.sug button{display:block;width:100%;text-align:left;padding:7px 10px;border-radius:8px;color:var(--sub)}
+.sug button.on,.sug button:hover{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--text)}
+.seg{display:inline-flex;background:var(--alt);border-radius:12px;padding:4px;gap:2px}
+.seg button{padding:6px 12px;border-radius:9px;color:var(--sub);transition:color .18s,background .18s}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.btn{padding:11px 20px;border-radius:12px;background:var(--accent);color:var(--bg);text-decoration:none;display:inline-block}
+.btn.soft{background:var(--bg);color:var(--text)}
+.end{margin-top:18px;padding:26px 24px;border-radius:18px;background:var(--alt);text-align:center}
+.end .big{font-family:var(--display);font-size:52px;line-height:1}
+.end .sub{color:var(--sub);font-size:12.5px;margin-top:8px}
+.end .acts{display:flex;justify-content:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.flag{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px;box-shadow:0 0 0 1px var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{padding:6px 11px;border-radius:9px;background:color-mix(in srgb,var(--accent) 22%,var(--bg))}
+.chip.miss{background:color-mix(in srgb,var(--err) 25%,var(--bg))}
+.chip.left{background:transparent;border:1px dashed var(--line);color:var(--sub)}
+
+/* más o menos */
+.hl{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
+.hl-c{padding:18px;border-radius:16px;background:var(--bg);text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:background-color .3s}
+.hl-c .flag{max-width:180px}
+.hl-c .nm{font-family:var(--display);font-size:28px;line-height:1.1}
+.hl-c .val{font-variant-numeric:tabular-nums;font-size:20px;min-height:30px}
+.hl-c .unit{color:var(--sub);font-size:12px}
+.hl-c.good{background:color-mix(in srgb,var(--accent) 18%,var(--bg))}.hl-c.bad{background:color-mix(in srgb,var(--err) 18%,var(--bg))}
+.hl-vs{font-family:var(--display);font-style:italic;color:var(--sub);font-size:22px}
+.hl-btns{display:flex;flex-direction:column;gap:8px;width:100%;max-width:220px}
+.hl-btns button{padding:11px;border-radius:11px;background:var(--alt);transition:background-color .2s}
+.hl-btns button:hover{background:color-mix(in srgb,var(--accent) 20%,var(--alt))}
+.hl-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+@media(max-width:620px){.hl{grid-template-columns:1fr;gap:10px}.hl-vs{text-align:center}.hl-c{min-height:0}.q{font-size:27px}.intro{font-size:32px}}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<header><div class="wrap">
+  <a class="mark" href="./" title="Volver a Mapeo">mapeo<b>.</b></a>
+  <a class="crumb" href="#" id="crumb">juegos</a>
+  <span class="crumb" id="crumb-g"></span>
+  <div class="score push" id="score"></div>
+</div></header>
+<main class="wrap" id="main"></main>
+<script src="reto-data.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PALETTES=[
+  {id:'medianoche',name:'Medianoche',c:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81']},
+  {id:'ambar',name:'Ámbar',c:['#1d1a17','#27231e','#ede4d3','#7a6f5f','#f2b24a','#e5604d']},
+  {id:'mar',name:'Mar',c:['#0d2530','#123240','#d6ecef','#4f7785','#4fd6c4','#ff7a6b']},
+  {id:'lavanda',name:'Lavanda',c:['#221d2e','#2c2640','#ece6f7','#74698f','#c6a0ff','#ff7096']},
+  {id:'bosque',name:'Bosque',c:['#141c17','#1b2620','#dbe6d6','#5c7364','#9bd67a','#f07a5a']},
+  {id:'atardecer',name:'Atardecer',c:['#2a1a24','#38222f','#fbe9dc','#8c6474','#ff8a5c','#ff4d7a']},
+  {id:'nordico',name:'Nórdico',c:['#2b303b','#343b48','#e5e9f0','#6f7a8f','#88c0d0','#d9727b']},
+  {id:'carbon',name:'Carbón',c:['#111111','#1b1b1b','#f2f2f2','#5c5c5c','#ffffff','#ff5c5c']},
+  {id:'papel',name:'Papel',c:['#f2f0ea','#e6e3da','#26262b','#a3a097','#2f55d4','#d43d2f']},
+  {id:'sakura',name:'Sakura',c:['#f7eef0','#efdfe3','#4a3540','#b99aa5','#d6457a','#8a2be2']},
+  {id:'menta',name:'Menta',c:['#e9f3ee','#d9e9e1','#1f3a30','#8fb0a2','#0f9d76','#d1493f']},
+  {id:'oceano',name:'Océano',c:['#0b1a2a','#10263b','#dbe8f5','#4e6a85','#5ec2ff','#ff7a85']},
+  {id:'solar',name:'Solarizado',c:['#002b36','#073642','#eee8d5','#5d7a83','#e0b326','#e5534b']},
+  {id:'vampiro',name:'Vampiro',c:['#282a36','#343746','#f8f8f2','#6a76a8','#bd93f9','#ff6e6e']},
+  {id:'gruvbox',name:'Gruvbox',c:['#282828','#32302f','#ebdbb2','#7c6f64','#b8bb26','#fb4934']},
+  {id:'neon',name:'Neón',c:['#0d0b1a','#17142b','#f1eeff','#5d5885','#39ffb6','#ff4fa3']},
+  {id:'cafe',name:'Café',c:['#1f1813','#2a211a','#eadbc8','#7d6a58','#d7b085','#e8715c']},
+  {id:'pizarra',name:'Pizarra',c:['#22272e','#2d333b','#cdd9e5','#66717e','#6cb6ff','#f47067']},
+  {id:'ciruela',name:'Ciruela',c:['#1d1420','#2a1c2e','#f1e4f3','#84698a','#e0a3ff','#ff8a65']},
+  {id:'oliva',name:'Oliva',c:['#1b1c14','#25271c','#e6e6cf','#74775c','#c5cf6a','#e8784f']},
+  {id:'contraste',name:'Contraste',c:['#000000','#111111','#ffffff','#6a6a6a','#ffd400','#ff4040']},
+  {id:'arena',name:'Arena',c:['#f4ede1','#e9dfcf','#3a3128','#958676','#b85f22','#b8323a']},
+  {id:'cielo',name:'Cielo',c:['#eef4fb','#dde8f5','#1f2d3d','#7d91a8','#2672d6','#d6455d']},
+  {id:'lino',name:'Lino',c:['#f3f1e7','#e6e3d4','#2f3327','#8f8e78','#4f7d32','#c0503a']},
+  {id:'tiza',name:'Tiza',c:['#ffffff','#f0f0f0','#111111','#8a8a8a','#1a1a1a','#e0352b']},
+];
+const cfg=Object.assign({palette:'medianoche',custom:PALETTES[0].c},store.get('mapeo.cfg',{}));
+const col=cfg.palette==='custom'?cfg.custom:(PALETTES.find(p=>p.id===cfg.palette)||PALETTES[0]).c;
+['--bg','--alt','--text','--sub','--accent','--err'].forEach((k,i)=>document.documentElement.style.setProperty(k,col[i]));
+{const n=parseInt(col[0].slice(1),16);document.documentElement.style.colorScheme=(.299*(n>>16&255)+.587*(n>>8&255)+.114*(n&255))/255<.5?'dark':'light'}
+
+/* ---------- shared pieces ---------- */
+const C=RETO.c,CODES=Object.keys(C);
+const REGION={eu:'Europa',af:'África',as:'Asia',na:'América del Norte',sa:'América del Sur',oc:'Oceanía'};
+const FB=window.claude?'flags/':'../ondeo/flags/';
+const flagImg=k=>`<img class="flag" src="${FB}${k.toLowerCase()}.svg" alt="" loading="lazy">`;
+const rnd=a=>a[Math.random()*a.length|0];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const NAMES=CODES.map(k=>({k,n:C[k].n,keys:[norm(C[k].n),...C[k].a]}));
+function findCountry(txt,pool){const t=norm(txt);if(!t)return null;const hit=NAMES.find(x=>(!pool||pool.has(x.k))&&x.keys.includes(t));return hit?hit.k:null}
+const fmtN=v=>Math.round(v).toLocaleString('es');
+function fmtPop(v){
+  if(v>=1e9)return (v/1e9).toLocaleString('es',{maximumFractionDigits:2})+' mil millones';
+  if(v>=1e6)return (v/1e6).toLocaleString('es',{maximumFractionDigits:v>=1e7?0:1})+' millones';
+  if(v>=1e3)return Math.round(v/1000).toLocaleString('es')+' mil';
+  return fmtN(v);
+}
+const fmtKm2=v=>fmtN(v)+' km²';
+const listEs=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' y '+a[a.length-1];
+const rad=x=>x*Math.PI/180;
+function dist(a,b){const [l1,p1]=a.map(rad),[l2,p2]=b.map(rad),h=Math.sin((p2-p1)/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin((l2-l1)/2)**2;return 2*6371*Math.asin(Math.sqrt(h))}
+
+// a text box that suggests country names as you type; Enter takes the highlighted one
+function countryBox(input,box,onPick,opts={}){
+  let idx=-1;
+  const list=()=>{const t=norm(input.value);if(!t)return [];const ex=opts.exclude?opts.exclude():new Set(),pool=opts.pool;
+    const ok=x=>!ex.has(x.k)&&(!pool||pool.has(x.k));
+    return NAMES.filter(x=>ok(x)&&x.keys.some(k=>k.startsWith(t))).concat(NAMES.filter(x=>ok(x)&&!x.keys.some(k=>k.startsWith(t))&&x.keys.some(k=>k.includes(t)))).slice(0,6)};
+  const hide=()=>{box.hidden=true;idx=-1};
+  const show=()=>{const l=list();if(!l.length){hide();return}idx=0;box.innerHTML='';l.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.textContent=x.n;b.dataset.k=x.k;if(!i)b.className='on';box.append(b)});box.hidden=false};
+  input.addEventListener('input',show);
+  input.addEventListener('keydown',e=>{
+    const bs=[...box.children];
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(box.hidden)return;e.preventDefault();idx=(idx+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle('on',i===idx));return}
+    if(e.key==='Enter'){e.preventDefault();const b=!box.hidden&&bs[idx];const k=b?b.dataset.k:findCountry(input.value,opts.pool);const raw=input.value;input.value='';hide();onPick(k,raw)}
+    if(e.key==='Escape')hide();
+  });
+  box.addEventListener('mousedown',e=>{const b=e.target.closest('button');if(b){e.preventDefault();input.value='';hide();onPick(b.dataset.k,b.textContent)}});
+  input.addEventListener('blur',()=>setTimeout(hide,120));
+}
+const fieldHTML=(id,ph)=>`<div class="field"><input id="${id}" autocomplete="off" spellcheck="false" placeholder="${ph}" aria-label="${ph}"><div class="sug" id="${id}-sug" hidden></div></div>`;
+
+/* ---------- records ---------- */
+const REC=store.get('mapeo.juegos',{});
+function saveScore(key,score,higher=true){
+  const e=REC[key]||(REC[key]={plays:0});const prev=e.best;
+  e.plays++;e.last=score;e.hist=(e.hist||[]).concat([[Date.now(),score]]).slice(-100);
+  const better=prev==null||(higher?score>prev:score<prev);if(better)e.best=score;
+  store.set('mapeo.juegos',REC);return {better,prev};
+}
+function endCard(el,{big,sub,rec,again,extra=''}){
+  el.innerHTML=`<div class="big">${big}</div><div class="sub">${sub}</div>${rec?`<div class="sub">${rec}</div>`:''}${extra}
+    <div class="acts"><button class="btn" type="button" data-again>otra vez</button><a class="btn soft" href="#">más juegos</a></div>`;
+  el.hidden=false;el.querySelector('[data-again]').onclick=again;el.querySelector('[data-again]').focus({preventScroll:true});
+  setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),150);
+}
+const recLine=(r,unit,fmt=v=>v)=>r.better?(r.prev==null?'Primer récord':`¡Nuevo récord! Antes ${fmt(r.prev)}`):`Récord: ${fmt(r.prev)}${unit}`;
+const setScore=html=>{$('#score').innerHTML=html};
+
+/* ---------- the games ---------- */
+const GAMES=[];
+const game=g=>GAMES.push(g);
+let stopGame=()=>{};
+
+/* Más o menos: is the next country bigger or smaller? */
+game({id:'mas-menos',group:'Rápidos',title:'Más o menos',desc:'¿Tiene más o menos habitantes (o superficie) que el anterior? Hasta el primer fallo.',
+  rec:()=>{const a=REC['mas-menos.pop']?.best,b=REC['mas-menos.km2']?.best;return a||b?`récord: ${a??0} en población · ${b??0} en superficie`:''},
+  start(main){
+    let metric=store.get('mapeo.juegos.mm','pop'),streak=0,left,right,busy=false;
+    const M={pop:{q:'habitantes',f:fmtPop,u:'habitantes'},km2:{q:'superficie',f:fmtKm2,u:''}};
+    const pool=CODES.filter(k=>C[k].pop&&C[k].km2>0);
+    main.innerHTML=`<div class="game"><div class="hl-top"><div class="seg" id="mm-m"><button data-m="pop">población</button><button data-m="km2">superficie</button></div></div>
+      <p class="q" id="mm-q"></p><div class="panel"><div class="hl"><div class="hl-c" id="mm-l"></div><div class="hl-vs">vs</div><div class="hl-c" id="mm-r"></div></div></div>
+      <div class="msg" id="mm-msg">Atajos: ↑ más, ↓ menos.</div><div class="end" id="mm-end" hidden></div></div>`;
+    const pickNext=from=>{for(let i=0;i<200;i++){const k=rnd(pool);if(k===from)continue;const r=C[k][metric]/C[from][metric];if(r>1.06||r<0.94)return k}return rnd(pool)};
+    const card=(k,show,el)=>{el.className='hl-c';el.innerHTML=`${flagImg(k)}<div class="nm">${esc(C[k].n)}</div><div class="val">${show?M[metric].f(C[k][metric]):''}</div>`;
+      if(!show){const b=document.createElement('div');b.className='hl-btns';b.innerHTML=`<button type="button" data-a="1">más ↑</button><button type="button" data-a="-1">menos ↓</button>`;el.append(b);b.onclick=e=>{const x=e.target.closest('[data-a]');if(x)answer(+x.dataset.a)}}};
+    const syncTop=()=>{$$('#mm-m button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===metric));
+      $('#mm-q').innerHTML=`¿<em>${esc(C[right].n)}</em> tiene más o menos ${M[metric].q} que ${esc(C[left].n)}?`;
+      const b=REC['mas-menos.'+metric]?.best||0;setScore(`<span><b>${streak}</b>racha</span><span><b>${b}</b>récord</span>`)};
+    const reset=()=>{streak=0;busy=false;left=rnd(pool);right=pickNext(left);card(left,true,$('#mm-l'));card(right,false,$('#mm-r'));$('#mm-end').hidden=true;$('#mm-msg').textContent='Atajos: ↑ más, ↓ menos.';$('#mm-msg').className='msg';syncTop()};
+    function answer(dir){
+      if(busy)return;busy=true;
+      const a=C[left][metric],b=C[right][metric],ok=dir>0?b>a:b<a;
+      // count the number up, then move on or stop
+      const v=$('#mm-r .val'),t0=performance.now();$('#mm-r .hl-btns').remove();
+      const step=t=>{const p=Math.min(1,(t-t0)/650),e=1-Math.pow(1-p,3);v.textContent=M[metric].f(b*e);if(p<1)requestAnimationFrame(step);else done()};
+      requestAnimationFrame(step);
+      function done(){
+        $('#mm-r').classList.add(ok?'good':'bad');
+        if(ok){streak++;syncTop();setTimeout(()=>{left=right;right=pickNext(left);card(left,true,$('#mm-l'));card(right,false,$('#mm-r'));busy=false;syncTop()},750)}
+        else{const r=saveScore('mas-menos.'+metric,streak);syncTop();
+          endCard($('#mm-end'),{big:`${streak}`,sub:`${streak===1?'acierto':'aciertos'} seguidos · ${esc(C[right].n)} tiene ${M[metric].f(b)}`,rec:recLine(r,''),again:reset})}
+      }
+    }
+    $('#mm-m').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.dataset.m===metric)return;metric=b.dataset.m;store.set('mapeo.juegos.mm',metric);reset()};
+    const key=e=>{if(e.key==='ArrowUp'){e.preventDefault();answer(1)}if(e.key==='ArrowDown'){e.preventDefault();answer(-1)}};
+    document.addEventListener('keydown',key);stopGame=()=>document.removeEventListener('keydown',key);
+    reset();
+  }});
+
+/* ---------- hub and routing ---------- */
+const EXTRA=[{href:'reto.html',group:'Diarios',title:'Reto diario',desc:'Un país cada día: silueta, bandera, capital, población y vecinos.'},
+  {href:'reto.html#libre',group:'Diarios',title:'Reto ilimitado',desc:'Lo mismo que el reto, con un país al azar cada vez.'}];
+function hub(){
+  setScore('');$('#crumb-g').textContent='';
+  const groups={};for(const g of [...EXTRA,...GAMES])(groups[g.group]=groups[g.group]||[]).push(g);
+  let h='<p class="intro">Minijuegos</p><p class="lead">Para jugar un rato sin mapa completo. Los récords se guardan en este navegador.</p>';
+  for(const [gr,list] of Object.entries(groups)){h+=`<h3 class="grp-h">${gr}</h3><div class="games">`;
+    for(const g of list){const r=g.rec?g.rec():'';h+=`<a class="card" href="${g.href||'#'+g.id}"><h3>${g.title}</h3><p>${g.desc}</p>${r?`<span class="rec">${r}</span>`:''}</a>`}h+='</div>'}
+  $('#main').innerHTML=h;
+}
+function route(){
+  stopGame();stopGame=()=>{};
+  const g=GAMES.find(x=>'#'+x.id===location.hash);
+  if(!g){hub();window.scrollTo(0,0);return}
+  $('#crumb-g').textContent='· '+g.title;document.title='Mapeo · '+g.title;
+  g.start($('#main'));window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+route();
+</script>
+</body>
+</html>
