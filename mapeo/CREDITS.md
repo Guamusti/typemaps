@@ -10,3 +10,5 @@
 - Noruega: condados de 2024 reconstruidos uniendo los de Natural Earth.
 - Eslovenia y Macedonia del Norte se muestran por regiones estadísticas: su primer nivel oficial son 212 y 80 municipios.
 - Fronteras históricas: [historical-basemaps](https://github.com/aourednik/historical-basemaps) de André Ourednik (GPL-3.0).
+
+Capitales: coordenadas de Natural Earth (dominio público); nombres en español.
