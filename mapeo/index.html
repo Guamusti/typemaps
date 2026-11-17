@@ -242,6 +242,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
     <div class="seg soft" data-key="mode" aria-label="Modo de juego">
       <button type="button" data-val="type" title="Escribe todos los nombres que sepas">escribir</button>
       <button type="button" data-val="click" title="Te decimos un nombre y lo señalas en el mapa">señalar</button>
+      <button type="button" data-val="streak" title="Señala sin fallar: ¿cuántos seguidos?">racha</button>
       <button type="button" data-val="learn" title="Aprende unos pocos cada vez hasta saberlos todos">aprender</button>
       <button type="button" data-val="explore" title="Mira el mapa con todos los nombres">explorar</button>
     </div>
@@ -509,7 +510,7 @@ stage.addEventListener('pointerleave',()=>{$('#tip').hidden=true;if(M)setPeek(nu
 stage.addEventListener('dblclick',e=>{
   const t=e.target.closest&&e.target.closest('[data-id]');
   if(t&&M.sub&&G&&!G.in.has(t.dataset.id)&&cfg.subc!=='all'){goCountry(t.dataset.id);return}
-  if(e.target.closest('.zoom')||cfg.mode==='click')return;const p=svgPoint(e);zoomAt(p.x,p.y,2)});
+  if(e.target.closest('.zoom')||pointing())return;const p=svgPoint(e);zoomAt(p.x,p.y,2)});
 $('#z-in').onclick=()=>zoomAt(M.w/2,M.h/2,1.7);$('#z-out').onclick=()=>zoomAt(M.w/2,M.h/2,1/1.7);
 $('#z-reset').onclick=()=>fitScope();
 function setFull(on){
@@ -527,7 +528,7 @@ function hover(e){
   if(t&&M.sub&&G&&cfg.subc!=='all'&&!G.in.has(t.dataset.id)){
     const r=COUNTRIES[t.dataset.id].r;setPeek(r);const rc=stage.getBoundingClientRect();
     const rr=recOf(r);
-    tip.textContent=(cfg.mode==='click'&&!G.ended?'Doble clic: ':'')+'ir a '+M.countries[r].n+(rr?` · récord ${rr.a1} de ${rr.n} a la primera`:'');tip.hidden=false;tip.style.left=(e.clientX-rc.left)+'px';tip.style.top=(e.clientY-rc.top)+'px';return;
+    tip.textContent=(pointing()&&!G.ended?'Doble clic: ':'')+'ir a '+M.countries[r].n+(rr?` · récord ${rr.a1} de ${rr.n} a la primera`:'');tip.hidden=false;tip.style.left=(e.clientX-rc.left)+'px';tip.style.top=(e.clientY-rc.top)+'px';return;
   }
   setPeek(null);
   if(!t||!G||!G.in.has(t.dataset.id)||!known(t.dataset.id)){tip.hidden=true;return}
@@ -565,7 +566,8 @@ function fillPick(){
 }
 
 /* ---------- records of "señalar": best complete round per map / country ---------- */
-const REC=store.get('mapeo.rec',{});
+const REC=store.get('mapeo.rec',{}),STREAK=store.get('mapeo.streak',{});
+const pointing=()=>cfg.mode==='click'||cfg.mode==='streak';
 const MAPNAME={europe:'Europa',world:'Mundo',cape:'Capitales de Europa',capw:'Capitales del mundo','sub.all':'Toda Europa (regiones)'};for(const y of YEARS)MAPNAME['e'+y]='Europa en '+y;
 // rounds played before this view existed only kept a count: bring them in as they were
 for(const k of Object.keys((()=>{try{return localStorage}catch(e){return {}}})())){
@@ -732,15 +734,16 @@ function resume(){
 }
 function setupMode(){
   const m=cfg.mode,ask=$('#ask');
-  ask.hidden=m!=='click';inp.hidden=m==='click';
+  const pt=m==='click'||m==='streak';ask.hidden=!pt;inp.hidden=pt;
   $('#clock').hidden=m==='learn'||m==='explore';
   $('#skip').hidden=!(m==='click'||m==='learn');$('#skip').textContent=m==='learn'?'no lo sé':'saltar';
   $('#giveup').hidden=m==='learn'||m==='explore';
   $('#restart').hidden=m==='explore';$('#restart').textContent=m==='learn'?'borrar progreso':'reiniciar';
-  $('#count-l').textContent={type:'escritas',click:'a la primera',learn:'aprendidas',explore:''}[m];
+  $('#count-l').textContent={type:'escritas',click:'a la primera',streak:'seguidas',learn:'aprendidas',explore:''}[m];
   const what=M.cap?'una capital':M.sub?'una región':'un país';
   inp.placeholder={type:M.cap?'Escribe una capital…':M.sub?'Escribe una región…':'Escribe un país…',learn:M.cap?'¿Cuál es la capital del país resaltado?':'¿Cómo se llama la zona resaltada?',explore:`Busca ${what}…`}[m]||'';
   if(m==='explore'){$('#n').textContent=G.ids.length;$('#count-l').textContent=M.sub?'regiones':'en el mapa';exploreBoard();syncLabels();return}
+  if(m==='streak'){G.queue=shuffle([...G.ids]);nextAsk();const b=STREAK[scopeKey()]?.best;hint(b?`Tu récord aquí: ${b} seguidas. Un fallo y se acaba`:'Un fallo y se acaba: ¿cuántas seguidas?');return}
   if(m==='click'){G.queue=shuffle([...G.ids]);nextAsk();hint(M.cap?'Haz clic en el punto de la capital o en su país':M.sub?'Haz clic en la región que se pide':'Haz clic en el país que se pide');return}
   if(m==='learn'){learnStart();if(!G.ended&&!G.card?.show)hint('Cada acierto oscurece la región; con tres seguidos queda aprendida');return}
 }
@@ -824,18 +827,26 @@ function nextAsk(){
   G.cur=G.queue.shift();G.tries=0;
   if(!G.cur){finish('all');return}
   $('#ask-n').textContent=COUNTRIES[G.cur].n;
-  $('#ask-l').textContent=`Señala · quedan ${G.queue.length+1}`;
+  $('#ask-l').textContent=cfg.mode==='streak'?`Señala · racha ${G.right}`:`Señala · quedan ${G.queue.length+1}`;
 }
 function goCountry(id){const r=COUNTRIES[id].r;if(r===cfg.subc)return;cfg.subc=r;save();$('#subc').value=r;$('#tip').hidden=true;start(null,true);focusInput()}
 function mapClick(id,el){
   if(!G)return;
   if(M.sub&&cfg.subc!=='all'&&!G.in.has(id)){
     // in "señalar" a slip of the mouse should not change country: there it takes a double click
-    if(cfg.mode==='click'&&!G.ended){hint(`Eso es ${M.countries[COUNTRIES[id].r].n}. Doble clic para ir allí`);return}
+    if(pointing()&&!G.ended){hint(`Eso es ${M.countries[COUNTRIES[id].r].n}. Doble clic para ir allí`);return}
     goCountry(id);return;
   }
   if(G.ended)return;
   if(cfg.mode==='explore'){if(G.in.has(id)){flash(id);hint(nm(id),'ok')}return}
+  if(cfg.mode==='streak'&&G.cur&&G.in.has(id)&&!G.found.has(id)&&!G.busy){
+    begin();
+    if(id===G.cur){G.right++;G.att[id]=1;mark(id,false);$('#n').textContent=G.right;hint(G.right%10?'¡Eso es!':`¡${G.right} seguidas!`,'ok');nextAsk();return}
+    // one slip ends the run: show what was asked and where the click went
+    G.busy=true;const miss=G.cur;G.att[miss]=0;cls(id,'bad');cls(miss,'tgt');reveal(miss);
+    hint(`No: eso es ${known(id)?nm(id):'otro sitio'}. ${nm(miss)} estaba aquí`,'bad');
+    nextT=setTimeout(()=>{cls(id,'bad',false);cls(miss,'tgt',false);cls(miss,'miss');G.busy=false;finish('miss')},1700);return;
+  }
   if(cfg.mode!=='click'||!G.cur||!G.in.has(id)||G.found.has(id)||G.busy)return;
   begin();
   if(id===G.cur){
@@ -960,9 +971,17 @@ function finish(reason,quiet){
   if(G.cur)cls(G.cur,'tgt',false);
   const n=cfg.mode==='click'?G.right:G.order.length,tot=G.ids.length;
   const missed=G.ids.filter(id=>!G.found.has(id)).sort((a,b)=>COUNTRIES[a].n.localeCompare(COUNTRIES[b].n,'es'));
-  for(const id of missed){cls(id,'miss');chip(id,'miss')}
+  if(cfg.mode!=='streak')for(const id of missed){cls(id,'miss');chip(id,'miss')}
   $('#play').hidden=true;$('#side').hidden=true;$('#done').hidden=false;$('#d-alt').hidden=true;$('#again').textContent='Jugar otra vez';
   $('#d-title').textContent=reason==='all'?(cfg.mode==='click'?'Ronda completa':'Mapa completo'):reason==='time'?'Se acabó el tiempo':'Partida terminada';
+  if(cfg.mode==='streak'){
+    const k=scopeKey(),e=STREAK[k]||(STREAK[k]={best:0,plays:0}),prev=e.best,n=G.right;
+    if(!quiet&&(n||G.started)){e.plays++;e.last=n;e.hist=(e.hist||[]).concat([[Date.now(),n]]).slice(-200);if(n>e.best){e.best=n;e.d=Date.now()}store.set('mapeo.streak',STREAK)}
+    $('#d-title').textContent=reason==='all'?'¡Ronda perfecta!':`Racha de ${n}`;
+    $('#d-detail').textContent=reason==='all'?`Las ${tot} sin un solo fallo, en ${fmt(G.elapsed)}`:`${n===1?'1 acierto':n+' aciertos'} seguidos en ${fmt(G.elapsed)}`;
+    $('#d-best').textContent=!quiet&&n>prev?(prev?`Nuevo récord: antes ${prev}`:'Primer récord en este mapa'):prev?`récord: ${prev} seguidas`:'';
+    return;
+  }
   if(cfg.mode==='click'){
     const c={a1:0,a2:0,a3:0,x:0};for(const id of G.ids){const a=G.att[id];if(a===1)c.a1++;else if(a===2)c.a2++;else if(a===3)c.a3++;else c.x++}
     const att={};for(const id of G.ids)att[id]=G.att[id]||0; // 1, 2, 3, or 0 for missed
@@ -986,7 +1005,7 @@ $('#restart').onclick=()=>{
   if(cfg.mode==='learn'){store.set(learnKey(),{});store.set(learnKey()+'.seen',[])}start();focusInput()};
 $('#again').onclick=()=>{if(G){unpark(G.key);G.wiped=true}if(cfg.mode==='learn'&&G.ended){cfg.mode='click';save();syncUI()}start();focusInput()};
 $('#d-alt').onclick=()=>{if(cfg.mode==='click'){openRecords(true);return}store.set(learnKey(),{});store.set(learnKey()+'.seen',[]);start();focusInput()};
-const focusInput=()=>{if(!body.classList.contains('open')&&G&&!G.ended&&cfg.mode!=='click')inp.focus({preventScroll:true})};
+const focusInput=()=>{if(!body.classList.contains('open')&&G&&!G.ended&&!pointing())inp.focus({preventScroll:true})};
 document.addEventListener('keydown',e=>{
   if(body.classList.contains('open')){if(e.key==='Escape')openDrawer(false);return}
   if(body.classList.contains('open-rec')){if(e.key==='Escape')openRecords(false);return}
@@ -1071,7 +1090,7 @@ $('#imp-file').addEventListener('change',async e=>{const f=e.target.files[0];if(
 function boot(data){
   if(data&&data.cfg)Object.assign(cfg,data.cfg);
   cfg.map=fromHash()||(MAPS[cfg.map]||cfg.map==='sub'||isCap(cfg.map)||isHist(cfg.map)&&YEARS.includes(+cfg.map.slice(1))?cfg.map:'europe');
-  if(!['type','click','learn','explore'].includes(cfg.mode))cfg.mode='type';
+  if(!['type','click','streak','learn','explore'].includes(cfg.mode))cfg.mode='type';
   palButtons();applyLook();start(data&&data.game);focusInput();
 }
 window.addEventListener('hashchange',()=>{const m=fromHash();if(m&&m!==cfg.map){cfg.map=m;save();syncUI();start()}});
