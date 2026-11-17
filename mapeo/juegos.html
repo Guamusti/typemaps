@@ -108,6 +108,20 @@ main>.games:last-child{margin-bottom:60px}
 .clues{margin:0 0 16px;padding-left:22px;display:grid;gap:8px;font-size:15px}
 .clues li::marker{color:var(--sub);font-size:12px}.clues b{font-weight:500;color:var(--accent)}
 .cflag{display:inline-block;width:90px;vertical-align:middle;margin-left:10px}
+.mappanel{padding:8px}
+.gmap{width:100%;height:auto;display:block;touch-action:none;cursor:grab;border-radius:12px;background:color-mix(in srgb,var(--bg) 60%,transparent)}
+.gmap .ctx{fill:color-mix(in srgb,var(--sub) 11%,var(--bg))}
+.gmap .land,.gmap .mk{fill:var(--land);stroke:var(--bg);stroke-width:.5;vector-effect:non-scaling-stroke;transition:fill .3s;cursor:pointer}
+.gmap .mk{stroke:var(--sub)}
+.gmap .land:hover,.gmap .mk:hover{fill:color-mix(in srgb,var(--accent) 30%,var(--land))}
+.gmap .off{fill:color-mix(in srgb,var(--sub) 13%,var(--bg));stroke:color-mix(in srgb,var(--sub) 20%,var(--bg));pointer-events:none}
+.gmap .land:not(.off){fill:color-mix(in srgb,var(--sub) 42%,var(--bg))}
+.gmap .land.on{fill:var(--accent)}.gmap .land.late{fill:color-mix(in srgb,var(--accent) 55%,var(--land))}.gmap .land.bad{fill:var(--err)}.gmap .land.miss{fill:color-mix(in srgb,var(--err) 60%,var(--bg))}.gmap .land:not(.off):hover{fill:color-mix(in srgb,var(--accent) 35%,var(--land))}
+.gmap .on{fill:var(--accent)}.gmap .late{fill:color-mix(in srgb,var(--accent) 55%,var(--land))}
+.gmap .bad{fill:var(--err)}.gmap .miss{fill:color-mix(in srgb,var(--err) 60%,var(--bg))}
+.gmap .tgt{fill:var(--text);animation:pulse .8s ease-in-out infinite alternate}
+@keyframes pulse{to{fill:var(--err)}}
+.bm-ask{display:flex;align-items:center;gap:20px;margin-bottom:14px}.bm-flag{width:130px;flex:none}
 /* más o menos */
 .hl{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
 .hl-c{padding:18px;border-radius:16px;background:var(--bg);text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:background-color .3s}
@@ -479,6 +493,77 @@ game({id:'pistas',group:'Pensar',title:'Pistas',desc:'Adivina el país con el me
     $('#pi-give').onclick=()=>{if(!done)end(false)};
     function reset(){round=0;total=0;bag=[];$('#pi-end').hidden=true;deal()}
     reset();
+  }});
+
+
+/* scripts loaded on demand (the full maps are big) */
+const loaded={};
+const loadScript=src=>loaded[src]||(loaded[src]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>{delete loaded[src];rej()};document.head.append(s)}));
+
+// a map you can zoom with the wheel or pinch-drag, and click
+function mapView(el,M,{onClick,box}){
+  const NS='http://www.w3.org/2000/svg';
+  let vb=box?[...box]:[0,0,M.w,M.h];const full=[0,0,M.w,M.h];
+  let h=`<svg class="gmap" viewBox="${vb.join(' ')}"><path class="ctx" d="${M.ctx}"/>`;
+  for(const it of M.items)if(it.d)h+=`<path class="land" data-id="${it.id}" d="${it.d}"/>`;
+  for(const it of M.items)if(it.m)h+=`<circle class="mk" data-id="${it.id}" cx="${it.c[0]}" cy="${it.c[1]}"/>`;
+  el.innerHTML=h+'</svg>';const svg=el.querySelector('svg');
+  const setVB=()=>{svg.setAttribute('viewBox',vb.join(' '));const r=(vb[2]/M.w)*M.w/170;svg.querySelectorAll('.mk').forEach(c=>c.setAttribute('r',r.toFixed(2)))};setVB();
+  const pt=e=>{const r=svg.getBoundingClientRect();return [vb[0]+(e.clientX-r.left)/r.width*vb[2],vb[1]+(e.clientY-r.top)/r.height*vb[3]]};
+  svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=pt(e),f=e.deltaY>0?1.2:1/1.2;const w=Math.min(full[2],Math.max(full[2]/40,vb[2]*f)),k=w/vb[2];
+    vb=[x-(x-vb[0])*k,y-(y-vb[1])*k,w,vb[3]*k];setVB()},{passive:false});
+  let drag=null,moved=false;
+  svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:[...vb]};moved=false;svg.setPointerCapture(e.pointerId)});
+  svg.addEventListener('pointermove',e=>{if(!drag)return;const r=svg.getBoundingClientRect(),dx=(e.clientX-drag.x)/r.width*vb[2],dy=(e.clientY-drag.y)/r.height*vb[3];
+    if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>4)moved=true;if(moved){vb=[drag.vb[0]-dx,drag.vb[1]-dy,vb[2],vb[3]];setVB()}});
+  svg.addEventListener('pointerup',e=>{const was=drag;drag=null;if(!was||moved)return;const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-id]');if(t)onClick(t.dataset.id)});
+  const els=id=>svg.querySelectorAll(`[data-id="${id}"]`);
+  return {cls(id,c,on=true){els(id).forEach(x=>x.classList.toggle(c,on))},
+    reset(){vb=box?[...box]:[...full];setVB()},
+    focus(id){const e=els(id)[0];if(!e)return;const b=e.getBBox(),w=Math.max(b.width,b.height,M.w/12)*2.6,hh=w*M.h/M.w;vb=[b.x+b.width/2-w/2,b.y+b.height/2-hh/2,w,hh];setVB()},
+    svg};
+}
+function regionBox(M,ids,svgEl){
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  for(const id of ids){const e=svgEl.querySelector(`[data-id="${id}"]`);if(!e)continue;const b=e.tagName==='circle'?{x:+e.getAttribute('cx'),y:+e.getAttribute('cy'),width:0,height:0}:e.getBBox();
+    // ignore far-off pieces (French Guiana makes France span the Atlantic)
+    x0=Math.min(x0,b.x);y0=Math.min(y0,b.y);x1=Math.max(x1,b.x+b.width);y1=Math.max(y1,b.y+b.height)}
+  const pad=20;let w=x1-x0+pad*2,h=y1-y0+pad*2;const ar=M.w/M.h;if(w/h<ar)w=h*ar;else h=w/ar;
+  return [(x0+x1)/2-w/2,(y0+y1)/2-h/2,w,h];
+}
+
+/* Bandera → mapa: click the country of each flag */
+game({id:'bandera-mapa',group:'Con mapa',title:'Bandera → mapa',desc:'Te enseñamos una bandera y la señalas en el mapa. Quince por ronda.',
+  rec:()=>{const b=Math.max(0,...RG.map(([r])=>REC['bandera-mapa.'+r]?.best||0));return b?`mejor: ${b} de 15 a la primera`:''},
+  async start(main){
+    let region=store.get('mapeo.juegos.bm','eu'),queue,cur,tries,first,n,busy,V,missed;
+    main.innerHTML=`<div class="game"><div class="hl-top">${regionSeg('bm-r',region)}<span class="crumb" id="bm-n"></span></div>
+      <div class="bm-ask"><div class="bm-flag" id="bm-f"></div><div><p class="q" style="margin:0">¿Dónde está?</p><div class="msg" id="bm-msg">Haz clic en el país. Rueda para acercar, arrastra para mover.</div></div></div>
+      <div class="panel mappanel" id="bm-map"><p class="msg">Cargando el mapa…</p></div><div class="end" id="bm-end" hidden></div></div>`;
+    try{await loadScript('data.js')}catch(e){$('#bm-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>';return}
+    if(location.hash!=='#bandera-mapa')return;
+    const score=()=>{setScore(`<span><b>${first}</b>a la primera</span><span><b>${REC['bandera-mapa.'+region]?.best||0}</b>récord</span>`);$('#bm-n').textContent=`${Math.min(n+1,15)} de 15`};
+    function setup(){
+      const M=region==='eu'?MAPS.europe:MAPS.world;
+      const ids=M.items.map(i=>i.id).filter(k=>C[k]&&inRegion(k,region==='eu'?'eu':region));
+      V=mapView($('#bm-map'),M,{onClick:click});
+      if(region!=='eu'&&region!=='all'){const b=regionBox(M,ids.filter(k=>!['FR','US','RU','NL','GB','DK','NO','CL','EC','PT','ES'].includes(k)||inRegion(k,region)),V.svg);V.svg.setAttribute('viewBox',b.join(' '));V=mapView($('#bm-map'),M,{onClick:click,box:b})}
+      for(const it of M.items)if(!ids.includes(it.id))V.cls(it.id,'off');
+      queue=shuffle(ids).slice(0,15);n=0;first=0;missed=[];$('#bm-end').hidden=true;$('#bm-msg').textContent='Haz clic en el país. Rueda para acercar, arrastra para mover.';$('#bm-msg').className='msg';next();
+    }
+    function next(){busy=false;tries=0;cur=queue[n];if(!cur){end();return}$('#bm-f').innerHTML=flagImg(cur);score()}
+    function click(id){
+      if(busy||!cur||!C[id])return;
+      if(id===cur){if(!tries)first++;V.cls(id,tries?'late':'on');$('#bm-msg').textContent=`${C[id].n} ✓`;$('#bm-msg').className='msg ok';n++;busy=true;setTimeout(next,450);return}
+      tries++;V.cls(id,'bad');setTimeout(()=>V.cls(id,'bad',false),700);
+      if(tries>=3){busy=true;missed.push(cur);V.cls(cur,'tgt');V.focus(cur);$('#bm-msg').textContent=`Era ${C[cur].n}`;$('#bm-msg').className='msg bad';
+        const k=cur;setTimeout(()=>{V.cls(k,'tgt',false);V.cls(k,'miss');V.reset();n++;next()},1500)}
+      else{$('#bm-msg').textContent=`No, eso es ${C[id].n}. Te quedan ${3-tries}`;$('#bm-msg').className='msg bad'}
+    }
+    function end(){cur=null;const r=saveScore('bandera-mapa.'+region,first);score();$('#bm-n').textContent='';
+      endCard($('#bm-end'),{big:`${first} de 15`,sub:`a la primera · ${regionName(region)}`+(missed.length?`<br>Fallaste: ${esc(listEs(missed.map(k=>C[k].n)))}`:''),rec:recLine(r,' de 15'),again:setup})}
+    $('#bm-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.bm',region);$$('#bm-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));setup()};
+    setup();
   }});
 
 /* ---------- hub and routing ---------- */
