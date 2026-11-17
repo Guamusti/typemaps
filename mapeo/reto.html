@@ -34,8 +34,11 @@ header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-b
 .mark b{color:var(--accent);font-weight:400}
 .day{color:var(--sub);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .push{margin-left:auto}
+.modes{display:flex;background:var(--alt);border-radius:12px;padding:4px;gap:2px}.modes a{padding:5px 11px;border-radius:9px;color:var(--sub);text-decoration:none;font-size:13px;transition:color .2s,background .2s}.modes a:hover{color:var(--text)}.modes a.on{background:var(--accent);color:var(--bg)}
+@media(max-width:560px){.day{display:none}}
 .ghost{color:var(--sub);transition:color .2s;text-decoration:none}
 .ghost:hover{color:var(--text)}
+.day{white-space:nowrap}.streak span{white-space:nowrap}
 .streak{display:flex;gap:16px;color:var(--sub);font-size:12px}
 .streak b{font-family:var(--display);font-weight:400;font-size:26px;color:var(--text);margin-right:5px;line-height:1}
 
@@ -105,6 +108,7 @@ header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-b
 <header><div class="wrap">
   <a class="mark" href="./" title="Volver a Mapeo">mapeo<b>.</b></a>
   <span class="day" id="day"></span>
+  <nav class="modes"><a id="mode-d" href="#">diario</a><a id="mode-f" href="#libre">ilimitado</a></nav>
   <div class="streak push" id="streak"></div>
 </div></header>
 <main class="wrap">
@@ -184,15 +188,23 @@ const dayNo=Math.round((Date.UTC(today.getFullYear(),today.getMonth(),today.getD
 function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const POOL=Object.keys(C).filter(k=>C[k].d&&C[k].km2>=10000&&C[k].pop&&C[k].cap).sort();
 {const r=rng(20260101);for(let i=POOL.length-1;i>0;i--){const j=r()*(i+1)|0;[POOL[i],POOL[j]]=[POOL[j],POOL[i]]}}
+// unlimited mode (#libre): a random country each time, outside the daily streak
+const FREE=location.hash==='#libre';
+const SKEY=FREE?'mapeo.reto.libre':'mapeo.reto';
+const freshFree=()=>{const recent=store.get('mapeo.reto.recent',[]);const pool=POOL.filter(k=>!recent.includes(k));
+  const code=pool[Math.random()*pool.length|0];store.set('mapeo.reto.recent',[code,...recent].slice(0,40));
+  return {code,seed:Math.random()*2**31|0,g:[],cap:[],pop:null,bor:null}};
 const cycle=Math.floor(dayNo/POOL.length);
-const ANS=POOL[((dayNo%POOL.length)+POOL.length)%POOL.length];
-const A=C[ANS],R=rng(dayNo*7919+cycle);
-$('#day').textContent='Reto · '+today.toLocaleDateString('es',{day:'numeric',month:'long'});
-
-/* ---------- state for today, kept so a reload resumes ---------- */
-let S=store.get('mapeo.reto',null);
-if(!S||S.day!==TODAY)S={day:TODAY,code:ANS,g:[],cap:[],pop:null,bor:null};
-const save=()=>store.set('mapeo.reto',S);
+/* ---------- state, kept so a reload resumes ---------- */
+let S=store.get(SKEY,null);
+if(FREE){if(!S||!C[S.code])S=freshFree()}
+else{const code=POOL[((dayNo%POOL.length)+POOL.length)%POOL.length];if(!S||S.day!==TODAY)S={day:TODAY,code,g:[],cap:[],pop:null,bor:null}}
+const ANS=S.code;
+const A=C[ANS],R=rng(FREE?S.seed:dayNo*7919+cycle);
+$('#day').textContent=FREE?'':today.toLocaleDateString('es',{day:'numeric',month:'short'});
+$('#mode-d').classList.toggle('on',!FREE);$('#mode-f').classList.toggle('on',FREE);
+window.addEventListener('hashchange',()=>location.reload());
+const save=()=>store.set(SKEY,S);
 const ST=store.get('mapeo.reto.stats',{streak:0,best:0,played:0,found:0,last:null,hist:{}});
 
 /* ---------- geometry ---------- */
@@ -343,7 +355,8 @@ function result(){
 let ended=false;
 function finish(){
   const r=result();
-  if(!ST.hist[TODAY]){
+  if(FREE){if(!S.counted){S.counted=1;save();const F=store.get('mapeo.reto.libre.stats',{played:0,pts:0,found:0});F.played++;F.pts+=r.pts;if(r.won1)F.found++;store.set('mapeo.reto.libre.stats',F)}}
+  else if(!ST.hist[TODAY]){
     // a streak counts days in a row with the reto finished
     const y=new Date(today);y.setDate(y.getDate()-1);
     ST.streak=ST.last===dkey(y)?ST.streak+1:1;ST.best=Math.max(ST.best,ST.streak);ST.last=TODAY;ST.played++;if(r.won1)ST.found++;
@@ -355,7 +368,7 @@ function finish(){
   const share=shareText(r);
   e.innerHTML=`<div class="big">${r.pts} de 4</div><div class="line">${r.sq.join('')}</div>
     <div class="sub">${r.won1?`País a la ${S.g.length}.ª`:'País sin adivinar'} · capital ${r.capN?`a la ${r.capN}.ª`:'fallada'} · población ${S.pop===sig(A.pop)?'✓':'✗'} · fronteras ${S.bor===A.b.length?'✓':'✗'}</div>
-    <div class="acts"><button class="btn" id="share" type="button">compartir</button><a class="btn soft" href="./#mundo" style="text-decoration:none">ir al mapa</a></div>
+    <div class="acts"><button class="btn" id="share" type="button">compartir</button>${FREE?'<button class="btn soft" id="again" type="button">otro país</button>':'<a class="btn soft" href="#libre" style="text-decoration:none">modo ilimitado</a>'}</div>
     <div class="sub" style="margin-top:14px" id="next"></div>`;
   $('#share').onclick=async()=>{
     try{if(navigator.share&&matchMedia('(pointer:coarse)').matches){await navigator.share({text:share});return}await navigator.clipboard.writeText(share);$('#share').textContent='copiado'}
@@ -363,13 +376,16 @@ function finish(){
     setTimeout(()=>$('#share').textContent='compartir',1800);
   };
   const tick=()=>{const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const s=Math.max(0,(m-n)/1000|0);$('#next').textContent=`Siguiente país en ${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')} min`};
-  tick();setInterval(tick,30000);
+  if(FREE){$('#next').textContent='No cuenta para la racha del reto diario';$('#again').onclick=()=>{store.set(SKEY,freshFree());location.reload()}}
+  else{tick();setInterval(tick,30000)}
   if(!render.first)setTimeout(()=>e.scrollIntoView({behavior:'smooth',block:'center'}),250);
 }
 function shareText(r){
-  return `Mapeo · reto ${today.toLocaleDateString('es',{day:'numeric',month:'short'})} · ${r.pts}/4\n🗺️ ${r.sq.join('')}${r.won1?'':' ✗'}\n🏛️ ${r.capN?`✓ ${r.capN}/3`:'✗'}  👥 ${S.pop===sig(A.pop)?'✓':'✗'}  🧱 ${S.bor===A.b.length?'✓':'✗'}\n${location.origin.startsWith('http')&&!/claude/.test(location.host)?location.origin+location.pathname:'typemaps.vercel.app/mapeo/reto.html'}`;
+  return `Mapeo · ${FREE?'ilimitado':'reto '+today.toLocaleDateString('es',{day:'numeric',month:'short'})} · ${r.pts}/4\n🗺️ ${r.sq.join('')}${r.won1?'':' ✗'}\n🏛️ ${r.capN?`✓ ${r.capN}/3`:'✗'}  👥 ${S.pop===sig(A.pop)?'✓':'✗'}  🧱 ${S.bor===A.b.length?'✓':'✗'}\n${location.origin.startsWith('http')&&!/claude/.test(location.host)?location.origin+location.pathname:'typemaps.vercel.app/mapeo/reto.html'}`;
 }
 function drawStreak(){
+  if(FREE){const F=store.get('mapeo.reto.libre.stats',{played:0,pts:0,found:0});
+    $('#streak').innerHTML=`<span title="Partidas en modo ilimitado"><b>${F.played}</b>${F.played===1?'partida':'partidas'}</span><span title="Puntos de media, sobre 4"><b>${F.played?(F.pts/F.played).toLocaleString('es',{maximumFractionDigits:1}):'–'}</b>media</span>`;return}
   const y=new Date(today);y.setDate(y.getDate()-1);
   const live=ST.last===TODAY||ST.last===dkey(y)?ST.streak:0;
   $('#streak').innerHTML=`<span title="Días seguidos completando el reto"><b>${live}</b>${live===1?'día':'días seguidos'}</span><span title="Tu mejor racha"><b>${ST.best}</b>mejor</span>`;
