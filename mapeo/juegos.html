@@ -157,6 +157,14 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:12px 0 4px}
 .thumb .gmap{pointer-events:none;cursor:pointer}.thumb .opos{position:absolute;top:8px;left:12px;font-family:var(--display);font-size:26px;color:var(--accent);z-index:2}
 .thumb .ty{display:block;text-align:center;font-size:13px;min-height:18px;margin-top:4px}
 .thumb.set{box-shadow:0 0 0 2px var(--accent)}.thumb.good{box-shadow:0 0 0 2px var(--accent);background:color-mix(in srgb,var(--accent) 18%,var(--alt))}.thumb.bad{box-shadow:0 0 0 2px var(--err)}
+.dare{margin:18px 0 -6px;padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--accent) 16%,var(--alt));font-size:13px}
+.rival{margin-top:12px;font-family:var(--display);font-size:24px}.rival.win{color:var(--accent)}.rival.lose{color:var(--err)}
+.profd{margin:6px 0 10px}.profd summary{cursor:pointer;color:var(--sub);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:6px 0}
+.prof{padding:16px 18px;border-radius:16px;background:color-mix(in srgb,var(--alt) 75%,transparent);margin-top:8px}
+.prof-nums{display:flex;flex-wrap:wrap;gap:8px 22px;color:var(--sub);font-size:12px;margin-bottom:14px}.prof-nums b{font-family:var(--display);font-weight:400;font-size:28px;color:var(--text);margin-right:6px}
+.ach{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.ach .a{padding:9px 11px;border-radius:10px;background:var(--bg);opacity:.5}.ach .a.on{opacity:1;background:color-mix(in srgb,var(--accent) 16%,var(--bg))}
+.ach .a b{display:block;font-weight:500;font-size:13px}.ach .a small{color:var(--sub);font-size:11px}.ach .a.on b{color:var(--accent)}
 .flagbox.sm .flag{width:min(150px,40vw)}
 .cmap{margin-top:4px}.cmap .gmap{max-height:52vh}
 .gmap .city{fill:var(--err)}.gmap .cityr{fill:none;stroke:var(--err);stroke-width:1.2;vector-effect:non-scaling-stroke}
@@ -272,16 +280,28 @@ const fieldHTML=(id,ph)=>`<div class="field"><input id="${id}" autocomplete="off
 
 /* ---------- records ---------- */
 const REC=store.get('mapeo.juegos',{});
-function saveScore(key,score,higher=true){
+const here=()=>location.hash.slice(1).split('?')[0];
+// every run is seeded, so a link can replay exactly the same questions for a friend
+const RUN={seed:0,rival:null,last:null};const RNG0=Math.random;
+function seedRun(seed){RUN.seed=seed;let t=seed>>>0;Math.random=()=>{t=t+0x6D2B79F5|0;let x=Math.imul(t^t>>>15,1|t);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296}}
+function saveScore(key,score,higher=true){RUN.last=score;
   const e=REC[key]||(REC[key]={plays:0});const prev=e.best;
   e.plays++;e.last=score;e.hist=(e.hist||[]).concat([[Date.now(),score]]).slice(-100);
   const better=prev==null||(higher?score>prev:score<prev);if(better)e.best=score;
   store.set('mapeo.juegos',REC);return {better,prev};
 }
 function endCard(el,{big,sub,rec,again,extra=''}){
-  el.innerHTML=`<div class="big">${big}</div><div class="sub">${sub}</div>${rec?`<div class="sub">${rec}</div>`:''}${extra}
-    <div class="acts"><button class="btn" type="button" data-again>otra vez</button><a class="btn soft" href="#">más juegos</a></div>`;
-  el.hidden=false;el.querySelector('[data-again]').onclick=again;el.querySelector('[data-again]').focus({preventScroll:true});
+  const riv=RUN.rival!=null&&RUN.last!=null?`<div class="rival ${RUN.last>RUN.rival?'win':RUN.last<RUN.rival?'lose':''}">${RUN.last>RUN.rival?'¡Has ganado el reto!':RUN.last<RUN.rival?'Tu rival gana':'Empate'} · tú ${RUN.last}, rival ${RUN.rival}</div>`:'';
+  el.innerHTML=`<div class="big">${big}</div><div class="sub">${sub}</div>${rec?`<div class="sub">${rec}</div>`:''}${extra}${riv}
+    <div class="acts"><button class="btn" type="button" data-again>otra vez</button><button class="btn soft" type="button" data-dare>retar a alguien</button><a class="btn soft" href="#">más juegos</a></div>`;
+  const seed=RUN.seed,score=RUN.last,id=here();
+  el.querySelector('[data-dare]').onclick=async e=>{
+    const base=location.origin.startsWith('http')&&!/claude/.test(location.host)?location.origin+location.pathname:'https://typemaps.vercel.app/mapeo/juegos.html';
+    const url=`${base}#${id}?s=${seed}${score!=null?'&p='+score:''}`,txt=`Te reto en Mapeo · ${GAMES.find(g=>g.id===id)?.title||''}: he sacado ${score}. Mismas preguntas: ${url}`;
+    try{if(navigator.share&&matchMedia('(pointer:coarse)').matches)await navigator.share({text:txt});else{await navigator.clipboard.writeText(txt);e.target.textContent='enlace copiado'}}catch(err){e.target.textContent='no se pudo copiar'}
+  };
+  el.hidden=false;
+  el.querySelector('[data-again]').onclick=()=>{seedRun(RNG0()*2**31|0);RUN.rival=null;again()};el.querySelector('[data-again]').focus({preventScroll:true});
   setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),150);
 }
 const recLine=(r,unit,fmt=v=>v)=>r.better?(r.prev==null?'Primer récord':`¡Nuevo récord! Antes ${fmt(r.prev)}`):`Récord: ${fmt(r.prev)}${unit}`;
@@ -603,7 +623,7 @@ function mapAsk({id,title,desc,ask,pref,filter=()=>true}){game({id,group:'Con ma
       <div class="bm-ask"><div class="bm-flag" id="bm-f"></div><div><p class="q" style="margin:0">¿Dónde está?</p><div class="msg" id="bm-msg">Haz clic en el país. Rueda para acercar, arrastra para mover.</div></div></div>
       <div class="panel mappanel" id="bm-map"><p class="msg">Cargando el mapa…</p></div><div class="end" id="bm-end" hidden></div></div>`;
     try{await loadScript('data.js')}catch(e){$('#bm-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>';return}
-    if(location.hash!=='#'+id)return;
+    if(here()!==id)return;
     const score=()=>{setScore(`<span><b>${first}</b>a la primera</span><span><b>${REC[id+'.'+region]?.best||0}</b>récord</span>`);$('#bm-n').textContent=`${Math.min(n+1,15)} de 15`};
     function setup(){
       const M=region==='eu'?MAPS.europe:MAPS.world;
@@ -657,7 +677,7 @@ game({id:'que-ano',group:'Historia',title:'¿Qué año es?',desc:'Un mapa de Eur
       const others=shuffle(HYEARS.filter(y=>y!==ans).sort((a,b)=>Math.abs(a-ans)-Math.abs(b-ans)).slice(0,6)).slice(0,3);
       opts=[ans,...others].sort((a,b)=>a-b);
       $('#qa-o').innerHTML='';$('#qa-msg').textContent='';score();
-      const M=await loadYear(ans);if(location.hash!=='#que-ano')return;
+      const M=await loadYear(ans);if(here()!=='que-ano')return;
       mapView($('#qa-map'),M,{onClick(){},tint:1});
       $('#qa-o').innerHTML=opts.map(y=>`<button type="button" data-y="${y}">${y}</button>`).join('');
     }
@@ -666,7 +686,7 @@ game({id:'que-ano',group:'Historia',title:'¿Qué año es?',desc:'Un mapa de Eur
       const M=MAPS['e'+ans];$('#qa-msg').innerHTML=`${ok?'¡Sí!':'No:'} es <b>${ans}</b>. ${esc(M.note||HNOTES[ans]||'')}`;$('#qa-msg').className='msg '+(ok?'ok':'bad');
       // name the states now
       const svg=$('#qa-map svg');for(const it of M.items){if(it.m)continue;const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',it.c[0]);t.setAttribute('y',it.c[1]);t.setAttribute('class','hlbl');t.textContent=hName(it.id);svg.append(t)}
-      round++;score();setTimeout(()=>{if(location.hash!=='#que-ano')return;if(round<8)deal();else{const r=saveScore('que-ano',total);score();endCard($('#qa-end'),{big:`${total} de 8`,sub:'mapas fechados',rec:recLine(r,' de 8'),again:reset})}},ok?1500:2600)};
+      round++;score();setTimeout(()=>{if(here()!=='que-ano')return;if(round<8)deal();else{const r=saveScore('que-ano',total);score();endCard($('#qa-end'),{big:`${total} de 8`,sub:'mapas fechados',rec:recLine(r,' de 8'),again:reset})}},ok?1500:2600)};
     function reset(){round=0;total=0;bag=[];$('#qa-end').hidden=true;deal()}
     try{await loadScript('data.js')}catch(e){$('#qa-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>';return}
     reset();
@@ -685,7 +705,7 @@ game({id:'cambios',group:'Historia',title:'¿Qué ha cambiado?',desc:'Dos época
       done=false;$('#cb-o').innerHTML='';$('#cb-msg').textContent='';score();
       for(let t=0;t<40;t++){
         const i=Math.random()*(HYEARS.length-1)|0,y1=HYEARS[i],y2=HYEARS[i+1];
-        const [A,B]=await Promise.all([loadYear(y1),loadYear(y2)]);if(location.hash!=='#cambios')return;
+        const [A,B]=await Promise.all([loadYear(y1),loadYear(y2)]);if(here()!=='cambios')return;
         const ka=new Map(A.items.map(it=>[hKey(it.id),it.id])),kb=new Map(B.items.map(it=>[hKey(it.id),it.id]));
         const appear=[...kb.keys()].filter(k=>!ka.has(k)),gone=[...ka.keys()].filter(k=>!kb.has(k)),both=[...kb.keys()].filter(k=>ka.has(k));
         const type=appear.length&&(!gone.length||Math.random()<.5)?'appear':gone.length?'gone':null;if(!type||both.length<3)continue;
@@ -702,7 +722,7 @@ game({id:'cambios',group:'Historia',title:'¿Qué ha cambiado?',desc:'Dos época
       $$('#cb-o button').forEach(x=>{x.disabled=true;x.className=x.dataset.id===cur.ans?'right':x===b?'wrong':'dim'});
       (cur.type==='appear'?cur.V2:cur.V1).cls(cur.ans,'on');
       $('#cb-msg').innerHTML=`${ok?'¡Sí!':'No:'} ${cur.type==='appear'?'aparece':'desaparece'} <b>${esc(hName(cur.ans))}</b>.`;$('#cb-msg').className='msg '+(ok?'ok':'bad');
-      round++;score();setTimeout(()=>{if(location.hash!=='#cambios')return;if(round<8)deal();else{const r=saveScore('cambios',total);score();endCard($('#cb-end'),{big:`${total} de 8`,sub:'cambios detectados',rec:recLine(r,' de 8'),again:reset})}},ok?1600:2600)};
+      round++;score();setTimeout(()=>{if(here()!=='cambios')return;if(round<8)deal();else{const r=saveScore('cambios',total);score();endCard($('#cb-end'),{big:`${total} de 8`,sub:'cambios detectados',rec:recLine(r,' de 8'),again:reset})}},ok?1600:2600)};
     function reset(){round=0;total=0;$('#cb-end').hidden=true;deal()}
     try{await loadScript('data.js')}catch(e){return}
     reset();
@@ -720,9 +740,9 @@ game({id:'hoy',group:'Historia',title:'¿Qué hay hoy aquí?',desc:'Se resalta u
     const score=()=>{setScore(`<span><b>${found}</b>de ${tot}</span><span><b>${REC.hoy?.best??0}%</b>récord</span>`);$('#hy-n').textContent=round<5?`ronda ${round+1} de 5`:''};
     async function deal(){
       done=false;got=[];miss=[];$('#hy-in').disabled=false;$('#hy-give').textContent='me rindo';
-      for(let t=0;t<60;t++){const y=rnd(TYEARS),M=await loadYear(y);const cand=M.items.filter(it=>{const n=(it.t||[]).filter(k=>C[k]).length;return n>=2&&n<=8});if(!cand.length)continue;
+      for(let t=0;t<60;t++){const y=rnd(TYEARS),M=await loadYear(y);const cand=M.items.filter(it=>{const n=(it.t||[]).filter(k=>C[k]).length;return !it.m&&n>=2&&n<=8});if(!cand.length)continue;
         const it=rnd(cand);cur={y,M,it,t:it.t.filter(k=>C[k])};break}
-      if(location.hash!=='#hoy')return;
+      if(here()!=='hoy')return;
       $('#hy-q').innerHTML=`<em>${esc(hName(cur.it.id))}</em> en ${cur.y}: ¿qué países hay hoy en su territorio?`;
       V=mapView($('#hy-map'),cur.M,{onClick(){},tint:1});V.cls(cur.it.id,'on');
       $('#hy-msg').textContent=`Son ${cur.t.length}. Cuenta cualquier país con una parte importante de su territorio.`;$('#hy-msg').className='msg';draw();score();$('#hy-in').focus();
@@ -785,7 +805,7 @@ game({id:'rellena',group:'Con mapa',title:'Rellena el continente',desc:'El mapa 
       <div class="panel">${fieldHTML('rl-in','Escribe un país…')}<div class="row"><div class="msg" id="rl-msg"></div><button class="ghost" id="rl-give" type="button">me rindo</button></div></div>
       <div class="panel mappanel" id="rl-map" style="margin-top:12px"><p class="msg">Cargando el mapa…</p></div><div class="end" id="rl-end" hidden></div></div>`;
     try{await loadScript('data.js')}catch(e){$('#rl-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>';return}
-    if(location.hash!=='#rellena')return;
+    if(here()!=='rellena')return;
     const secs=()=>Math.max(120,Math.round(ids.length*6/30)*30);
     const score=()=>setScore(`<span><b>${got.length}</b>de ${ids.length}</span><span><b>${REC['rellena.'+region]?.best??0}%</b>récord</span>`);
     function setup(){
@@ -818,31 +838,33 @@ game({id:'rellena',group:'Con mapa',title:'Rellena el continente',desc:'El mapa 
 
 /* ---------- a generic quiz: a question, a few options, rounds or lives or a clock ---------- */
 // gen() returns (or resolves to) {q, opts:[{html,ok}], wide, after}
-function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,variant=null}){
+const QGENS=[];
+function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,lives=null,mix=true}){
+  if(mix)QGENS.push({id,title,gen});
   game({id,group,title,desc,
-    rec:()=>{const b=REC[id]?.best;return b!=null?(time?`mejor: ${b} en ${time} s`:`mejor: ${b} de ${rounds}`):''},
+    rec:()=>{const b=REC[id]?.best;return b!=null?(time?`mejor: ${b} en ${time} s`:lives?`mejor: ${b} seguidas`:`mejor: ${b} de ${rounds}`):''},
     start(main){
-      let n,right,busy,cur,T=null,running=false,ended=false;
-      main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="qz-n"></span>${time?'<span class="clock" id="qz-t"></span>':''}</div>
+      let n,right,busy,cur,T=null,running=false,ended=false,lost=0;
+      main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="qz-n"></span>${time?'<span class="clock" id="qz-t"></span>':''}${lives?'<span class="lives" id="qz-l"></span>':''}</div>
         <div class="qz-q" id="qz-q"></div><div class="qz-o" id="qz-o"></div><div class="msg" id="qz-msg"></div><div class="end" id="qz-end" hidden></div></div>`;
-      const score=()=>{setScore(`<span><b>${right}</b>aciertos</span><span><b>${REC[id]?.best??0}</b>récord</span>`);$('#qz-n').textContent=time?'':`${Math.min(n+1,rounds)} de ${rounds}`};
+      const score=()=>{setScore(`<span><b>${right}</b>aciertos</span><span><b>${REC[id]?.best??0}</b>récord</span>`);$('#qz-n').textContent=time?'':lives?(cur&&cur.tag?cur.tag:''):`${Math.min(n+1,rounds)} de ${rounds}`;if(lives)$('#qz-l').innerHTML='<i class="on"></i>'.repeat(lives-lost)+'<i></i>'.repeat(lost)};
       async function next(){
         if(ended)return;busy=true;$('#qz-msg').textContent='';
-        cur=await gen();if(location.hash!=='#'+id||ended)return;
+        cur=await gen();if(here()!==id||ended)return;
         $('#qz-q').innerHTML=cur.q;if(cur.mount)cur.mount($('#qz-q'));
         $('#qz-o').className='qz-o'+(cur.wide?' wide':'')+(cur.opts.length===2?' two':cur.opts.length===3?' three':'');
         $('#qz-o').innerHTML=cur.opts.map((o,i)=>`<button type="button" data-i="${i}"><span class="kbd">${i+1}</span>${o.html}</button>`).join('');busy=false;score();
       }
       function answer(i){
         if(busy||ended||!cur||!cur.opts[i])return;busy=true;if(time&&!running){running=true;T=timerBar($('#qz-t'),time,finish)}
-        const ok=cur.opts[i].ok;if(ok)right++;n++;
+        const ok=cur.opts[i].ok;if(ok)right++;else lost++;n++;
         $$('#qz-o button').forEach((b,j)=>{b.disabled=true;b.className=cur.opts[j].ok?'right':j===i?'wrong':'dim'});
         $('#qz-msg').innerHTML=(ok?'¡Sí! ':'No. ')+(cur.after||'');$('#qz-msg').className='msg '+(ok?'ok':'bad');score();
-        setTimeout(()=>{if(ended||location.hash!=='#'+id)return;if(!time&&n>=rounds)finish();else next()},time?(ok?450:1300):(ok?1100:2300));
+        setTimeout(()=>{if(ended||here()!==id)return;if(lives?lost>=lives:!time&&n>=rounds)finish();else next()},time?(ok?450:1300):(ok?1100:2300));
       }
       function finish(){if(ended)return;ended=true;T&&T.stop();const r=saveScore(id,right);score();$('#qz-n').textContent='';
-        endCard($('#qz-end'),{big:time?`${right}`:`${right} de ${rounds}`,sub:time?`aciertos en ${time} segundos`:title,rec:recLine(r,time?'':` de ${rounds}`),again:reset})}
-      function reset(){T&&T.stop();n=0;right=0;ended=false;running=false;$('#qz-end').hidden=true;if(time)$('#qz-t').textContent=time+' s';next()}
+        endCard($('#qz-end'),{big:time||lives?`${right}`:`${right} de ${rounds}`,sub:time?`aciertos en ${time} segundos`:lives?'aciertos antes de perder las tres vidas':title,rec:recLine(r,time||lives?'':` de ${rounds}`),again:reset})}
+      function reset(){T&&T.stop();n=0;right=0;lost=0;ended=false;running=false;$('#qz-end').hidden=true;if(time)$('#qz-t').textContent=time+' s';next()}
       $('#qz-o').onclick=e=>{const b=e.target.closest('[data-i]');if(b)answer(+b.dataset.i)};
       const key=e=>{if(/^[1-4]$/.test(e.key)&&document.activeElement.tagName!=='INPUT')answer(+e.key-1)};
       document.addEventListener('keydown',key);stopGame=()=>{document.removeEventListener('keydown',key);T&&T.stop();ended=true};
@@ -927,7 +949,7 @@ game({id:'distancia',group:'Pensar',title:'Distancia',desc:'¿Cuántos kilómetr
       <div class="row"><div class="msg" id="ds-msg">Mueve la barra (o usa las flechas) y confirma.</div><button class="btn" id="ds-go" type="button">confirmar</button></div><div id="ds-map"></div></div>
       <div class="end" id="ds-end" hidden></div></div>`;
     try{await loadScript('caps.js')}catch(e){return}
-    if(location.hash!=='#distancia')return;
+    if(here()!=='distancia')return;
     const pool=CODES.filter(k=>CAPS[k]&&C[k].cap);
     const real=()=>Math.round(dist(CAPS[a].ll,CAPS[b].ll));
     const score=()=>{setScore(`<span><b>${total}</b>puntos</span><span><b>${REC.distancia?.best??0}</b>récord</span>`);$('#ds-n').textContent=round<5?`ronda ${round+1} de 5`:''};
@@ -960,7 +982,7 @@ game({id:'ordena-historia',group:'Historia',title:'Ordena la historia',desc:'Cin
     const score=()=>{setScore(`<span><b>${total}</b>puntos</span><span><b>${REC['ordena-historia']?.best??0}</b>récord</span>`);$('#oh-n').textContent=round<3?`ronda ${round+1} de 3`:''};
     async function deal(){
       set=shuffle([...HYEARS]).slice(0,5);picked=[];checked=false;score();
-      const Ms=await Promise.all(set.map(loadYear));if(location.hash!=='#ordena-historia')return;
+      const Ms=await Promise.all(set.map(loadYear));if(here()!=='ordena-historia')return;
       $('#oh-l').innerHTML=set.map(y=>`<button type="button" class="thumb" data-y="${y}"><span class="opos"></span><span class="tmap"></span><span class="ty"></span></button>`).join('');
       set.forEach((y,i)=>mapView($(`#oh-l [data-y="${y}"] .tmap`),Ms[i],{onClick(){},tint:1}));
       draw();$('#oh-go').textContent='comprobar';$('#oh-msg').textContent='Pulsa los mapas en orden; pulsa uno ya puesto para quitarlo.';$('#oh-msg').className='msg';
@@ -1059,6 +1081,31 @@ quizGame({id:'fisico',group:'Con mapa',title:'Ríos, mares y montañas',desc:'Se
         V.svg.insertAdjacentHTML('beforeend',`<path class="phys ${kind}" d="${f.d}"/>`)},
       opts:shuffle([f,...wrong]).map(x=>opt(esc(x.n),x===f)),after:esc(f.n)}}});
 
+
+/* Maratón: questions from every quiz, mixed, three lives */
+quizGame({id:'maraton',group:'Mezcla',title:'Maratón',desc:'Preguntas de todos los juegos tipo test mezcladas, una tras otra. Tres vidas.',lives:3,mix:false,
+  async gen(){const g=rnd(QGENS);const r=await g.gen();r.tag=g.title;return r}});
+
+/* ---------- profile and achievements ---------- */
+function profile(){
+  const sum=Object.values(REC).reduce((a,e)=>a+(e.plays||0),0);
+  const played=new Set(Object.keys(REC).map(k=>k.split('.')[0]));
+  const best=(k)=>Math.max(-1,...Object.entries(REC).filter(([x])=>x===k||x.startsWith(k+'.')).map(([,e])=>e.best??-1));
+  const RS=store.get('mapeo.reto.stats',{streak:0,best:0,played:0});const MR=store.get('mapeo.rec',{});
+  const capsAll=k=>{const e=MR[k];return e&&e.best&&e.best.a1!=null&&e.n&&e.best.a1===e.n};
+  const A=[
+    ['Primer paso','Juega cualquier minijuego',sum>=1],['Curioso','Prueba 10 minijuegos distintos',played.size>=10],['Coleccionista','Prueba todos los minijuegos',GAMES.every(g=>played.has(g.id))],
+    ['Constante','Racha de 7 días en el reto diario',RS.best>=7],['Imparable','Racha de 30 días en el reto diario',RS.best>=30],['Retador','Completa 20 retos diarios',RS.played>=20],
+    ['Ojo de halcón','20 siluetas en un minuto',best('siluetas')>=20],['Abanderado','30 banderas en un minuto',best('banderas-reloj')>=30],['Más que menos','Racha de 20 en Más o menos',best('mas-menos')>=20],
+    ['Sin rodeos','Una cadena de fronteras perfecta',(REC.cadena?.perfect||0)>=1],['Maestro de fronteras','10 cadenas perfectas',(REC.cadena?.perfect||0)>=10],['Detective','35 de 40 en Pistas',best('pistas')>=35],
+    ['Europa entera','Rellena Europa al 100 %',(REC['rellena.eu']?.best||0)>=100],['Cartógrafo','15 de 15 en Bandera → mapa',best('bandera-mapa')>=15],['Brújula fina','25 en Brújula',best('brujula')>=25],
+    ['Historiador','8 de 8 en ¿Qué año es?',best('que-ano')>=8],['Cronista','15 de 15 en Ordena la historia',best('ordena-historia')>=15],['Medidor','450 de 500 en Distancia',best('distancia')>=450],
+    ['Maratoniano','30 aciertos en el Maratón',best('maraton')>=30],['Capitalino','Todas las capitales de Europa a la primera en Mapeo',capsAll('cape')],['Trotamundos','Todas las capitales del mundo a la primera en Mapeo',capsAll('capw')]];
+  const got=A.filter(a=>a[2]).length;
+  return `<section class="prof"><div class="prof-nums"><span><b>${sum}</b>partidas</span><span><b>${played.size}</b>de ${GAMES.length} juegos probados</span><span><b>${RS.played||0}</b>retos diarios</span><span><b>${RS.best||0}</b>mejor racha</span><span><b>${got}</b>de ${A.length} logros</span></div>
+    <div class="ach">${A.map(([t,d,ok])=>`<span class="a${ok?' on':''}" title="${esc(d)}"><b>${ok?'★':'☆'} ${esc(t)}</b><small>${esc(d)}</small></span>`).join('')}</div></section>`;
+}
+
 /* ---------- hub and routing ---------- */
 const EXTRA=[{href:'reto.html',group:'Diarios',title:'Reto diario',desc:'Un país cada día: silueta, bandera, capital, población y vecinos.'},
   {href:'reto.html#libre',group:'Diarios',title:'Reto ilimitado',desc:'Lo mismo que el reto, con un país al azar cada vez.'},
@@ -1066,15 +1113,20 @@ const EXTRA=[{href:'reto.html',group:'Diarios',title:'Reto diario',desc:'Un paí
 function hub(){
   setScore('');$('#crumb-g').textContent='';
   const groups={};for(const g of [...EXTRA,...GAMES])(groups[g.group]=groups[g.group]||[]).push(g);
-  let h='<p class="intro">Minijuegos</p><p class="lead">Para jugar un rato sin mapa completo. Los récords se guardan en este navegador.</p>';
+  let h='<p class="intro">Minijuegos</p><p class="lead">Para jugar un rato sin mapa completo. Los récords se guardan en este navegador; al acabar puedes retar a alguien con las mismas preguntas.</p>';
+  h+=`<details class="profd"${store.get('mapeo.juegos.prof',0)?' open':''}><summary>Tu perfil y logros</summary>${profile()}</details>`;
   for(const [gr,list] of Object.entries(groups)){h+=`<h3 class="grp-h">${gr}</h3><div class="games">`;
     for(const g of list){const r=g.rec?g.rec():'';h+=`<a class="card" href="${g.href||'#'+g.id}"><h3>${g.title}</h3><p>${g.desc}</p>${r?`<span class="rec">${r}</span>`:''}</a>`}h+='</div>'}
   $('#main').innerHTML=h;
+  $('.profd').addEventListener('toggle',e=>store.set('mapeo.juegos.prof',e.target.open?1:0));
 }
 function route(){
-  stopGame();stopGame=()=>{};
-  const g=GAMES.find(x=>'#'+x.id===location.hash);
+  stopGame();stopGame=()=>{};Math.random=RNG0;
+  const id=here(),q=new URLSearchParams(location.hash.split('?')[1]||'');
+  const g=GAMES.find(x=>x.id===id);
   if(!g){hub();window.scrollTo(0,0);return}
+  seedRun(+q.get('s')||(RNG0()*2**31|0));RUN.rival=q.has('p')?+q.get('p'):null;RUN.last=null;
+  if(RUN.rival!=null)setTimeout(()=>{const b=document.createElement('div');b.className='dare';b.textContent=`Te han retado: ${RUN.rival} puntos con estas mismas preguntas. ¡Supéralo!`;$('#main').prepend(b)},0);
   $('#crumb-g').textContent='· '+g.title;document.title='Mapeo · '+g.title;
   g.start($('#main'));window.scrollTo(0,0);
 }
