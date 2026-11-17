@@ -99,6 +99,8 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 .ask b{font-weight:400;font-size:24px;line-height:1.2}
 #hint.bad{color:var(--err)}
 .land.off,.mk.off{fill:color-mix(in srgb,var(--land) 42%,var(--bg));pointer-events:none}
+.sub-map.one .land.off{pointer-events:auto;cursor:pointer}
+.sub-map.one .land.off.peek{fill:color-mix(in srgb,var(--land) 78%,var(--bg))}
 .land.late,.mk.late{fill:color-mix(in srgb,var(--accent) 52%,var(--land))}
 .land.bad,.mk.bad{fill:var(--err)!important;transition:none}
 .land.lv0,.mk.lv0{fill:color-mix(in srgb,var(--accent) 24%,var(--land))}
@@ -414,8 +416,11 @@ const endPtr=e=>{
   if(was&&e.type==='pointerup'){const t=e.target.closest&&e.target.closest('[data-id]');if(t)mapClick(t.dataset.id,t)}
 };
 stage.addEventListener('pointerup',endPtr);stage.addEventListener('pointercancel',endPtr);
-stage.addEventListener('pointerleave',()=>{$('#tip').hidden=true});
-stage.addEventListener('dblclick',e=>{if(e.target.closest('.zoom')||cfg.mode==='click')return;const p=svgPoint(e);zoomAt(p.x,p.y,2)});
+stage.addEventListener('pointerleave',()=>{$('#tip').hidden=true;if(M)setPeek(null)});
+stage.addEventListener('dblclick',e=>{
+  const t=e.target.closest&&e.target.closest('[data-id]');
+  if(t&&M.sub&&G&&!G.in.has(t.dataset.id)&&cfg.subc!=='all'){goCountry(t.dataset.id);return}
+  if(e.target.closest('.zoom')||cfg.mode==='click')return;const p=svgPoint(e);zoomAt(p.x,p.y,2)});
 $('#z-in').onclick=()=>zoomAt(M.w/2,M.h/2,1.7);$('#z-out').onclick=()=>zoomAt(M.w/2,M.h/2,1/1.7);
 $('#z-reset').onclick=()=>fitScope();
 function setFull(on){
@@ -426,8 +431,15 @@ function setFull(on){
 $('#z-full').onclick=()=>setFull(!body.classList.contains('full'));
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&body.classList.contains('full'))setFull(false)});
 const known=id=>G&&(G.ended||G.found.has(id)||cfg.mode==='explore'||(cfg.mode==='learn'&&(G.lv[id]||0)>=MASTER));
+let peek=null;
+function setPeek(r){if(peek===r)return;if(peek)for(const id of M.items)if(COUNTRIES[id.id].r===peek)cls(id.id,'peek',false);peek=r;if(r)for(const id of M.items)if(COUNTRIES[id.id].r===r)cls(id.id,'peek')}
 function hover(e){
   const t=e.target.closest&&e.target.closest('[data-id]'),tip=$('#tip');
+  if(t&&M.sub&&G&&cfg.subc!=='all'&&!G.in.has(t.dataset.id)){
+    const r=COUNTRIES[t.dataset.id].r;setPeek(r);const rc=stage.getBoundingClientRect();
+    tip.textContent=(cfg.mode==='click'&&!G.ended?'Doble clic: ':'')+'ir a '+M.countries[r].n;tip.hidden=false;tip.style.left=(e.clientX-rc.left)+'px';tip.style.top=(e.clientY-rc.top)+'px';return;
+  }
+  setPeek(null);
   if(!t||!G||!G.in.has(t.dataset.id)||!known(t.dataset.id)){tip.hidden=true;return}
   const r=stage.getBoundingClientRect();tip.textContent=COUNTRIES[t.dataset.id].n;tip.hidden=false;
   tip.style.left=(e.clientX-r.left)+'px';tip.style.top=(e.clientY-r.top)+'px';
@@ -453,6 +465,18 @@ function fillPick(){
 
 /* ---------- game ---------- */
 let G=null,tick=0,nextT=0;
+// a game left half-way (another country, another map) waits here until you come back
+const PARK=store.get('mapeo.park',{});
+const parkKey=()=>scopeKey()+'.'+cfg.mode;
+function park(){
+  if(!G||!G.key)return;
+  const progress=G.order.length||G.errors;
+  if(G.ended||!progress||G.wiped||!['type','click'].includes(G.mode)){delete PARK[G.key];store.set('mapeo.park',PARK);return}
+  const el=G.started?(performance.now()-G.t0)/1000:G.elapsed;
+  PARK[G.key]={order:G.order,kind:G.kind,elapsed:el,right:G.right,errors:G.errors,queue:G.cur?[G.cur,...G.queue]:G.queue};
+  store.set('mapeo.park',PARK);
+}
+const unpark=k=>{delete PARK[k];store.set('mapeo.park',PARK)};
 const scopeKey=()=>cfg.map+(cfg.map==='sub'?'.'+cfg.subc:'');
 function buildMap(){
   M=MAPS[cfg.map];svg.setAttribute('viewBox',`0 0 ${M.w} ${M.h}`);
@@ -506,15 +530,17 @@ $('#board').addEventListener('click',e=>{const b=e.target.closest('[data-go]');i
 $('#board').addEventListener('pointerover',e=>{const b=e.target.closest('[data-go]');if(b)cls(b.dataset.go,'hl')});
 $('#board').addEventListener('pointerout',e=>{const b=e.target.closest('[data-go]');if(b)cls(b.dataset.go,'hl',false)});
 
-function start(saved){ensure(cfg.map,()=>newGame(saved))}
-function newGame(saved){
-  clearInterval(tick);clearTimeout(nextT);buildMap();
+function start(saved,smooth){park();ensure(cfg.map,()=>newGame(saved,smooth))}
+function newGame(saved,smooth){
+  clearInterval(tick);clearTimeout(nextT);
+  const wasSub=M&&M.sub,from={...V};buildMap();
   const all=M.items.map(i=>i.id);
   const ids=M.sub&&cfg.subc!=='all'?all.filter(id=>COUNTRIES[id].r===cfg.subc):all;
   const look=new Map();
   for(const id of ids){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a]){if(!look.has(k))look.set(k,[]);if(!look.get(k).includes(id))look.get(k).push(id)}}
   G={ids,in:new Set(ids),look,keys:[...look.keys()],found:new Set(),order:[],started:false,ended:false,t0:0,elapsed:0,carry:'',lastId:'',
-     right:0,errors:0,queue:[],cur:null,tries:0,lv:{},active:[],pending:[],last:null,card:null};
+     right:0,errors:0,queue:[],cur:null,tries:0,lv:{},active:[],pending:[],last:null,card:null,kind:{},key:parkKey(),mode:cfg.mode};
+  body.classList.toggle('one',!!M.sub&&cfg.subc!=='all');
   if(M.sub&&!M.lookAll){M.lookAll=new Map();for(const id of all){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a])if(!M.lookAll.has(k))M.lookAll.set(k,id)}}
   for(const id of all)if(!G.in.has(id))cls(id,'off');
   body.dataset.mode=cfg.mode;
@@ -523,12 +549,24 @@ function newGame(saved){
   $('#play').hidden=false;$('#side').hidden=false;$('#done').hidden=true;inp.disabled=false;inp.value='';hint('');
   $('#d-alt').hidden=true;$('#again').textContent='Jugar otra vez';
   setupMode();
-  fitScope(true);
+  resume();
+  // moving between countries of the regions map glides there instead of jumping
+  if(smooth&&wasSub&&M.sub&&!reduced.matches){Object.assign(V,from);drawView.k=0;drawView();fitScope(false)}else fitScope(true);
   if(saved&&saved.map===cfg.map&&cfg.mode==='type'){
     for(const id of saved.found||[])if(G.in.has(id))mark(id,true);
     G.elapsed=saved.elapsed||0;
     if(saved.ended)finish(saved.reason||'stop',true);else if(G.order.length){G.started=true;G.t0=performance.now()-G.elapsed*1000;tick=setInterval(onTick,250)}
   }
+  showClock();
+}
+function resume(){
+  const s=PARK[G.key];if(!s)return;
+  for(const id of s.order||[])if(G.in.has(id)){const k=(s.kind||{})[id];
+    if(k==='miss'){G.found.add(id);G.kind[id]='miss';cls(id,'miss');chip(id,'miss')}else mark(id,true,k==='late'?'late':null)}
+  G.elapsed=s.elapsed||0;G.right=s.right||0;G.errors=s.errors||0;
+  if(G.mode==='type')$('#n').textContent=G.order.length;
+  if(G.mode==='click'){G.queue=(s.queue||[]).filter(id=>G.in.has(id)&&!G.found.has(id));$('#n').textContent=G.right;nextAsk()}
+  hint(`Retomas donde lo dejaste: ${G.mode==='click'?G.right:G.order.length} de ${G.ids.length}`,'ok');
   showClock();
 }
 function setupMode(){
@@ -557,7 +595,7 @@ function onTick(){
   G.elapsed=(performance.now()-G.t0)/1000;showClock();
   if(counting()&&G.elapsed>=limit())finish('time');
 }
-function begin(){if(!G.started){G.started=true;G.t0=performance.now();tick=setInterval(onTick,250)}}
+function begin(){if(!G.started){G.started=true;G.t0=performance.now()-G.elapsed*1000;tick=setInterval(onTick,250)}}
 function hint(t,c){const h=$('#hint');h.textContent=t;h.className=c||''}
 function label(id,keep,cls2){
   const it=item(id),t=document.createElementNS(NS,'text');
@@ -586,7 +624,7 @@ function ripple(id){
 }
 function flash(id){cls(id,'hl');setTimeout(()=>cls(id,'hl',false),900)}
 function mark(id,quiet,kind){
-  G.found.add(id);G.order.push(id);
+  G.found.add(id);G.order.push(id);if(kind)G.kind[id]=kind;
   cls(id,kind==='late'?'late':'on');chip(id,kind);
   if(cfg.labels==='keep')label(id,true);
   if(quiet)return;
@@ -626,8 +664,15 @@ function nextAsk(){
   $('#ask-n').textContent=COUNTRIES[G.cur].n;
   $('#ask-l').textContent=`Señala · quedan ${G.queue.length+1}`;
 }
+function goCountry(id){const r=COUNTRIES[id].r;if(r===cfg.subc)return;cfg.subc=r;save();$('#subc').value=r;$('#tip').hidden=true;start(null,true);focusInput()}
 function mapClick(id,el){
-  if(!G||G.ended)return;
+  if(!G)return;
+  if(M.sub&&cfg.subc!=='all'&&!G.in.has(id)){
+    // in "señalar" a slip of the mouse should not change country: there it takes a double click
+    if(cfg.mode==='click'&&!G.ended){hint(`Eso es ${M.countries[COUNTRIES[id].r].n}. Doble clic para ir allí`);return}
+    goCountry(id);return;
+  }
+  if(G.ended)return;
   if(cfg.mode==='explore'){if(G.in.has(id)){flash(id);hint(COUNTRIES[id].n,'ok')}return}
   if(cfg.mode!=='click'||!G.cur||!G.in.has(id)||G.found.has(id)||G.busy)return;
   begin();
@@ -642,7 +687,7 @@ function mapClick(id,el){
   if(G.tries>=3){
     // after three misses, show where it was and move on
     G.busy=true;const miss=G.cur;cls(miss,'tgt');reveal(miss);hint(`Estaba aquí: ${COUNTRIES[miss].n}`,'bad');
-    nextT=setTimeout(()=>{cls(miss,'tgt',false);cls(miss,'miss');chip(miss,'miss');G.found.add(miss);G.busy=false;nextAsk()},1600);
+    nextT=setTimeout(()=>{cls(miss,'tgt',false);cls(miss,'miss');chip(miss,'miss');G.found.add(miss);G.order.push(miss);G.kind[miss]='miss';G.busy=false;nextAsk()},1600);
   }else hint(`No, eso es ${known(id)?COUNTRIES[id].n:'otro sitio'}. Te quedan ${3-G.tries}`,'bad');
 }
 function skipAsk(){if(!G.cur||G.busy)return;G.queue.push(G.cur);nextAsk();hint('Saltada, volverá al final')}
@@ -764,8 +809,10 @@ function finish(reason,quiet){
 }
 $('#skip').onclick=()=>{if(cfg.mode==='click')skipAsk();else if(cfg.mode==='learn'&&G.card&&!G.card.show){begin();learnAnswer(false)}focusInput()};
 $('#giveup').onclick=()=>{if(!G.ended)finish('stop')};
-$('#restart').onclick=()=>{if(cfg.mode==='learn'){store.set(learnKey(),{});store.set(learnKey()+'.seen',[])}start();focusInput()};
-$('#again').onclick=()=>{if(cfg.mode==='learn'&&G.ended){cfg.mode='click';save();syncUI()}start();focusInput()};
+$('#restart').onclick=()=>{
+  if(G){unpark(G.key);G.wiped=true} // so park() on the way out does not keep it
+  if(cfg.mode==='learn'){store.set(learnKey(),{});store.set(learnKey()+'.seen',[])}start();focusInput()};
+$('#again').onclick=()=>{if(G){unpark(G.key);G.wiped=true}if(cfg.mode==='learn'&&G.ended){cfg.mode='click';save();syncUI()}start();focusInput()};
 $('#d-alt').onclick=()=>{store.set(learnKey(),{});store.set(learnKey()+'.seen',[]);start();focusInput()};
 const focusInput=()=>{if(!body.classList.contains('open')&&G&&!G.ended&&cfg.mode!=='click')inp.focus({preventScroll:true})};
 document.addEventListener('keydown',e=>{
@@ -783,6 +830,7 @@ function boot(data){
   palButtons();applyLook();start(data&&data.game);focusInput();
 }
 window.addEventListener('hashchange',()=>{const m=fromHash();if(m&&m!==cfg.map){cfg.map=m;save();syncUI();start()}});
+window.addEventListener('pagehide',park);
 window.claude?.hot?.snapshot?.(()=>({cfg,game:G&&cfg.mode==='type'&&{map:cfg.map,found:G.order,elapsed:G.elapsed,ended:G.ended,reason:G.reason}}));
 window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
 </script>
