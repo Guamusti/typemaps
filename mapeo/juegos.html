@@ -97,6 +97,17 @@ main>.games:last-child{margin-bottom:60px}
 .ocard.set{background:color-mix(in srgb,var(--accent) 14%,var(--bg))}
 .ocard.good{background:color-mix(in srgb,var(--accent) 22%,var(--bg))}.ocard.bad{background:color-mix(in srgb,var(--err) 20%,var(--bg))}
 .btn:disabled{opacity:.4;cursor:default}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px}
+.ch-n{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--accent) 16%,var(--bg))}
+.ch-n .flag{width:28px}.ch-n.end{background:var(--bg)}.ch-n.target{border:1px dashed var(--accent)}
+.ch-a{color:var(--sub)}
+.mini{width:100%;height:auto;display:block;margin-top:14px}.mini .land{fill:var(--land)}
+.mini .path{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.mini .sol{fill:none;stroke:var(--err);stroke-width:1.2;stroke-dasharray:3 3}
+.mini .pin{fill:var(--accent);stroke:var(--bg);stroke-width:1}.mini .dot{fill:var(--text)}
+.clues{margin:0 0 16px;padding-left:22px;display:grid;gap:8px;font-size:15px}
+.clues li::marker{color:var(--sub);font-size:12px}.clues b{font-weight:500;color:var(--accent)}
+.cflag{display:inline-block;width:90px;vertical-align:middle;margin-left:10px}
 /* más o menos */
 .hl{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
 .hl-c{padding:18px;border-radius:16px;background:var(--bg);text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:background-color .3s}
@@ -371,6 +382,102 @@ game({id:'ordenar',group:'Rápidos',title:'Ordenar',desc:'Cinco países: ordéna
     };
     function reset(){round=0;total=0;$('#or-end').hidden=true;$('#or-msg').textContent='Pulsa los países en orden; pulsa uno ya puesto para quitarlo.';$('#or-msg').className='msg';score();deal()}
     $('#or-m').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;metric=b.dataset.m;store.set('mapeo.juegos.or',metric);$$('#or-m button').forEach(x=>x.setAttribute('aria-pressed',x===b));reset()};
+    reset();
+  }});
+
+
+/* graph of land borders, for the chain game */
+function bfs(a,b){const prev={[a]:null},q=[a];while(q.length){const x=q.shift();if(x===b)break;for(const y of C[x].b)if(!(y in prev)){prev[y]=x;q.push(y)}}
+  if(!(b in prev))return null;const p=[];for(let x=b;x!=null;x=prev[x])p.unshift(x);return p}
+const miniMap=(pts,cls='')=>`<svg class="mini ${cls}" viewBox="0 0 400 200"><path class="land" d="${RETO.land}"/>${pts}</svg>`;
+
+/* Cadena de fronteras: from A to B stepping only through neighbours */
+game({id:'cadena',group:'Pensar',title:'Cadena de fronteras',desc:'Ve de un país a otro pasando solo por países vecinos, en el menor número de pasos.',
+  rec:()=>{const e=REC.cadena;return e?`${e.perfect||0} cadenas perfectas de ${e.plays}`:''},
+  start(main){
+    let a,b,best,chain,miss,done;
+    window._t={get best(){return best}};
+    main.innerHTML=`<div class="game"><p class="q" id="ch-q"></p><div class="panel">
+      <div class="chain" id="ch-c"></div>${fieldHTML('ch-in','Siguiente país vecino…')}
+      <div class="row"><div class="msg" id="ch-msg"></div><span><button class="ghost" id="ch-undo" type="button">deshacer</button> · <button class="ghost" id="ch-give" type="button">ver solución</button></span></div>
+      <div id="ch-map"></div></div><div class="end" id="ch-end" hidden></div></div>`;
+    const pool=CODES.filter(k=>C[k].b.length);
+    const score=()=>{const e=REC.cadena||{};setScore(`<span><b>${e.perfect||0}</b>perfectas</span><span><b>${e.plays||0}</b>jugadas</span>`)};
+    function deal(){
+      for(let t=0;t<500;t++){const x=rnd(pool),y=rnd(pool);if(x===y)continue;const p=bfs(x,y);if(p&&p.length>=4&&p.length<=7){a=x;b=y;best=p;break}}
+      chain=[a];miss=[];done=false;$('#ch-end').hidden=true;$('#ch-in').disabled=false;
+      $('#ch-q').innerHTML=`De <em>${esc(C[a].n)}</em> a <em>${esc(C[b].n)}</em>`;
+      $('#ch-msg').textContent=`Se puede en ${best.length-2} ${best.length-2===1?'paso':'pasos'} intermedios. Escribe un vecino de ${C[a].n}.`;$('#ch-msg').className='msg';draw();$('#ch-in').focus();score();
+    }
+    function draw(sol){
+      const items=[...chain];if(done&&chain[chain.length-1]!==b)items.push(null);
+      $('#ch-c').innerHTML=chain.map((k,i)=>`<span class="ch-n${i===0?' end':''}">${flagImg(k)}<span>${esc(C[k].n)}</span></span>`).join('<span class="ch-a">→</span>')+
+        (chain[chain.length-1]===b?'':`<span class="ch-a">⋯</span><span class="ch-n end target">${flagImg(b)}<span>${esc(C[b].n)}</span></span>`);
+      const line=(path,c)=>`<polyline class="${c}" points="${path.map(k=>C[k].w.join(',')).join(' ')}"/>`;
+      let pts=(sol?line(sol,'sol'):'')+line(chain,'path')+[a,b].map(k=>`<circle class="pin" cx="${C[k].w[0]}" cy="${C[k].w[1]}" r="3.2"/>`).join('')+chain.slice(1).map(k=>`<circle class="dot" cx="${C[k].w[0]}" cy="${C[k].w[1]}" r="2"/>`).join('');
+      $('#ch-map').innerHTML=miniMap(pts);
+    }
+    function finish(gaveUp){
+      done=true;$('#ch-in').disabled=true;const steps=chain.length-2,opt=best.length-2,perfect=!gaveUp&&steps===opt&&!miss.length;
+      const e=REC.cadena||(REC.cadena={plays:0,perfect:0});e.plays++;if(perfect)e.perfect=(e.perfect||0)+1;e.hist=(e.hist||[]).concat([[Date.now(),gaveUp?-1:steps-opt]]).slice(-100);store.set('mapeo.juegos',REC);score();
+      draw(gaveUp||steps>opt?best:null);
+      endCard($('#ch-end'),{big:gaveUp?'Solución':perfect?'¡Perfecta!':`${steps} pasos`,sub:gaveUp?`Una ruta corta: ${esc(best.map(k=>C[k].n).join(' → '))}`:`El mínimo era ${opt}${miss.length?` · ${miss.length} ${miss.length===1?'intento fallido':'intentos fallidos'}`:''}`+(steps>opt?`<br>Ruta corta: ${esc(best.map(k=>C[k].n).join(' → '))}`:''),again:deal});
+    }
+    countryBox($('#ch-in'),$('#ch-in-sug'),k=>{
+      if(done)return;const end=chain[chain.length-1],m=$('#ch-msg');
+      if(!k){m.textContent='No conozco ese país';m.className='msg bad';return}
+      if(chain.includes(k)){m.textContent='Ya está en la cadena';m.className='msg bad';return}
+      if(!C[end].b.includes(k)){miss.push(k);m.textContent=`${C[k].n} no limita con ${C[end].n}`;m.className='msg bad';return}
+      chain.push(k);
+      if(k===b){draw();finish(false);return}
+      if(C[k].b.includes(b)){chain.push(b);draw();m.textContent=`${C[k].n} limita con ${C[b].n}: ¡llegaste!`;m.className='msg ok';finish(false);return}
+      const left=bfs(k,b);m.textContent=`${C[k].n} ✓ · desde aquí faltan al menos ${left.length-2}`;m.className='msg ok';draw();
+    },{exclude:()=>new Set(chain)});
+    $('#ch-undo').onclick=()=>{if(done||chain.length<2)return;chain.pop();draw();$('#ch-msg').textContent='Deshecho';$('#ch-msg').className='msg';$('#ch-in').focus()};
+    $('#ch-give').onclick=()=>{if(!done)finish(true)};
+    deal();
+  }});
+
+/* Pistas: guess the country with as few clues as possible */
+game({id:'pistas',group:'Pensar',title:'Pistas',desc:'Adivina el país con el menor número de pistas: continente, tamaño, vecinos, capital, bandera… Cinco rondas.',
+  rec:()=>{const b=REC.pistas?.best;return b!=null?`mejor: ${b} de 40`:''},
+  start(main){
+    let cur,shown,round,total,guesses,done,bag=[];
+    window._t={get cur(){return cur}};
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="pi-n"></span><span class="crumb" id="pi-pts"></span></div>
+      <p class="q">¿Qué país es?</p><div class="panel"><ol class="clues" id="pi-c"></ol>${fieldHTML('pi-in','Escribe un país…')}
+      <div class="row"><div class="msg" id="pi-msg"></div><span><button class="ghost" id="pi-more" type="button">otra pista</button> · <button class="ghost" id="pi-give" type="button">me rindo</button></span></div>
+      <div class="chips" id="pi-g"></div></div><div class="end" id="pi-end" hidden></div></div>`;
+    const pool=CODES.filter(k=>C[k].km2>=10000&&C[k].pop&&C[k].cap);
+    const near=k=>CODES.filter(x=>x!==k).sort((p,q)=>dist(C[k].ll,C[p].ll)-dist(C[k].ll,C[q].ll))[0];
+    const CLUES=[
+      k=>`Está en <b>${REGION[C[k].r]}</b>${C[k].ll[1]<0?', en el hemisferio sur':''}.`,
+      k=>`Tiene unos <b>${fmtKm2(Math.round(C[k].km2/1000)*1000||C[k].km2)}</b>.`,
+      k=>`Viven unos <b>${fmtPop(C[k].pop)}</b> de personas.`.replace(' mil</b> de',' mil</b>'),
+      k=>C[k].b.length?`Limita con <b>${C[k].b.length}</b> ${C[k].b.length===1?'país':'países'}.`:'<b>No tiene fronteras terrestres</b> con nadie.',
+      k=>C[k].b.length?`Uno de sus vecinos es <b>${esc(C[rnd(C[k].b)].n)}</b>.`:`El país más cercano es <b>${esc(C[near(k)].n)}</b>.`,
+      k=>`Su capital empieza por <b>${esc(C[k].cap.n[0])}</b> y tiene ${C[k].cap.n.replace(/[\s-]/g,'').length} letras.`,
+      k=>`Su bandera:<span class="cflag">${flagImg(k)}</span>`,
+      k=>`Su capital es <b>${esc(C[k].cap.n)}</b>.`];
+    const MAX=CLUES.length;
+    const score=()=>{$('#pi-n').textContent=`ronda ${round+1} de 5`;$('#pi-pts').textContent=done?'':`vale ${MAX+1-shown} puntos`;setScore(`<span><b>${total}</b>puntos</span><span><b>${REC.pistas?.best??0}</b>récord</span>`)};
+    function show(){$('#pi-c').innerHTML=Array.from({length:shown},(_,i)=>`<li>${CLUES[i](cur)}</li>`).join('');score()}
+    function deal(){if(!bag.length)bag=shuffle([...pool]);cur=bag.pop();shown=1;guesses=[];done=false;$('#pi-g').innerHTML='';$('#pi-in').disabled=false;$('#pi-msg').textContent='Cada fallo descubre otra pista.';$('#pi-msg').className='msg';
+      $('#pi-more').textContent='otra pista';$('#pi-give').textContent='me rindo';show();$('#pi-in').focus()}
+    function more(){if(shown<MAX){shown++;show()}else end(false)}
+    function end(won){done=true;$('#pi-in').disabled=true;const pts=won?MAX+1-shown:0;total+=pts;shown=MAX;show();
+      $('#pi-msg').innerHTML=won?`¡${esc(C[cur].n)}! +${pts}`:`Era <b>${esc(C[cur].n)}</b>`;$('#pi-msg').className='msg '+(won?'ok':'bad');
+      $('#pi-more').textContent=round<4?'siguiente →':'ver resultado';$('#pi-give').textContent='';score()}
+    function next(){round++;if(round<5){deal();return}
+      const r=saveScore('pistas',total);score();endCard($('#pi-end'),{big:`${total} de 40`,sub:'Cinco países con pistas',rec:recLine(r,' de 40'),again:reset})}
+    countryBox($('#pi-in'),$('#pi-in-sug'),k=>{
+      if(done)return;if(!k){$('#pi-msg').textContent='No conozco ese país';$('#pi-msg').className='msg bad';return}
+      if(k===cur){end(true);return}
+      guesses.push(k);$('#pi-g').insertAdjacentHTML('beforeend',`<span class="chip miss">${esc(C[k].n)}</span>`);$('#pi-msg').textContent=`No es ${C[k].n}`;$('#pi-msg').className='msg bad';more();
+    },{exclude:()=>new Set(guesses)});
+    $('#pi-more').onclick=()=>{if(done)next();else more()};
+    $('#pi-give').onclick=()=>{if(!done)end(false)};
+    function reset(){round=0;total=0;bag=[];$('#pi-end').hidden=true;deal()}
     reset();
   }});
 
