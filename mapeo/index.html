@@ -176,7 +176,7 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 .rec-empty{color:var(--sub);font-size:13px;margin:18px 0}
 .d-break{display:inline-flex;gap:14px;flex-wrap:wrap}
 .d-break span i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
-.open .drawer{transform:none;visibility:visible}
+.open #drawer{transform:none;visibility:visible}
 .drawer h2{font-family:var(--display);font-weight:400;font-size:34px;line-height:1;margin:0}
 .drawer h3{font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin:30px 0 12px}
 .drawer .top{display:flex;justify-content:space-between;align-items:center}
@@ -191,6 +191,13 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 .colors label{display:grid;gap:6px;color:var(--sub);font-size:12px}
 .colors input{width:100%;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:3px;cursor:pointer}
 .note{color:var(--sub);font-size:12px;margin:10px 0 0}
+.data-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin-top:14px}
+.btn.alt{background:var(--bg);color:var(--text)}
+#imp-text{display:block;width:100%;margin-top:14px;font:inherit;font-size:12px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical;outline:0}
+#imp-text:focus{border-color:var(--accent)}
+.file-l{cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#data-msg.ok{color:var(--accent)}#data-msg.bad{color:var(--err)}
 
 @media (max-width:720px){
   .wrap{padding:0 16px}
@@ -306,6 +313,13 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
   <div class="seg" data-key="glow">
     <button type="button" data-val="1">con resplandor</button><button type="button" data-val="0">liso</button>
   </div>
+  <h3>Tus datos</h3>
+  <p class="note">Récords, progreso de «aprender» y partidas a medias se guardan solo en este navegador. Para tenerlos en otro dispositivo, copia el código aquí y pégalo allí: se combina con lo que ya haya, quedándose con lo mejor de cada mapa.</p>
+  <div class="data-row"><button class="btn" id="exp-copy" type="button">Copiar mis datos</button><button class="ghost" id="exp-file" type="button">descargar archivo</button></div>
+  <label class="sr" for="imp-text">Código de datos</label>
+  <textarea id="imp-text" rows="3" spellcheck="false" placeholder="Pega aquí el código de otro dispositivo"></textarea>
+  <div class="data-row"><button class="btn alt" id="imp-go" type="button">Importar</button><label class="ghost file-l">o abrir un archivo<input id="imp-file" type="file" accept=".txt,.json,text/plain,application/json" hidden></label></div>
+  <p class="note" id="data-msg" aria-live="polite"></p>
 </aside>
 
 <script src="data.js"></script>
@@ -926,6 +940,78 @@ document.addEventListener('keydown',e=>{
   const a=document.activeElement;
   if(a!==inp&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!(a&&/^(INPUT|BUTTON|SELECT)$/.test(a.tagName)))focusInput();
 });
+
+/* ---------- your data, to carry to another device ---------- */
+const dataKeys=()=>{try{return Object.keys(localStorage).filter(k=>k.startsWith('mapeo.'))}catch(e){return []}};
+async function packData(){
+  const o={};for(const k of dataKeys())o[k]=store.get(k,null);
+  const json=JSON.stringify({v:1,app:'mapeo',at:Date.now(),data:o});
+  try{
+    // deflate keeps the code short enough to paste in a message
+    const s=new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    const buf=new Uint8Array(await new Response(s).arrayBuffer());let bin='';for(const b of buf)bin+=String.fromCharCode(b);
+    return 'MAPEO1.'+btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }catch(e){return 'MAPEO0.'+btoa(unescape(encodeURIComponent(json)))}
+}
+async function unpackData(code){
+  code=code.trim();
+  if(code.startsWith('{'))return JSON.parse(code);
+  const m=code.match(/^MAPEO([01])\.([A-Za-z0-9_\-+/=]+)$/);if(!m)throw new Error('format');
+  const bin=atob(m[2].replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-m[2].length%4)%4));
+  if(m[1]==='0')return JSON.parse(decodeURIComponent(escape(bin)));
+  const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+  const s=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return JSON.parse(await new Response(s).text());
+}
+function mergeData(inc){
+  let n=0;
+  for(const [k,v] of Object.entries(inc||{})){
+    if(!k.startsWith('mapeo.')||v==null)continue;
+    const cur=store.get(k,null);
+    if(k==='mapeo.cfg'){if(!cur){store.set(k,v);n++}continue} // your look on this device stays
+    if(k==='mapeo.rec'){
+      const mine=cur||{};
+      for(const [s,e] of Object.entries(v)){const m=mine[s];
+        if(!m){mine[s]=e;n++;continue}
+        if(e.best&&recBetter(e.best,m.best))m.best=e.best,n++;
+        if(e.last&&(!m.last||(e.last.d||0)>(m.last.d||0)))m.last=e.last;
+        m.plays=Math.max(m.plays||0,e.plays||0);m.n=m.n||e.n}
+      store.set(k,mine);Object.assign(REC,mine);continue;
+    }
+    if(/^mapeo\.learn\..+\.seen$/.test(k)){const u=[...new Set([...(cur||[]),...v])];if(u.length!==(cur||[]).length)n++;store.set(k,u);continue}
+    if(k.startsWith('mapeo.learn.')){const mine=cur||{};for(const [id,l] of Object.entries(v))if((mine[id]||0)<l){mine[id]=l;n++}store.set(k,mine);continue}
+    if(k.startsWith('mapeo.pb.')){if(!cur||v.n>cur.n||(v.n===cur.n&&v.t<cur.t)){store.set(k,v);n++}continue}
+    if(k==='mapeo.park'){const mine=cur||{};for(const [s,g] of Object.entries(v))if(!mine[s]){mine[s]=g;n++}store.set(k,mine);Object.assign(PARK,mine);continue}
+    if(cur==null){store.set(k,v);n++}
+  }
+  return n;
+}
+const dmsg=(t,c)=>{const m=$('#data-msg');m.textContent=t;m.className='note'+(c?' '+c:'')};
+$('#exp-copy').onclick=async()=>{
+  const code=await packData();
+  try{await navigator.clipboard.writeText(code);dmsg(`Copiado (${code.length.toLocaleString('es')} caracteres). Pégalo en el otro dispositivo, en este mismo apartado.`,'ok')}
+  catch(e){const t=$('#imp-text');t.value=code;t.focus();t.select();dmsg('No he podido copiarlo solo: está seleccionado en la caja, cópialo con Ctrl+C o ⌘C.')}
+};
+$('#exp-file').onclick=async()=>{
+  const code=await packData(),a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([code],{type:'text/plain'}));a.download=`mapeo-datos-${new Date().toISOString().slice(0,10)}.txt`;
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  dmsg('Archivo descargado. Ábrelo desde «o abrir un archivo» en el otro dispositivo.','ok');
+};
+// downloads are blocked inside Claude's viewer: there the copy button is the way
+if(window.claude)$('#exp-file').hidden=true;
+async function importCode(code){
+  if(!code.trim()){dmsg('Pega primero el código.','bad');return}
+  try{
+    const o=await unpackData(code);if(!o||o.app!=='mapeo')throw new Error('app');
+    park(); // keep the game on screen before merging
+    const n=mergeData(o.data);
+    start();$('#imp-text').value='';
+    dmsg(n?`Importado: ${n} ${n===1?'cambio':'cambios'} combinados con lo que ya tenías.`:'Importado: no había nada nuevo respecto a lo de este dispositivo.','ok');
+  }catch(e){dmsg('Ese código no es válido. Cópialo entero de nuevo desde el otro dispositivo.','bad')}
+}
+$('#imp-go').onclick=()=>importCode($('#imp-text').value);
+$('#imp-file').addEventListener('change',async e=>{const f=e.target.files[0];if(f)await importCode(await f.text());e.target.value=''});
 
 /* ---------- boot ---------- */
 function boot(data){
