@@ -157,6 +157,13 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:12px 0 4px}
 .thumb .gmap{pointer-events:none;cursor:pointer}.thumb .opos{position:absolute;top:8px;left:12px;font-family:var(--display);font-size:26px;color:var(--accent);z-index:2}
 .thumb .ty{display:block;text-align:center;font-size:13px;min-height:18px;margin-top:4px}
 .thumb.set{box-shadow:0 0 0 2px var(--accent)}.thumb.good{box-shadow:0 0 0 2px var(--accent);background:color-mix(in srgb,var(--accent) 18%,var(--alt))}.thumb.bad{box-shadow:0 0 0 2px var(--err)}
+.flagbox.sm .flag{width:min(150px,40vw)}
+.cmap{margin-top:4px}.cmap .gmap{max-height:52vh}
+.gmap .city{fill:var(--err)}.gmap .cityr{fill:none;stroke:var(--err);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.gmap .phys{vector-effect:non-scaling-stroke;pointer-events:none}
+.gmap .phys.río{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.gmap .phys.mar,.gmap .phys.lago{fill:color-mix(in srgb,var(--accent) 55%,transparent);stroke:var(--accent);stroke-width:1}
+.gmap .phys.cordillera{fill:color-mix(in srgb,var(--err) 50%,transparent);stroke:var(--err);stroke-width:1}
 /* más o menos */
 .hl{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
 .hl-c{padding:18px;border-radius:16px;background:var(--bg);text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:background-color .3s}
@@ -562,7 +569,7 @@ function mapView(el,M,{onClick,box,tint}){
   M.items.forEach((it,i)=>{if(it.d)h+=`<path class="land${tint?' t'+(i*7%5):''}" data-id="${it.id}" d="${it.d}"/>`});
   for(const it of M.items)if(it.m)h+=`<circle class="mk" data-id="${it.id}" cx="${it.c[0]}" cy="${it.c[1]}"/>`;
   el.innerHTML=h+'</svg>';const svg=el.querySelector('svg');
-  const setVB=()=>{svg.setAttribute('viewBox',vb.join(' '));const r=(vb[2]/M.w)*M.w/170;svg.querySelectorAll('.mk').forEach(c=>c.setAttribute('r',r.toFixed(2)))};setVB();
+  const setVB=()=>{svg.setAttribute('viewBox',vb.join(' '));const r=vb[2]/170;svg.querySelectorAll('.mk').forEach(c=>c.setAttribute('r',r.toFixed(2)))};setVB();
   const pt=e=>{const r=svg.getBoundingClientRect();return [vb[0]+(e.clientX-r.left)/r.width*vb[2],vb[1]+(e.clientY-r.top)/r.height*vb[3]]};
   svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=pt(e),f=e.deltaY>0?1.2:1/1.2;const w=Math.min(full[2],Math.max(full[2]/40,vb[2]*f)),k=w/vb[2];
     vb=[x-(x-vb[0])*k,y-(y-vb[1])*k,w,vb[3]*k];setVB()},{passive:false});
@@ -574,6 +581,7 @@ function mapView(el,M,{onClick,box,tint}){
   const els=id=>svg.querySelectorAll(`[data-id="${id}"]`);
   return {cls(id,c,on=true){els(id).forEach(x=>x.classList.toggle(c,on))},
     reset(){vb=box?[...box]:[...full];setVB()},
+    view(b){vb=[...b];setVB()},
     focus(id){const e=els(id)[0];if(!e)return;const b=e.getBBox(),w=Math.max(b.width,b.height,M.w/12)*2.6,hh=w*M.h/M.w;vb=[b.x+b.width/2-w/2,b.y+b.height/2-hh/2,w,hh];setVB()},
     svg};
 }
@@ -821,7 +829,7 @@ function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,variant=nu
       async function next(){
         if(ended)return;busy=true;$('#qz-msg').textContent='';
         cur=await gen();if(location.hash!=='#'+id||ended)return;
-        $('#qz-q').innerHTML=cur.q;
+        $('#qz-q').innerHTML=cur.q;if(cur.mount)cur.mount($('#qz-q'));
         $('#qz-o').className='qz-o'+(cur.wide?' wide':'')+(cur.opts.length===2?' two':cur.opts.length===3?' three':'');
         $('#qz-o').innerHTML=cur.opts.map((o,i)=>`<button type="button" data-i="${i}"><span class="kbd">${i+1}</span>${o.html}</button>`).join('');busy=false;score();
       }
@@ -992,6 +1000,64 @@ quizGame({id:'bandera-epoca',group:'Historia',title:'Bandera histórica → épo
     return {q:`<p class="q">¿Cuándo ondeaba la bandera de <em>${esc(v.n)}</em>?</p><div class="flagbox"><img class="flag" style="aspect-ratio:${v.ar||4/3};object-fit:contain;width:min(300px,70vw)" src="flags/${k}.${f}" alt=""></div>`,
       opts:shuffle([v.y,...others]).map(y=>opt(esc(y),y===v.y)),after:`${esc(v.n)}: ${esc(v.y)}`}
   }});
+
+
+/* languages, currencies and phone codes, named in Spanish by the browser */
+const DN={l:new Intl.DisplayNames(['es'],{type:'language'}),c:new Intl.DisplayNames(['es'],{type:'currency'})};
+const langName=c=>{try{const n=DN.l.of(c);return n&&n!==c?n:null}catch(e){return null}};
+const curName=c=>{try{const n=DN.c.of(c);return n&&n!==c?n:null}catch(e){return null}};
+const cap1=s=>s[0].toUpperCase()+s.slice(1);
+quizGame({id:'monedas',title:'Monedas',desc:'¿Qué moneda se usa en cada país? Diez rondas.',
+  async gen(){await loadScript('geo.js');const G=GEO.meta;
+    for(;;){const k=rnd(CODES.filter(k=>G[k]&&G[k].c.length));const mine=G[k].c.map(curName).filter(Boolean);if(!mine.length)continue;const ans=mine[0];
+      const others=[...new Set(CODES.filter(x=>G[x]&&!G[x].c.some(c=>G[k].c.includes(c))).flatMap(x=>G[x].c).map(curName).filter(n=>n&&!mine.includes(n)))];
+      const near=others.filter(n=>CODES.some(x=>G[x]&&C[x].r===C[k].r&&G[x].c.map(curName).includes(n)));
+      const wrong=pickN(near.length>=3?near:others,3);
+      return {q:`<p class="q">¿Qué moneda se usa en <em>${esc(C[k].n)}</em>?</p><div class="flagbox sm">${flagImg(k)}</div>`,opts:shuffle([ans,...wrong]).map(n=>opt(esc(cap1(n)),n===ans)),after:`${esc(C[k].n)}: ${esc(listEs(mine.map(cap1)))}`}}}});
+quizGame({id:'idiomas',title:'Idiomas',desc:'¿Cuál de estos idiomas es oficial en el país? Diez rondas.',
+  async gen(){await loadScript('geo.js');const G=GEO.meta;
+    for(;;){const k=rnd(CODES.filter(k=>G[k]&&G[k].l.length));const mine=G[k].l.map(langName).filter(Boolean);if(!mine.length)continue;const ans=rnd(mine);
+      const pool=[...new Set(CODES.filter(x=>G[x]&&x!==k).flatMap(x=>G[x].l).map(langName).filter(n=>n&&!mine.includes(n)))];
+      const near=[...new Set(CODES.filter(x=>G[x]&&C[x].r===C[k].r&&x!==k).flatMap(x=>G[x].l).map(langName).filter(n=>n&&!mine.includes(n)))];
+      const wrong=pickN(near.length>=3?near:pool,3);
+      return {q:`<p class="q">¿Qué idioma es oficial en <em>${esc(C[k].n)}</em>?</p><div class="flagbox sm">${flagImg(k)}</div>`,opts:shuffle([ans,...wrong]).map(n=>opt(esc(cap1(n)),n===ans)),after:`En ${esc(C[k].n)}: ${esc(listEs(mine))}`}}}});
+quizGame({id:'prefijos',title:'Prefijos telefónicos',desc:'¿De qué país es cada prefijo? Diez rondas.',
+  async gen(){await loadScript('geo.js');const G=GEO.meta;
+    const uniq=CODES.filter(k=>G[k]&&G[k].p&&G[k].p!=='+1'&&CODES.filter(x=>G[x]&&G[x].p===G[k].p).length===1);
+    const k=rnd(uniq),same=uniq.filter(x=>x!==k&&C[x].r===C[k].r);const wrong=pickN(same.length>=3?same:uniq.filter(x=>x!==k),3);
+    return {q:`<p class="q">¿De qué país es el prefijo <em>${G[k].p}</em>?</p>`,opts:shuffle([k,...wrong]).map(x=>opt(`<span class="mini-flag">${flagImg(x)}</span>${esc(C[x].n)}`,x===k)),after:`${G[k].p}: ${esc(C[k].n)}`}}});
+
+/* Ciudades: where is this city, or which city is this dot */
+quizGame({id:'ciudades',group:'Con mapa',title:'Ciudades',desc:'Las grandes ciudades del mundo: ¿qué ciudad es este punto?, ¿en qué país está? Diez rondas.',
+  async gen(){await Promise.all([loadScript('geo.js'),loadScript('data.js')]);const CI=GEO.cities.filter(c=>C[c.c]);
+    const c=rnd(CI.filter(x=>x.p>=1e6||x.cap));
+    if(Math.random()<.5){
+      const same=CI.filter(x=>x!==c&&x.c===c.c),reg=CI.filter(x=>x!==c&&x.c!==c.c&&C[x.c].r===C[c.c].r&&Math.hypot(x.xy[0]-c.xy[0],x.xy[1]-c.xy[1])<60);
+      const wrong=pickN(same.length>=3?same:[...same,...pickN(reg,3-same.length)],3);
+      return {q:`<p class="q">¿Qué ciudad es este punto?</p><div class="panel mappanel cmap"></div>`,
+        mount(el){const V=mapView(el.querySelector('.cmap'),MAPS.world,{onClick(){}});V.cls(c.c,'on');const w=80,h=40;V.view([c.xy[0]-w/2,c.xy[1]-h/2,w,h]);
+          V.svg.insertAdjacentHTML('beforeend',`<circle cx="${c.xy[0]}" cy="${c.xy[1]}" r=".9" class="city"/><circle cx="${c.xy[0]}" cy="${c.xy[1]}" r="2.2" class="cityr"/>`)},
+        opts:shuffle([c,...wrong]).map(x=>opt(esc(x.n),x===c)),after:`${esc(c.n)}, en ${esc(C[c.c].n)} · unos ${fmtPop(c.p)} de habitantes`.replace(' mil de',' mil')};
+    }
+    const wrong=pickN(CODES.filter(k=>k!==c.c&&C[k].r===C[c.c].r),3);
+    return {q:`<p class="q">¿En qué país está <em>${esc(c.n)}</em>?</p>`,opts:shuffle([c.c,...wrong]).map(x=>opt(`<span class="mini-flag">${flagImg(x)}</span>${esc(C[x].n)}`,x===c.c)),after:`${esc(c.n)} está en ${esc(C[c.c].n)}`};
+  }});
+
+/* Ríos, mares y montañas */
+const PHK={río:'río',mar:'mar',océano:'mar',cordillera:'cordillera',lago:'lago'};
+const PHQ={río:'¿Qué río es?',mar:'¿Qué mar u océano es?',cordillera:'¿Qué cordillera es?',lago:'¿Qué lago es?'};
+quizGame({id:'fisico',group:'Con mapa',title:'Ríos, mares y montañas',desc:'Se resalta un río, un mar, un lago o una cordillera: ¿cuál es? Diez rondas.',
+  async gen(){await Promise.all([loadScript('geo.js'),loadScript('data.js')]);const P=GEO.phys;
+    const f=rnd(P),kind=PHK[f.k];const same=P.filter(x=>x!==f&&PHK[x.k]===kind&&x.n!==f.n);
+    // distractors from nearby when possible, so the map alone does not give it away
+    const cx=(f.b[0]+f.b[2])/2,cy=(f.b[1]+f.b[3])/2,near=same.filter(x=>Math.hypot((x.b[0]+x.b[2])/2-cx,(x.b[1]+x.b[3])/2-cy)<250);
+    const wrong=pickN(near.length>=3?near:same,3);
+    return {q:`<p class="q">${PHQ[kind]}</p><div class="panel mappanel cmap"></div>`,
+      mount(el){const V=mapView(el.querySelector('.cmap'),MAPS.world,{onClick(){}});
+        let w=Math.max(f.b[2]-f.b[0],f.b[3]-f.b[1]*0)*1.8,h=(f.b[3]-f.b[1])*1.8;w=Math.max(w,h*2,70);w=Math.min(w,1000);h=w/2;
+        V.view([cx-w/2,cy-h/2,w,h]);
+        V.svg.insertAdjacentHTML('beforeend',`<path class="phys ${kind}" d="${f.d}"/>`)},
+      opts:shuffle([f,...wrong]).map(x=>opt(esc(x.n),x===f)),after:esc(f.n)}}});
 
 /* ---------- hub and routing ---------- */
 const EXTRA=[{href:'reto.html',group:'Diarios',title:'Reto diario',desc:'Un país cada día: silueta, bandera, capital, población y vecinos.'},

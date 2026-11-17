@@ -69,3 +69,5 @@ Banderas históricas: obra de sus autores en Wikimedia Commons, recopiladas en [
 - Reino de Hawái (1845–1893): https://en.wikipedia.org/wiki/Flag_of_Hawaii
 - Zaire (1971–1997): https://en.wikipedia.org/wiki/Flag_of_the_Democratic_Republic_of_the_Congo , https://en.wikipedia.org/wiki/Zaire
 - Rhodesia (1968–1979): https://www.wikidata.org/wiki/Q217169 , https://commons.wikimedia.org/wiki/Special:FilePath/Flag%20of%20Rhodesia%20%281968%E2%80%931979%29.svg , https://en.wikipedia.org/wiki/Flag_of_Rhodesia
+
+Idiomas, monedas y prefijos: world-countries (ODbL), nombres en español del navegador. Ciudades, ríos, mares, lagos y cordilleras: Natural Earth (dominio público).
