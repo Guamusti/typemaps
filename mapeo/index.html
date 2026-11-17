@@ -87,6 +87,8 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 #tip{position:absolute;padding:5px 10px;border-radius:9px;background:var(--alt);border:1px solid var(--line);font-size:12px;white-space:nowrap;pointer-events:none;transform:translate(-50%,-140%)}
 
 /* regions map, modes */
+.pick{display:inline-flex;align-items:center;gap:10px}
+.pick-l{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
 .pick select{appearance:none;font:inherit;color:var(--text);background-color:var(--alt);border:0;border-radius:12px;padding:10px 36px 10px 14px;cursor:pointer;
   background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);
   background-position:calc(100% - 19px) 52%,calc(100% - 14px) 52%;background-size:5px 5px;background-repeat:no-repeat;transition:background-color .45s}
@@ -187,7 +189,7 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
       <button type="button" data-map="e1920">1920</button>
       <button type="button" data-map="e1938">1938</button>
     </div>
-    <label class="pick" id="pick" hidden><select id="subc" aria-label="País de las regiones"><option value="ES">España</option></select></label>
+    <label class="pick" id="pick" hidden><span class="pick-l">Regiones de</span><select id="subc" aria-label="País de las regiones"><option value="ES">España</option></select></label>
     <div class="seg soft" data-key="mode" aria-label="Modo de juego">
       <button type="button" data-val="type" title="Escribe todos los nombres que sepas">escribir</button>
       <button type="button" data-val="click" title="Te decimos un nombre y lo señalas en el mapa">señalar</button>
@@ -510,6 +512,7 @@ function newGame(saved){
   for(const id of ids){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a]){if(!look.has(k))look.set(k,[]);if(!look.get(k).includes(id))look.get(k).push(id)}}
   G={ids,in:new Set(ids),look,keys:[...look.keys()],found:new Set(),order:[],started:false,ended:false,t0:0,elapsed:0,carry:'',lastId:'',
      right:0,errors:0,queue:[],cur:null,tries:0,lv:{},active:[],pending:[],last:null,card:null};
+  if(M.sub&&!M.lookAll){M.lookAll=new Map();for(const id of all){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a])if(!M.lookAll.has(k))M.lookAll.set(k,id)}}
   for(const id of all)if(!G.in.has(id))cls(id,'off');
   body.dataset.mode=cfg.mode;
   buildBoard();
@@ -606,7 +609,10 @@ function typeInput(){
     if((G.look.get(comb)||[]).includes(G.lastId)){inp.value='';G.carry=comb;return}
     if(!G.keys.some(k=>k.startsWith(comb)))G.carry='';
   }
-  if(G.look.has(n))hint('Ya lo tienes: '+COUNTRIES[G.look.get(n)[0]].n);else if($('#hint').textContent.startsWith('Ya'))hint('');
+  if(G.look.has(n)){hint('Ya lo tienes: '+COUNTRIES[G.look.get(n)[0]].n);return}
+  const other=M.sub&&cfg.subc!=='all'&&M.lookAll.get(n);
+  if(other){hint(`${COUNTRIES[other].n} es de ${M.countries[COUNTRIES[other].r].n}. Cambia el país arriba o elige «Toda Europa»`,'bad');return}
+  if(/^(Ya|.* es de )/.test($('#hint').textContent))hint('');
 }
 
 /* click: find the named place on the map */
@@ -728,7 +734,8 @@ inp.addEventListener('keydown',e=>{
   if(!reduced.matches)inp.animate([{transform:'translateX(0)'},{transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}],{duration:220});
   if(cfg.mode==='learn'){if(G.card&&!G.card.show){begin();learnAnswer(false)}else{inp.value='';hint(`Copia el nombre: ${COUNTRIES[G.card.id].n}`,'bad')}return}
   // Enter on something that is not on the map: shake and clear, so a typo never blocks the next answer
-  inp.value='';G.carry='';hint('No está en este mapa','bad');
+  const other=M.sub&&cfg.subc!=='all'&&M.lookAll.get(norm(inp.value));
+  inp.value='';G.carry='';hint(other?`${COUNTRIES[other].n} es de ${M.countries[COUNTRIES[other].r].n}. Cambia el país arriba o elige «Toda Europa»`:'No está en este mapa','bad');
 });
 function finish(reason,quiet){
   if(cfg.mode==='learn')return;
