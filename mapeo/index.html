@@ -182,6 +182,8 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 .drawer .top{display:flex;justify-content:space-between;align-items:center}
 .drawer .seg{background:var(--bg)}
 .pals{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pal-h{grid-column:1/-1;margin:10px 0 0;font-weight:400;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+.pal-h:first-child{margin-top:0}
 .pal{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 13px;border-radius:13px;border:2px solid transparent;text-align:left;transition:transform .15s,border-color .2s}
 .pal:hover{transform:translateY(-2px)}
 .pal[aria-pressed="true"]{border-color:var(--accent)}
@@ -344,6 +346,20 @@ const PALETTES=[
   {id:'papel',name:'Papel',c:['#f2f0ea','#e6e3da','#26262b','#a3a097','#2f55d4','#d43d2f']},
   {id:'sakura',name:'Sakura',c:['#f7eef0','#efdfe3','#4a3540','#b99aa5','#d6457a','#8a2be2']},
   {id:'menta',name:'Menta',c:['#e9f3ee','#d9e9e1','#1f3a30','#8fb0a2','#0f9d76','#d1493f']},
+  {id:'oceano',name:'Océano',c:['#0b1a2a','#10263b','#dbe8f5','#4e6a85','#5ec2ff','#ff7a85']},
+  {id:'solar',name:'Solarizado',c:['#002b36','#073642','#eee8d5','#5d7a83','#e0b326','#e5534b']},
+  {id:'vampiro',name:'Vampiro',c:['#282a36','#343746','#f8f8f2','#6a76a8','#bd93f9','#ff6e6e']},
+  {id:'gruvbox',name:'Gruvbox',c:['#282828','#32302f','#ebdbb2','#7c6f64','#b8bb26','#fb4934']},
+  {id:'neon',name:'Neón',c:['#0d0b1a','#17142b','#f1eeff','#5d5885','#39ffb6','#ff4fa3']},
+  {id:'cafe',name:'Café',c:['#1f1813','#2a211a','#eadbc8','#7d6a58','#d7b085','#e8715c']},
+  {id:'pizarra',name:'Pizarra',c:['#22272e','#2d333b','#cdd9e5','#66717e','#6cb6ff','#f47067']},
+  {id:'ciruela',name:'Ciruela',c:['#1d1420','#2a1c2e','#f1e4f3','#84698a','#e0a3ff','#ff8a65']},
+  {id:'oliva',name:'Oliva',c:['#1b1c14','#25271c','#e6e6cf','#74775c','#c5cf6a','#e8784f']},
+  {id:'contraste',name:'Contraste',c:['#000000','#111111','#ffffff','#6a6a6a','#ffd400','#ff4040']},
+  {id:'arena',name:'Arena',c:['#f4ede1','#e9dfcf','#3a3128','#958676','#b85f22','#b8323a']},
+  {id:'cielo',name:'Cielo',c:['#eef4fb','#dde8f5','#1f2d3d','#7d91a8','#2672d6','#d6455d']},
+  {id:'lino',name:'Lino',c:['#f3f1e7','#e6e3d4','#2f3327','#8f8e78','#4f7d32','#c0503a']},
+  {id:'tiza',name:'Tiza',c:['#ffffff','#f0f0f0','#111111','#8a8a8a','#1a1a1a','#e0352b']},
 ];
 const REGIONS={eu:'Europa',af:'África',as:'Asia',na:'América del Norte',sa:'América del Sur',oc:'Oceanía'};
 const LIMIT={europe:300,world:900,e1914:180,e1920:180,e1938:180};
@@ -366,12 +382,17 @@ function applyLook(){
   syncUI();
 }
 function palButtons(){
-  $('#pals').innerHTML='';
-  for(const p of [...PALETTES,{id:'custom',name:'A medida',c:cfg.custom}]){
-    const b=document.createElement('button');b.type='button';b.className='pal';b.dataset.pal=p.id;
-    b.style.background=p.c[0];b.style.color=p.c[2];b.append(p.name);
-    const s=document.createElement('span');[4,5,3].forEach(i=>{const d=document.createElement('i');d.style.background=p.c[i];s.append(d)});
-    b.append(s);$('#pals').append(b);
+  // grouped so a light palette is easy to find among the dark ones
+  const box=$('#pals'),dark=p=>lum(p.c[0])<.5;box.innerHTML='';
+  const groups=[['Oscuras',PALETTES.filter(dark)],['Claras',PALETTES.filter(p=>!dark(p))],['Tuya',[{id:'custom',name:'A medida',c:cfg.custom}]]];
+  for(const [title,list] of groups){
+    const t=document.createElement('h4');t.className='pal-h';t.textContent=title;box.append(t);
+    for(const p of list){
+      const b=document.createElement('button');b.type='button';b.className='pal';b.dataset.pal=p.id;
+      b.style.background=p.c[0];b.style.color=p.c[2];b.append(p.name);
+      const s=document.createElement('span');[4,5,3].forEach(i=>{const d=document.createElement('i');d.style.background=p.c[i];s.append(d)});
+      b.append(s);box.append(b);
+    }
   }
 }
 function syncUI(){
