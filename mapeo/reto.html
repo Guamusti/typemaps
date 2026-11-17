@@ -313,18 +313,16 @@ function fmtPop(v){
   if(v>=1e6)return (v/1e6).toLocaleString('es',{maximumFractionDigits:v>=1e7?0:1})+' millones';
   return Math.round(v/1000).toLocaleString('es')+' mil';
 }
+// the right answer lands in any of the four places: k options below it, 3-k above
 function popOptions(){
-  const p=sig(A.pop),f=[0.18,0.35,0.55,1.9,3.2,6];const pick=[];
-  const fr=[...f];for(let i=fr.length-1;i>0;i--){const j=R()*(i+1)|0;[fr[i],fr[j]]=[fr[j],fr[i]]}
-  // never all above or all below the answer
-  const lo=fr.filter(x=>x<1),hi=fr.filter(x=>x>1);pick.push(lo[0],hi[0],fr.find(x=>x!==lo[0]&&x!==hi[0]));
-  return [p,...pick.map(x=>sig(A.pop*x))].sort((a,b)=>a-b);
+  const p=sig(A.pop),k=R()*4|0;
+  const lo=[0.2,0.33,0.5],hi=[2,3,5];
+  const below=lo.slice(3-k).map(f=>sig(A.pop*f*(0.9+R()*0.2))),above=hi.slice(0,3-k).map(f=>sig(A.pop*f*(0.9+R()*0.2)));
+  return [...below,p,...above];
 }
 function borOptions(){
-  const n=A.b.length,c=[n-3,n-2,n-1,n+1,n+2,n+3,n+4].filter(x=>x>=0);
-  for(let i=c.length-1;i>0;i--){const j=R()*(i+1)|0;[c[i],c[j]]=[c[j],c[i]]}
-  const near=c.sort((a,b)=>Math.abs(a-n)-Math.abs(b-n)).slice(0,3);
-  return [n,...near].sort((a,b)=>a-b);
+  const n=A.b.length,k=Math.min(n,R()*4|0);
+  return Array.from({length:4},(_,i)=>n-k+i);
 }
 const POPS=popOptions(),BORS=borOptions();
 function drawOpts(box,vals,chosen,right,label,onPick){
