@@ -146,7 +146,29 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 .scrim{position:fixed;inset:0;z-index:9;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s}
 .drawer{position:fixed;z-index:10;top:0;right:0;height:100%;width:min(430px,100%);background:var(--alt);border-left:1px solid var(--line);
   padding:26px 26px 40px;overflow-y:auto;transform:translateX(102%);visibility:hidden;transition:transform .38s cubic-bezier(.22,.9,.3,1),visibility .38s,background-color .45s}
-.open .scrim{opacity:1;pointer-events:auto}
+.open .scrim,.open-rec .scrim{opacity:1;pointer-events:auto}
+.drawer.wide{width:min(600px,100%)}
+.open-rec #records{transform:none;visibility:visible}
+.legend-r{display:flex;flex-wrap:wrap;gap:6px 16px;margin:16px 0 4px;font-size:12px;color:var(--sub)}
+.legend-r i,.rbar i{display:inline-block;height:8px;border-radius:2px}
+.legend-r i{width:14px;margin-right:6px;vertical-align:middle}
+.r1{background:var(--accent)}.r2{background:color-mix(in srgb,var(--accent) 58%,var(--bg))}.r3{background:color-mix(in srgb,var(--accent) 30%,var(--bg))}.rx{background:var(--err)}
+.rrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;align-items:center;gap:4px 14px;width:100%;padding:10px 10px;border-radius:12px;text-align:left;transition:background-color .2s}
+.rrow:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.rrow .rn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rrow .rn small{color:var(--sub);margin-left:6px;font-size:11px}
+.rbar{display:flex;height:8px;border-radius:3px;overflow:hidden;background:var(--line)}
+.rbar i{height:100%;border-radius:0}
+.rnum{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--sub);white-space:nowrap;text-align:right}
+.rnum b{font-weight:400;color:var(--text)}
+.rrow .rlast{grid-column:1/-1;font-size:11px;color:var(--sub)}
+.rec-h{margin:26px 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);font-weight:400}
+.rec-todo{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.rec-todo button{padding:3px 9px;border-radius:8px;background:var(--bg);color:var(--sub);font-size:12px;transition:color .2s}
+.rec-todo button:hover{color:var(--text)}
+.rec-empty{color:var(--sub);font-size:13px;margin:18px 0}
+.d-break{display:inline-flex;gap:14px;flex-wrap:wrap}
+.d-break span i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
 .open .drawer{transform:none;visibility:visible}
 .drawer h2{font-family:var(--display);font-weight:400;font-size:34px;line-height:1;margin:0}
 .drawer h3{font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin:30px 0 12px}
@@ -201,7 +223,8 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
       <button type="button" data-val="learn" title="Aprende unos pocos cada vez hasta saberlos todos">aprender</button>
       <button type="button" data-val="explore" title="Mira el mapa con todos los nombres">explorar</button>
     </div>
-    <button class="ghost push" id="open-settings" type="button">ajustes</button>
+    <button class="ghost push" id="open-records" type="button">récords</button>
+    <button class="ghost" id="open-settings" type="button">ajustes</button>
   </div>
 </header>
 
@@ -244,6 +267,12 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 </main>
 
 <div class="scrim" id="scrim"></div>
+<aside class="drawer wide" id="records" aria-label="Récords de señalar">
+  <div class="top"><h2>Récords</h2><button class="ghost" id="close-records" type="button">cerrar</button></div>
+  <p class="note">Tu mejor ronda completa de <b>señalar</b> en cada mapa: cuántos acertaste a la primera, a la segunda, a la tercera y cuántos fallaste. Pulsa una fila para jugar ese mapa.</p>
+  <div class="legend-r"><span><i class="r1"></i>1.er intento</span><span><i class="r2"></i>2.º</span><span><i class="r3"></i>3.º</span><span><i class="rx"></i>fallada</span></div>
+  <div id="rec-body"></div>
+</aside>
 <aside class="drawer" id="drawer" aria-label="Ajustes">
   <div class="top"><h2>Aspecto</h2><button class="ghost" id="close-settings" type="button">cerrar</button></div>
   <h3>Paleta</h3>
@@ -349,7 +378,7 @@ for(let i=0;i<6;i++)$('#c-'+i).addEventListener('input',e=>{
   cfg.custom[i]=e.target.value;save();palButtons();applyLook();
 });
 const openDrawer=o=>{body.classList.toggle('open',o);if(o)$('#close-settings').focus();else focusInput()};
-$('#open-settings').onclick=()=>openDrawer(true);$('#close-settings').onclick=()=>openDrawer(false);$('#scrim').onclick=()=>openDrawer(false);
+$('#open-settings').onclick=()=>openDrawer(true);$('#close-settings').onclick=()=>openDrawer(false);$('#scrim').onclick=()=>{openDrawer(false);body.classList.remove('open-rec')};
 
 /* ---------- map view: pan and zoom with the same exponential smoothing as Tecleo's caret ---------- */
 const V={x:0,y:0,k:1}, T={x:0,y:0,k:1};let M=null,els={},marks=[],viewG,fxG,lblG,vraf=0,vlast=0;
@@ -463,6 +492,53 @@ function fillPick(){
   sel.value=cfg.subc;
 }
 
+/* ---------- records of "señalar": best complete round per map / country ---------- */
+const REC=store.get('mapeo.rec',{});
+const MAPNAME={europe:'Europa',world:'Mundo',e1914:'Europa en 1914',e1920:'Europa en 1920',e1938:'Europa en 1938','sub.all':'Toda Europa (regiones)'};
+// rounds played before this view existed only kept a count: bring them in as they were
+for(const k of Object.keys((()=>{try{return localStorage}catch(e){return {}}})())){
+  const m=k.match(/^mapeo\.pb\.(.+)\.click$/);if(!m||REC[m[1]])continue;const pb=store.get(k,null);
+  if(pb)REC[m[1]]={n:null,plays:1,best:{a1:pb.n,a2:null,a3:null,x:null,t:pb.t}};
+}
+const recBetter=(a,b)=>!b||a.a1>b.a1||(a.a1===b.a1&&((a.x??0)<(b.x??0)||((a.x??0)===(b.x??0)&&((a.a2??0)>(b.a2??0)||((a.a2??0)===(b.a2??0)&&a.t<b.t)))));
+function recSave(scope,r,complete){
+  const e=REC[scope]||(REC[scope]={plays:0});
+  e.n=r.n;e.plays=(e.plays||0)+1;e.last=r;
+  const better=complete&&recBetter(r,e.best);if(better)e.best=r;
+  store.set('mapeo.rec',REC);return better;
+}
+const recName=s=>MAPNAME[s]||(s.startsWith('sub.')?(COUNTRIES[s.slice(4)]?.n||s.slice(4)):s);
+const breakTxt=r=>`${r.a1} · ${r.a2??'—'} · ${r.a3??'—'} · ${r.x??'—'}`;
+function bar(r,n){const tot=n||((r.a1||0)+(r.a2||0)+(r.a3||0)+(r.x||0))||1,w=v=>((v||0)/tot*100).toFixed(2)+'%';
+  return `<span class="rbar" aria-hidden="true"><i class="r1" style="width:${w(r.a1)}"></i><i class="r2" style="width:${w(r.a2)}"></i><i class="r3" style="width:${w(r.a3)}"></i><i class="rx" style="width:${w(r.x)}"></i></span>`}
+function renderRecords(){
+  const row=(s)=>{const e=REC[s],b=e.best,l=e.last;const n=e.n||'';
+    const lastDiff=l&&b&&(l!==b)&&breakTxt(l)!==breakTxt(b);
+    return `<button type="button" class="rrow" data-rec="${s}"><span class="rn">${recName(s)}${n?`<small>${n}</small>`:''}</span>${b?bar(b,e.n):'<span></span>'}
+      <span class="rnum">${b?`<b>${b.a1}</b> · ${b.a2??'—'} · ${b.a3??'—'} · ${b.x??'—'} · ${fmt(b.t)}`:'sin ronda completa'}</span>
+      ${lastDiff||!b?`<span class="rlast">última: ${breakTxt(l)} en ${fmt(l.t)} · ${e.plays} ${e.plays===1?'partida':'partidas'}</span>`:`<span class="rlast">${e.plays} ${e.plays===1?'partida':'partidas'}</span>`}</button>`};
+  const keys=Object.keys(REC);
+  const subs=keys.filter(k=>k.startsWith('sub.')&&k!=='sub.all').sort((a,b)=>recName(a).localeCompare(recName(b),'es'));
+  const maps=keys.filter(k=>!subs.includes(k)).sort((a,b)=>Object.keys(MAPNAME).indexOf(a)-Object.keys(MAPNAME).indexOf(b));
+  const all=Object.keys(COUNTRIES).filter(k=>k.length===2&&COUNTRIES[k].r==='eu'&&!['MC','VA'].includes(k)).sort((a,b)=>COUNTRIES[a].n.localeCompare(COUNTRIES[b].n,'es'));
+  const todo=all.filter(c=>!REC['sub.'+c]);
+  let s='';
+  if(!keys.length)s+='<p class="rec-empty">Aún no has terminado ninguna ronda de señalar. Cuando acabes una, aparecerá aquí con su desglose.</p>';
+  s+=`<h3 class="rec-h">Regiones por país · ${subs.length} de ${all.length}</h3>`+(subs.map(row).join('')||'<p class="rec-empty">Ningún país todavía.</p>');
+  if(todo.length)s+=`<h3 class="rec-h">Por jugar</h3><div class="rec-todo">${todo.map(c=>`<button type="button" data-rec="sub.${c}">${COUNTRIES[c].n}</button>`).join('')}</div>`;
+  if(maps.length)s+=`<h3 class="rec-h">Mapas</h3>`+maps.map(row).join('');
+  $('#rec-body').innerHTML=s;
+}
+const openRecords=o=>{if(o){openDrawer(false);renderRecords()}body.classList.toggle('open-rec',o);if(o)$('#close-records').focus();else focusInput()};
+$('#open-records').onclick=()=>openRecords(true);$('#close-records').onclick=()=>openRecords(false);
+$('#rec-body').addEventListener('click',e=>{
+  const b=e.target.closest('[data-rec]');if(!b)return;const s=b.dataset.rec;
+  if(s.startsWith('sub.')){cfg.map='sub';cfg.subc=s.slice(4)}else cfg.map=s;
+  cfg.mode='click';save();syncUI();if(MAPS.sub&&cfg.map==='sub')$('#subc').value=cfg.subc;
+  try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}
+  body.classList.remove('open-rec');start();
+});
+
 /* ---------- game ---------- */
 let G=null,tick=0,nextT=0;
 // a game left half-way (another country, another map) waits here until you come back
@@ -473,7 +549,7 @@ function park(){
   const progress=G.order.length||G.errors;
   if(G.ended||!progress||G.wiped||!['type','click'].includes(G.mode)){delete PARK[G.key];store.set('mapeo.park',PARK);return}
   const el=G.started?(performance.now()-G.t0)/1000:G.elapsed;
-  PARK[G.key]={order:G.order,kind:G.kind,elapsed:el,right:G.right,errors:G.errors,queue:G.cur?[G.cur,...G.queue]:G.queue};
+  PARK[G.key]={order:G.order,kind:G.kind,att:G.att,elapsed:el,right:G.right,errors:G.errors,queue:G.cur?[G.cur,...G.queue]:G.queue};
   store.set('mapeo.park',PARK);
 }
 const unpark=k=>{delete PARK[k];store.set('mapeo.park',PARK)};
@@ -539,7 +615,7 @@ function newGame(saved,smooth){
   const look=new Map();
   for(const id of ids){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a]){if(!look.has(k))look.set(k,[]);if(!look.get(k).includes(id))look.get(k).push(id)}}
   G={ids,in:new Set(ids),look,keys:[...look.keys()],found:new Set(),order:[],started:false,ended:false,t0:0,elapsed:0,carry:'',lastId:'',
-     right:0,errors:0,queue:[],cur:null,tries:0,lv:{},active:[],pending:[],last:null,card:null,kind:{},key:parkKey(),mode:cfg.mode};
+     right:0,errors:0,att:{},queue:[],cur:null,tries:0,lv:{},active:[],pending:[],last:null,card:null,kind:{},key:parkKey(),mode:cfg.mode};
   body.classList.toggle('one',!!M.sub&&cfg.subc!=='all');
   if(M.sub&&!M.lookAll){M.lookAll=new Map();for(const id of all){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a])if(!M.lookAll.has(k))M.lookAll.set(k,id)}}
   for(const id of all)if(!G.in.has(id))cls(id,'off');
@@ -563,7 +639,7 @@ function resume(){
   const s=PARK[G.key];if(!s)return;
   for(const id of s.order||[])if(G.in.has(id)){const k=(s.kind||{})[id];
     if(k==='miss'){G.found.add(id);G.kind[id]='miss';cls(id,'miss');chip(id,'miss')}else mark(id,true,k==='late'?'late':null)}
-  G.elapsed=s.elapsed||0;G.right=s.right||0;G.errors=s.errors||0;
+  G.elapsed=s.elapsed||0;G.right=s.right||0;G.errors=s.errors||0;G.att=s.att||{};
   if(G.mode==='type')$('#n').textContent=G.order.length;
   if(G.mode==='click'){G.queue=(s.queue||[]).filter(id=>G.in.has(id)&&!G.found.has(id));$('#n').textContent=G.right;nextAsk()}
   hint(`Retomas donde lo dejaste: ${G.mode==='click'?G.right:G.order.length} de ${G.ids.length}`,'ok');
@@ -677,7 +753,7 @@ function mapClick(id,el){
   if(cfg.mode!=='click'||!G.cur||!G.in.has(id)||G.found.has(id)||G.busy)return;
   begin();
   if(id===G.cur){
-    const first=G.tries===0;if(first)G.right++;
+    const first=G.tries===0;if(first)G.right++;G.att[id]=G.tries+1;
     mark(id,false,first?null:'late');$('#n').textContent=G.right;
     hint(first?'¡Eso es!':`Bien, a la ${G.tries+1}.ª`,'ok');
     nextAsk();return;
@@ -687,6 +763,7 @@ function mapClick(id,el){
   if(G.tries>=3){
     // after three misses, show where it was and move on
     G.busy=true;const miss=G.cur;cls(miss,'tgt');reveal(miss);hint(`Estaba aquí: ${COUNTRIES[miss].n}`,'bad');
+    G.att[miss]=0;
     nextT=setTimeout(()=>{cls(miss,'tgt',false);cls(miss,'miss');chip(miss,'miss');G.found.add(miss);G.order.push(miss);G.kind[miss]='miss';G.busy=false;nextAsk()},1600);
   }else hint(`No, eso es ${known(id)?COUNTRIES[id].n:'otro sitio'}. Te quedan ${3-G.tries}`,'bad');
 }
@@ -800,9 +877,16 @@ function finish(reason,quiet){
   for(const id of missed){cls(id,'miss');chip(id,'miss')}
   $('#play').hidden=true;$('#side').hidden=true;$('#done').hidden=false;$('#d-alt').hidden=true;$('#again').textContent='Jugar otra vez';
   $('#d-title').textContent=reason==='all'?(cfg.mode==='click'?'Ronda completa':'Mapa completo'):reason==='time'?'Se acabó el tiempo':'Partida terminada';
-  $('#d-detail').textContent=cfg.mode==='click'
-    ?`${n} de ${tot} a la primera · ${G.errors} ${G.errors===1?'fallo':'fallos'} · ${fmt(G.elapsed)}`
-    :`${Math.round(n/tot*100)}% en ${fmt(G.elapsed)}`+(missed.length?` · te han faltado ${missed.length}, en rojo en el mapa`:'');
+  if(cfg.mode==='click'){
+    const c={a1:0,a2:0,a3:0,x:0};for(const id of G.ids){const a=G.att[id];if(a===1)c.a1++;else if(a===2)c.a2++;else if(a===3)c.a3++;else c.x++}
+    const r={...c,t:Math.round(G.elapsed),n:tot,d:Date.now()},prev=REC[scopeKey()]?.best;
+    const better=!quiet&&recSave(scopeKey(),r,reason==='all');
+    $('#d-detail').innerHTML=`<span class="d-break"><span><i class="r1"></i>${c.a1} a la primera</span><span><i class="r2"></i>${c.a2} a la segunda</span><span><i class="r3"></i>${c.a3} a la tercera</span><span><i class="rx"></i>${c.x} ${reason==='all'?(c.x===1?'fallada':'falladas'):'sin acertar'}</span><span>${fmt(G.elapsed)}</span></span>`;
+    $('#d-best').textContent=reason!=='all'?'Solo las rondas completas cuentan como récord':better?(prev?'Nuevo récord en este mapa':'Primer récord en este mapa'):prev?`récord: ${breakTxt(prev)} en ${fmt(prev.t)}`:'';
+    $('#d-alt').hidden=false;$('#d-alt').textContent='ver todos los récords';
+    return;
+  }
+  $('#d-detail').textContent=`${Math.round(n/tot*100)}% en ${fmt(G.elapsed)}`+(missed.length?` · te han faltado ${missed.length}, en rojo en el mapa`:'');
   const key='mapeo.pb.'+scopeKey()+(cfg.mode==='click'?'.click':''),pb=store.get(key,null),better=!pb||n>pb.n||(n===pb.n&&G.elapsed<pb.t);
   if(!quiet&&better&&n)store.set(key,{n,t:Math.round(G.elapsed)});
   $('#d-best').textContent=pb?(better&&!quiet&&n?'Nueva mejor marca':`mejor marca ${pb.n}/${tot} en ${fmt(pb.t)}`):'';
@@ -813,10 +897,11 @@ $('#restart').onclick=()=>{
   if(G){unpark(G.key);G.wiped=true} // so park() on the way out does not keep it
   if(cfg.mode==='learn'){store.set(learnKey(),{});store.set(learnKey()+'.seen',[])}start();focusInput()};
 $('#again').onclick=()=>{if(G){unpark(G.key);G.wiped=true}if(cfg.mode==='learn'&&G.ended){cfg.mode='click';save();syncUI()}start();focusInput()};
-$('#d-alt').onclick=()=>{store.set(learnKey(),{});store.set(learnKey()+'.seen',[]);start();focusInput()};
+$('#d-alt').onclick=()=>{if(cfg.mode==='click'){openRecords(true);return}store.set(learnKey(),{});store.set(learnKey()+'.seen',[]);start();focusInput()};
 const focusInput=()=>{if(!body.classList.contains('open')&&G&&!G.ended&&cfg.mode!=='click')inp.focus({preventScroll:true})};
 document.addEventListener('keydown',e=>{
   if(body.classList.contains('open')){if(e.key==='Escape')openDrawer(false);return}
+  if(body.classList.contains('open-rec')){if(e.key==='Escape')openRecords(false);return}
   if(e.key==='Escape'){if(body.classList.contains('full'))setFull(false);else openDrawer(true);return}
   const a=document.activeElement;
   if(a!==inp&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!(a&&/^(INPUT|BUTTON|SELECT)$/.test(a.tagName)))focusInput();
