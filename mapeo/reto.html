@@ -334,7 +334,7 @@ function drawOpts(box,vals,chosen,right,label,onPick){
 }
 
 /* ---------- flags: today's plus three from the same part of the world ---------- */
-const FB=window.claude?'flags/':'../ondeo/flags/';
+const FB='flags/';
 function flagOptions(){
   const same=Object.keys(C).filter(k=>k!==ANS&&C[k].r===A.r).sort(),other=Object.keys(C).filter(k=>k!==ANS&&C[k].r!==A.r).sort();
   const pick=[];const take=list=>{const k=list.splice(R()*list.length|0,1)[0];if(k)pick.push(k)};

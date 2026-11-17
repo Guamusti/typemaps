@@ -197,7 +197,7 @@ const col=cfg.palette==='custom'?cfg.custom:(PALETTES.find(p=>p.id===cfg.palette
 /* ---------- shared pieces ---------- */
 const C=RETO.c,CODES=Object.keys(C);
 const REGION={eu:'Europa',af:'África',as:'Asia',na:'América del Norte',sa:'América del Sur',oc:'Oceanía'};
-const FB=window.claude?'flags/':'../ondeo/flags/';
+const FB='flags/';
 const flagImg=k=>`<img class="flag" src="${FB}${k.toLowerCase()}.svg" alt="" loading="lazy">`;
 const rnd=a=>a[Math.random()*a.length|0];
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -690,7 +690,8 @@ game({id:'hoy',group:'Historia',title:'¿Qué hay hoy aquí?',desc:'Se resalta u
 
 /* ---------- hub and routing ---------- */
 const EXTRA=[{href:'reto.html',group:'Diarios',title:'Reto diario',desc:'Un país cada día: silueta, bandera, capital, población y vecinos.'},
-  {href:'reto.html#libre',group:'Diarios',title:'Reto ilimitado',desc:'Lo mismo que el reto, con un país al azar cada vez.'}];
+  {href:'reto.html#libre',group:'Diarios',title:'Reto ilimitado',desc:'Lo mismo que el reto, con un país al azar cada vez.'},
+  {href:'banderas.html',group:'Banderas',title:'Test de banderas',desc:'Escribe el país de cada bandera: por continentes, todas a la vez o una a una, y un set de históricas.'}];
 function hub(){
   setScore('');$('#crumb-g').textContent='';
   const groups={};for(const g of [...EXTRA,...GAMES])(groups[g.group]=groups[g.group]||[]).push(g);
