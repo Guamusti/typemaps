@@ -176,6 +176,13 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 .rnum{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--sub);white-space:nowrap;text-align:right}
 .rnum b{font-weight:400;color:var(--text)}
 .rrow .rlast{grid-column:1/-1;font-size:11px;color:var(--sub)}
+.evo{grid-column:1/-1;display:block;margin-top:4px}
+.evo-l{display:block;font-size:11px;color:var(--sub);margin-bottom:2px}
+.evo svg{display:block;width:100%;height:auto;overflow:visible}
+.sp-base{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}.sp-base.top{stroke-dasharray:2 4}
+.sp-line{fill:none;stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.sp-dot{fill:var(--accent);stroke:var(--alt);stroke-width:2;vector-effect:non-scaling-stroke}.sp-dot.open{fill:var(--alt);stroke:var(--accent)}
+.sp-hit{fill:transparent}.sp-pt:hover .sp-dot{fill:var(--text)}
 .rec-h{margin:26px 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);font-weight:400}
 .rec-todo{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .rec-todo button{padding:3px 9px;border-radius:8px;background:var(--bg);color:var(--sub);font-size:12px;transition:color .2s}
@@ -578,6 +585,7 @@ const recBetter=(a,b)=>!b||a.a1>b.a1||(a.a1===b.a1&&((a.x??0)<(b.x??0)||((a.x??0
 function recSave(scope,r,complete){
   const e=REC[scope]||(REC[scope]={plays:0});
   e.n=r.n;e.plays=(e.plays||0)+1;e.last=r;
+  e.hist=(e.hist||[]).concat([[r.d||Date.now(),r.a1,r.n,r.t,complete?1:0]]).slice(-200);
   const better=complete&&recBetter(r,e.best);if(better)e.best=r;
   store.set('mapeo.rec',REC);return better;
 }
@@ -585,22 +593,38 @@ const recName=s=>MAPNAME[s]||(s.startsWith('sub.')?(COUNTRIES[s.slice(4)]?.n||s.
 const breakTxt=r=>`${r.a1} · ${r.a2??'—'} · ${r.a3??'—'} · ${r.x??'—'}`;
 function bar(r,n){const tot=n||r.n||((r.a1||0)+(r.a2||0)+(r.a3||0)+(r.x||0))||1,w=v=>((v||0)/tot*100).toFixed(2)+'%';
   return `<span class="rbar" aria-hidden="true"><i class="r1" style="width:${w(r.a1)}"></i><i class="r2" style="width:${w(r.a2)}"></i><i class="r3" style="width:${w(r.a3)}"></i><i class="rx" style="width:${w(r.x)}"></i></span>`}
+// evolution of one map: a small line over the rounds played, hover a point for its round
+const fday=d=>new Date(d).toLocaleDateString('es',{day:'numeric',month:'short'});
+function spark(pts,max,fmtY,label){
+  if(pts.length<2)return '';
+  const W=300,H=46,P=5,x=i=>P+i*(W-2*P)/(pts.length-1),y=v=>H-P-(v/max)*(H-2*P);
+  const line=pts.map((p,i)=>`${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  const dots=pts.map((p,i)=>`<g class="sp-pt"><circle class="sp-hit" cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="9"/><circle class="sp-dot${p.full===0?' open':''}" cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="3"/><title>${fday(p.d)}: ${fmtY(p)}</title></g>`).join('');
+  const first=pts[0].v,last=pts[pts.length-1].v,best=Math.max(...pts.map(p=>p.v));
+  return `<span class="evo"><span class="evo-l">${label} · mejor ${fmtY({v:best,...pts.find(p=>p.v===best)})}${last!==first?` · ${last>first?'▲':'▼'} desde la primera`:''}</span><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}"><line class="sp-base" x1="${P}" x2="${W-P}" y1="${y(0)}" y2="${y(0)}"/><line class="sp-base top" x1="${P}" x2="${W-P}" y1="${y(max)}" y2="${y(max)}"/><polyline class="sp-line" points="${line}"/>${dots}</svg></span>`;
+}
 function renderRecords(){
   const row=(s)=>{const e=REC[s],b=e.best,l=e.last;const n=e.n||(s.startsWith('sub.')&&regionCount(s.slice(4)))||'';
     const lastDiff=l&&b&&(l!==b)&&breakTxt(l)!==breakTxt(b);
     return `<button type="button" class="rrow" data-rec="${s}"><span class="rn">${recName(s)}${n?`<small>${n}</small>`:''}</span>${b?bar(b,n||null):'<span></span>'}
       <span class="rnum">${b?`<b>${b.a1}</b> · ${b.a2??'—'} · ${b.a3??'—'} · ${b.x??'—'} · ${fmt(b.t)}`:'sin ronda completa'}</span>
-      ${lastDiff||!b?`<span class="rlast">última: ${breakTxt(l)} en ${fmt(l.t)} · ${e.plays} ${e.plays===1?'partida':'partidas'}</span>`:`<span class="rlast">${e.plays} ${e.plays===1?'partida':'partidas'}</span>`}</button>`};
+      ${lastDiff||!b?`<span class="rlast">última: ${breakTxt(l)} en ${fmt(l.t)} · ${e.plays} ${e.plays===1?'partida':'partidas'}</span>`:`<span class="rlast">${e.plays} ${e.plays===1?'partida':'partidas'}</span>`}
+      ${spark((e.hist||[]).map(h=>({d:h[0],v:h[2]?h[1]/h[2]*100:0,a1:h[1],n:h[2],t:h[3],full:h[4]})),100,p=>`${p.a1} de ${p.n} a la primera${p.full===0?' (sin terminar)':''}`,'Aciertos a la primera')}</button>`};
+  const srow=k=>{const e=STREAK[k];const pts=(e.hist||[]).map(h=>({d:h[0],v:h[1]}));
+    return `<button type="button" class="rrow" data-rec="${k}" data-streak="1"><span class="rn">${recName(k)}</span><span></span><span class="rnum"><b>${e.best}</b> seguidas</span><span class="rlast">${e.plays} ${e.plays===1?'racha':'rachas'}${e.last!=null?` · última: ${e.last}`:''}</span>${spark(pts,Math.max(e.best,1),p=>`${p.v} seguidas`,'Rachas')}</button>`};
   const keys=Object.keys(REC);
   const subs=keys.filter(k=>k.startsWith('sub.')&&k!=='sub.all').sort((a,b)=>recName(a).localeCompare(recName(b),'es'));
   const maps=keys.filter(k=>!subs.includes(k)).sort((a,b)=>Object.keys(MAPNAME).indexOf(a)-Object.keys(MAPNAME).indexOf(b));
   const all=Object.keys(COUNTRIES).filter(k=>k.length===2&&COUNTRIES[k].r==='eu'&&!['MC','VA'].includes(k)).sort((a,b)=>COUNTRIES[a].n.localeCompare(COUNTRIES[b].n,'es'));
   const todo=all.filter(c=>!REC['sub.'+c]);
   let s='';
-  if(!keys.length)s+='<p class="rec-empty">Aún no has terminado ninguna ronda de señalar. Cuando acabes una, aparecerá aquí con su desglose.</p>';
+  if(!keys.length&&!Object.keys(STREAK).length)s+='<p class="rec-empty">Aún no has terminado ninguna ronda de señalar. Cuando acabes una, aparecerá aquí con su desglose.</p>';
+  if(maps.length)s+=`<h3 class="rec-h">Mapas</h3>`+maps.map(row).join('');
+  const sk=Object.keys(STREAK).filter(k=>STREAK[k].plays).sort((a,b)=>STREAK[b].best-STREAK[a].best);
+  if(sk.length)s+=`<h3 class="rec-h">Rachas</h3>`+sk.map(srow).join('');
   s+=`<h3 class="rec-h">Regiones por país · ${subs.length} de ${all.length}</h3>`+(subs.map(row).join('')||'<p class="rec-empty">Ningún país todavía.</p>');
   if(todo.length)s+=`<h3 class="rec-h">Por jugar</h3><div class="rec-todo">${todo.map(c=>`<button type="button" data-rec="sub.${c}">${COUNTRIES[c].n}</button>`).join('')}</div>`;
-  if(maps.length)s+=`<h3 class="rec-h">Mapas</h3>`+maps.map(row).join('');
+
   $('#rec-body').innerHTML=s;
 }
 const openRecords=o=>{if(o){openDrawer(false);renderRecords()}body.classList.toggle('open-rec',o);if(o)$('#close-records').focus();else focusInput()};
@@ -608,7 +632,7 @@ $('#open-records').onclick=()=>openRecords(true);$('#close-records').onclick=()=
 $('#rec-body').addEventListener('click',e=>{
   const b=e.target.closest('[data-rec]');if(!b)return;const s=b.dataset.rec;
   if(s.startsWith('sub.')){cfg.map='sub';cfg.subc=s.slice(4)}else cfg.map=s;
-  cfg.mode='click';save();syncUI();if(MAPS.sub&&cfg.map==='sub')$('#subc').value=cfg.subc;
+  cfg.mode=b.dataset.streak?'streak':'click';save();syncUI();if(MAPS.sub&&cfg.map==='sub')$('#subc').value=cfg.subc;
   try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}
   body.classList.remove('open-rec');start();
 });
