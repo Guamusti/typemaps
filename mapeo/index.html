@@ -100,6 +100,8 @@ header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;paddin
 #hint.bad{color:var(--err)}
 .land.off,.mk.off{fill:color-mix(in srgb,var(--land) 42%,var(--bg));pointer-events:none}
 .sub-map.one .land.off{pointer-events:auto;cursor:pointer}
+.sub-map .land.off.rec,.sub-map .mk.off.rec{fill:color-mix(in srgb,var(--accent) var(--rf),color-mix(in srgb,var(--land) 42%,var(--bg)))}
+.sub-map.one .land.off.rec.peek{fill:color-mix(in srgb,var(--accent) var(--rf),var(--text) 18%)}
 .sub-map.one .land.off.peek{fill:color-mix(in srgb,var(--land) 78%,var(--bg))}
 .land.late,.mk.late{fill:color-mix(in srgb,var(--accent) 52%,var(--land))}
 .land.bad,.mk.bad{fill:var(--err)!important;transition:none}
@@ -466,7 +468,8 @@ function hover(e){
   const t=e.target.closest&&e.target.closest('[data-id]'),tip=$('#tip');
   if(t&&M.sub&&G&&cfg.subc!=='all'&&!G.in.has(t.dataset.id)){
     const r=COUNTRIES[t.dataset.id].r;setPeek(r);const rc=stage.getBoundingClientRect();
-    tip.textContent=(cfg.mode==='click'&&!G.ended?'Doble clic: ':'')+'ir a '+M.countries[r].n;tip.hidden=false;tip.style.left=(e.clientX-rc.left)+'px';tip.style.top=(e.clientY-rc.top)+'px';return;
+    const rr=recOf(r);
+    tip.textContent=(cfg.mode==='click'&&!G.ended?'Doble clic: ':'')+'ir a '+M.countries[r].n+(rr?` · récord ${rr.a1} de ${rr.n} a la primera`:'');tip.hidden=false;tip.style.left=(e.clientX-rc.left)+'px';tip.style.top=(e.clientY-rc.top)+'px';return;
   }
   setPeek(null);
   if(!t||!G||!G.in.has(t.dataset.id)||!known(t.dataset.id)){tip.hidden=true;return}
@@ -538,6 +541,13 @@ $('#rec-body').addEventListener('click',e=>{
   try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}
   body.classList.remove('open-rec');start();
 });
+
+// on the regions map, every other country you have a record in shows it: the better the record, the stronger the colour
+function recOf(cc){const e=REC['sub.'+cc];return e&&e.best&&e.best.a1!=null?{...e.best,n:e.n||e.best.n}:null}
+function paintRecords(ids){
+  for(const id of ids){if(G.in.has(id))continue;const r=recOf(COUNTRIES[id].r);if(!r||!r.n)continue;
+    const pct=Math.round(28+62*(r.a1/r.n));for(const el of els[id].all){el.classList.add('rec');el.style.setProperty('--rf',pct+'%')}}
+}
 
 /* ---------- game ---------- */
 let G=null,tick=0,nextT=0;
@@ -619,6 +629,7 @@ function newGame(saved,smooth){
   body.classList.toggle('one',!!M.sub&&cfg.subc!=='all');
   if(M.sub&&!M.lookAll){M.lookAll=new Map();for(const id of all){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a])if(!M.lookAll.has(k))M.lookAll.set(k,id)}}
   for(const id of all)if(!G.in.has(id))cls(id,'off');
+  if(M.sub&&cfg.subc!=='all')paintRecords(all);
   body.dataset.mode=cfg.mode;
   buildBoard();
   $('#total').textContent=ids.length;$('#n').textContent=0;
