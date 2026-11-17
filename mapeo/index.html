@@ -47,8 +47,9 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 .ghost{padding:6px 2px;color:var(--sub);transition:color .2s}
 .ghost:hover{color:var(--text)}
 .push{margin-left:auto}
-@media(max-width:1500px){header .wrap{column-gap:14px}header .seg button{padding:6px 9px}#ypick .pick-l,#cpick .pick-l{display:none}}
+@media(max-width:1500px){header .wrap{column-gap:10px}header .seg button,header .seg .reto-l{padding:6px 8px;font-size:13px}header .pick select{padding:9px 30px 9px 12px;font-size:13px}#ypick .pick-l,#cpick .pick-l{display:none}}
 .seg{display:inline-flex;flex-wrap:wrap;background:var(--alt);border-radius:12px;padding:4px;gap:2px;transition:background-color .45s}
+.seg .reto-l{padding:6px 12px;border-radius:9px;color:var(--accent);text-decoration:none;white-space:nowrap;transition:background .18s}.seg .reto-l:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
 .seg button{padding:6px 12px;border-radius:9px;color:var(--sub);transition:color .18s,background .18s;white-space:nowrap}
 .seg button:hover{color:var(--text)}
 .seg button[aria-pressed="true"]{color:var(--bg);background:var(--accent)}
@@ -242,6 +243,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
       <button type="button" data-map="sub">Regiones</button>
       <button type="button" data-map="hist" title="Europa en otra época">Historia</button>
       <button type="button" data-map="caps" title="Capitales del mundo o de Europa">Capitales</button>
+      <a class="reto-l" href="reto.html" title="Un país cada día: silueta, capital, población y fronteras">Reto</a>
     </div>
     <label class="pick" id="cpick" hidden><span class="pick-l">De</span><select id="capsel" aria-label="Capitales de"><option value="cape">Europa</option><option value="capw">Mundo</option></select></label>
     <label class="pick" id="ypick" hidden><span class="pick-l">Año</span><select id="year" aria-label="Año del mapa histórico"></select></label>

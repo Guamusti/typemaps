@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapeo · reto diario</title>
+<meta name="description" content="Cada día, un país: adivínalo por su silueta, y después su capital, su población y sus fronteras.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Same family as Mapeo: palette from its settings, serif for the big moments, mono for the rest. */
+:root{
+  --bg:#14161f; --alt:#1c1f2b; --text:#e4e6f0; --sub:#5a607a; --accent:#8fb4ff; --err:#ff6b81;
+  --line:color-mix(in srgb,var(--sub) 30%,transparent);
+  --land:color-mix(in srgb,var(--sub) 30%,var(--bg));
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --display:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.5;transition:background-color .45s,color .45s}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+[hidden]{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding:0 24px}
+.glow{position:fixed;inset:0;pointer-events:none;z-index:0}
+.glow::before{content:"";position:absolute;width:60vw;height:60vw;left:-15vw;top:10%;border-radius:50%;filter:blur(90px);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+header,main{position:relative;z-index:1}
+header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-bottom:8px}
+.mark{font-family:var(--display);font-style:italic;font-size:34px;line-height:1;color:var(--text);text-decoration:none;letter-spacing:-.01em}
+.mark b{color:var(--accent);font-weight:400}
+.day{color:var(--sub);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.push{margin-left:auto}
+.ghost{color:var(--sub);transition:color .2s;text-decoration:none}
+.ghost:hover{color:var(--text)}
+.streak{display:flex;gap:16px;color:var(--sub);font-size:12px}
+.streak b{font-family:var(--display);font-weight:400;font-size:26px;color:var(--text);margin-right:5px;line-height:1}
+
+.step{margin:26px 0 0;padding:22px 24px 24px;background:color-mix(in srgb,var(--alt) 70%,transparent);border-radius:18px;transition:opacity .4s}
+.step.locked{opacity:.35;pointer-events:none}
+.step h2{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 14px;font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+.step h2 span{font-variant-numeric:tabular-nums}
+.q{font-family:var(--display);font-size:30px;line-height:1.15;margin:0 0 16px}
+.q em{color:var(--accent);font-style:italic}
+
+.sil{display:grid;place-items:center;padding:6px 0 18px}
+.sil svg{width:min(260px,70vw);height:auto;overflow:visible}
+.sil path{fill:var(--text);transition:fill .6s}
+.sil.won path{fill:var(--accent)}.sil.lost path{fill:var(--err)}
+
+.field{position:relative}
+.field input{width:100%;background:transparent;border:0;border-bottom:2px solid var(--line);padding:8px 0;font-size:20px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--sub)}
+.sug{position:absolute;left:0;right:0;top:100%;margin-top:6px;background:var(--alt);border-radius:12px;padding:5px;z-index:5;box-shadow:0 12px 30px -10px rgba(0,0,0,.45)}
+.sug button{display:block;width:100%;text-align:left;padding:7px 10px;border-radius:8px;color:var(--sub)}
+.sug button.on,.sug button:hover{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--text)}
+.msg{min-height:22px;margin-top:8px;font-size:12.5px;color:var(--sub)}
+.msg.bad{color:var(--err)}.msg.ok{color:var(--accent)}
+
+.guesses{display:grid;gap:6px;margin-top:12px}
+.g{display:grid;grid-template-columns:minmax(0,1fr) auto 28px 64px;align-items:center;gap:12px;padding:8px 12px;border-radius:10px;background:var(--bg);font-variant-numeric:tabular-nums}
+.g .gn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g .gd{color:var(--sub);font-size:12.5px;text-align:right}
+.g .ga{font-size:18px;text-align:center;color:var(--accent)}
+.g .gp{position:relative;height:22px;border-radius:6px;background:var(--line);overflow:hidden;font-size:11.5px;text-align:center;line-height:22px}
+.g .gp i{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--accent) 45%,transparent)}
+.g .gp span{position:relative}
+.g.win{background:color-mix(in srgb,var(--accent) 22%,var(--bg))}
+.g.empty{background:transparent;border:1px dashed var(--line);height:38px}
+
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.opts button{padding:14px 12px;border-radius:12px;background:var(--bg);font-variant-numeric:tabular-nums;transition:background-color .2s,color .2s;text-align:center}
+.opts button:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 12%,var(--bg))}
+.opts button:disabled{cursor:default}
+.opts button.right{background:color-mix(in srgb,var(--accent) 35%,var(--bg));color:var(--text)}
+.opts button.wrong{background:color-mix(in srgb,var(--err) 35%,var(--bg))}
+.opts button.dim{opacity:.45}
+.extra{margin-top:12px;font-size:12.5px;color:var(--sub)}
+.extra b{color:var(--text);font-weight:400}
+
+.world{margin-top:16px}
+.world svg{width:100%;height:auto;display:block}
+.world .land{fill:var(--land)}
+.world .pin{fill:var(--accent);stroke:var(--bg);stroke-width:1.5}
+.world .ring{fill:none;stroke:var(--accent);stroke-width:1.2;opacity:.6}
+
+.end{margin:26px 0 60px;padding:26px 24px;border-radius:18px;background:var(--alt);text-align:center}
+.end .big{font-family:var(--display);font-size:46px;line-height:1}
+.end .line{font-size:22px;letter-spacing:.12em;margin:12px 0 4px}
+.end .sub{color:var(--sub);font-size:12.5px}
+.end .acts{display:flex;justify-content:center;gap:14px;margin-top:18px;flex-wrap:wrap}
+.btn{padding:10px 18px;border-radius:12px;background:var(--accent);color:var(--bg)}
+.btn.soft{background:var(--bg);color:var(--text)}
+.foot{color:var(--sub);font-size:11.5px;text-align:center;margin:0 0 40px}
+@media(max-width:560px){.q{font-size:25px}.step{padding:18px 16px}.g{grid-template-columns:minmax(0,1fr) auto 22px 52px;gap:8px}}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<header><div class="wrap">
+  <a class="mark" href="./" title="Volver a Mapeo">mapeo<b>.</b></a>
+  <span class="day" id="day"></span>
+  <div class="streak push" id="streak"></div>
+</div></header>
+<main class="wrap">
+  <section class="step" id="s1">
+    <h2>1 · El país<span id="s1-n">0/6</span></h2>
+    <p class="q">¿Qué país es?</p>
+    <div class="sil" id="sil"></div>
+    <div class="field"><input id="g-in" autocomplete="off" spellcheck="false" placeholder="Escribe un país…" aria-label="Tu respuesta"><div class="sug" id="sug" hidden></div></div>
+    <div class="msg" id="s1-msg">Cada intento te dice a qué distancia estás, hacia dónde y cuánto te acercas.</div>
+    <div class="guesses" id="guesses"></div>
+    <div class="world" id="world" hidden></div>
+  </section>
+  <section class="step locked" id="s2">
+    <h2>2 · Su capital<span id="s2-n">0/3</span></h2>
+    <p class="q" id="s2-q">¿Cuál es su capital?</p>
+    <div class="field"><input id="c-in" autocomplete="off" spellcheck="false" placeholder="Escribe la capital…" aria-label="Capital"></div>
+    <div class="msg" id="s2-msg">Tres intentos; cada fallo te da una pista.</div>
+  </section>
+  <section class="step locked" id="s3">
+    <h2>3 · Su población<span></span></h2>
+    <p class="q" id="s3-q">¿Cuántos habitantes tiene?</p>
+    <div class="opts" id="s3-o"></div>
+    <div class="extra" id="s3-x"></div>
+  </section>
+  <section class="step locked" id="s4">
+    <h2>4 · Sus fronteras<span></span></h2>
+    <p class="q" id="s4-q">¿Con cuántos países limita por tierra?</p>
+    <div class="opts" id="s4-o"></div>
+    <div class="extra" id="s4-x"></div>
+  </section>
+  <section class="end" id="end" hidden></section>
+  <p class="foot">Siluetas y datos: Natural Earth. Población aproximada (estimaciones de 2019).</p>
+</main>
+<script src="reto-data.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+const PALETTES=[
+  {id:'medianoche',name:'Medianoche',c:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81']},
+  {id:'ambar',name:'Ámbar',c:['#1d1a17','#27231e','#ede4d3','#7a6f5f','#f2b24a','#e5604d']},
+  {id:'mar',name:'Mar',c:['#0d2530','#123240','#d6ecef','#4f7785','#4fd6c4','#ff7a6b']},
+  {id:'lavanda',name:'Lavanda',c:['#221d2e','#2c2640','#ece6f7','#74698f','#c6a0ff','#ff7096']},
+  {id:'bosque',name:'Bosque',c:['#141c17','#1b2620','#dbe6d6','#5c7364','#9bd67a','#f07a5a']},
+  {id:'atardecer',name:'Atardecer',c:['#2a1a24','#38222f','#fbe9dc','#8c6474','#ff8a5c','#ff4d7a']},
+  {id:'nordico',name:'Nórdico',c:['#2b303b','#343b48','#e5e9f0','#6f7a8f','#88c0d0','#d9727b']},
+  {id:'carbon',name:'Carbón',c:['#111111','#1b1b1b','#f2f2f2','#5c5c5c','#ffffff','#ff5c5c']},
+  {id:'papel',name:'Papel',c:['#f2f0ea','#e6e3da','#26262b','#a3a097','#2f55d4','#d43d2f']},
+  {id:'sakura',name:'Sakura',c:['#f7eef0','#efdfe3','#4a3540','#b99aa5','#d6457a','#8a2be2']},
+  {id:'menta',name:'Menta',c:['#e9f3ee','#d9e9e1','#1f3a30','#8fb0a2','#0f9d76','#d1493f']},
+  {id:'oceano',name:'Océano',c:['#0b1a2a','#10263b','#dbe8f5','#4e6a85','#5ec2ff','#ff7a85']},
+  {id:'solar',name:'Solarizado',c:['#002b36','#073642','#eee8d5','#5d7a83','#e0b326','#e5534b']},
+  {id:'vampiro',name:'Vampiro',c:['#282a36','#343746','#f8f8f2','#6a76a8','#bd93f9','#ff6e6e']},
+  {id:'gruvbox',name:'Gruvbox',c:['#282828','#32302f','#ebdbb2','#7c6f64','#b8bb26','#fb4934']},
+  {id:'neon',name:'Neón',c:['#0d0b1a','#17142b','#f1eeff','#5d5885','#39ffb6','#ff4fa3']},
+  {id:'cafe',name:'Café',c:['#1f1813','#2a211a','#eadbc8','#7d6a58','#d7b085','#e8715c']},
+  {id:'pizarra',name:'Pizarra',c:['#22272e','#2d333b','#cdd9e5','#66717e','#6cb6ff','#f47067']},
+  {id:'ciruela',name:'Ciruela',c:['#1d1420','#2a1c2e','#f1e4f3','#84698a','#e0a3ff','#ff8a65']},
+  {id:'oliva',name:'Oliva',c:['#1b1c14','#25271c','#e6e6cf','#74775c','#c5cf6a','#e8784f']},
+  {id:'contraste',name:'Contraste',c:['#000000','#111111','#ffffff','#6a6a6a','#ffd400','#ff4040']},
+  {id:'arena',name:'Arena',c:['#f4ede1','#e9dfcf','#3a3128','#958676','#b85f22','#b8323a']},
+  {id:'cielo',name:'Cielo',c:['#eef4fb','#dde8f5','#1f2d3d','#7d91a8','#2672d6','#d6455d']},
+  {id:'lino',name:'Lino',c:['#f3f1e7','#e6e3d4','#2f3327','#8f8e78','#4f7d32','#c0503a']},
+  {id:'tiza',name:'Tiza',c:['#ffffff','#f0f0f0','#111111','#8a8a8a','#1a1a1a','#e0352b']},
+];
+// the look follows Mapeo's settings
+const cfg=Object.assign({palette:'medianoche',custom:PALETTES[0].c},store.get('mapeo.cfg',{}));
+const col=cfg.palette==='custom'?cfg.custom:(PALETTES.find(p=>p.id===cfg.palette)||PALETTES[0]).c;
+['--bg','--alt','--text','--sub','--accent','--err'].forEach((k,i)=>document.documentElement.style.setProperty(k,col[i]));
+{const n=parseInt(col[0].slice(1),16);document.documentElement.style.colorScheme=(.299*(n>>16&255)+.587*(n>>8&255)+.114*(n&255))/255<.5?'dark':'light'}
+
+/* ---------- today's country: the same for everyone, no repeats until the list runs out ---------- */
+const C=RETO.c;
+const today=new Date(),dkey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const TODAY=dkey(today);
+const dayNo=Math.round((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())-Date.UTC(2026,0,1))/864e5);
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const POOL=Object.keys(C).filter(k=>C[k].d&&C[k].km2>=10000&&C[k].pop&&C[k].cap).sort();
+{const r=rng(20260101);for(let i=POOL.length-1;i>0;i--){const j=r()*(i+1)|0;[POOL[i],POOL[j]]=[POOL[j],POOL[i]]}}
+const cycle=Math.floor(dayNo/POOL.length);
+const ANS=POOL[((dayNo%POOL.length)+POOL.length)%POOL.length];
+const A=C[ANS],R=rng(dayNo*7919+cycle);
+$('#day').textContent='Reto · '+today.toLocaleDateString('es',{day:'numeric',month:'long'});
+
+/* ---------- state for today, kept so a reload resumes ---------- */
+let S=store.get('mapeo.reto',null);
+if(!S||S.day!==TODAY)S={day:TODAY,code:ANS,g:[],cap:[],pop:null,bor:null};
+const save=()=>store.set('mapeo.reto',S);
+const ST=store.get('mapeo.reto.stats',{streak:0,best:0,played:0,found:0,last:null,hist:{}});
+
+/* ---------- geometry ---------- */
+const rad=x=>x*Math.PI/180;
+function dist(a,b){const [l1,p1]=a.map(rad),[l2,p2]=b.map(rad),h=Math.sin((p2-p1)/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin((l2-l1)/2)**2;return 2*6371*Math.asin(Math.sqrt(h))}
+function bearing(a,b){const [l1,p1]=a.map(rad),[l2,p2]=b.map(rad);const y=Math.sin(l2-l1)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(l2-l1);return (Math.atan2(y,x)*180/Math.PI+360)%360}
+const ARROWS=['↑','↗','→','↘','↓','↙','←','↖'];
+const arrow=b=>ARROWS[Math.round(b/45)%8];
+const prox=d=>Math.max(0,Math.round((1-d/20015)*100));
+const fmtKm=d=>d<10?'0 km':Math.round(d).toLocaleString('es')+' km';
+
+/* ---------- step 1: the silhouette ---------- */
+$('#sil').innerHTML=`<svg viewBox="0 0 200 200" role="img" aria-label="Silueta del país"><path d="${A.d}"/></svg>`;
+const NAMES=Object.keys(C).map(k=>({k,n:C[k].n,keys:[norm(C[k].n),...C[k].a]}));
+const MAXG=6;
+const s1done=()=>S.g.includes(ANS)||S.g.length>=MAXG;
+function findCountry(txt){const t=norm(txt);if(!t)return null;const hit=NAMES.find(x=>x.keys.includes(t));return hit?hit.k:null}
+function drawGuesses(){
+  const box=$('#guesses');box.innerHTML='';
+  for(const k of S.g){const won=k===ANS,d=dist(C[k].ll,A.ll),p=won?100:prox(d);
+    const r=document.createElement('div');r.className='g'+(won?' win':'');
+    r.innerHTML=`<span class="gn"></span><span class="gd">${won?'¡es este!':fmtKm(d)}</span><span class="ga">${won?'✓':arrow(bearing(C[k].ll,A.ll))}</span><span class="gp"><i style="width:${p}%"></i><span>${p}%</span></span>`;
+    r.querySelector('.gn').textContent=C[k].n;box.append(r)}
+  if(!s1done())for(let i=S.g.length;i<MAXG;i++){const e=document.createElement('div');e.className='g empty';box.append(e)}
+  $('#s1-n').textContent=`${S.g.length}/${MAXG}`;
+}
+function guess(txt){
+  if(s1done())return;
+  const k=findCountry(txt),m=$('#s1-msg');
+  if(!k){m.textContent='No conozco ese país; elige uno de la lista';m.className='msg bad';return}
+  if(S.g.includes(k)){m.textContent='Ese ya lo has probado';m.className='msg bad';return}
+  S.g.push(k);save();$('#g-in').value='';hideSug();
+  if(k===ANS){m.textContent=`¡Es ${A.n}! A la ${S.g.length}.ª`;m.className='msg ok'}
+  else if(S.g.length>=MAXG){m.textContent=`Era ${A.n}`;m.className='msg bad'}
+  else{const d=dist(C[k].ll,A.ll);m.textContent=`${C[k].n}: a ${fmtKm(d)}, hacia ${['el norte','el noreste','el este','el sureste','el sur','el suroeste','el oeste','el noroeste'][Math.round(bearing(C[k].ll,A.ll)/45)%8]}`;m.className='msg'}
+  render();
+}
+// suggestions: names that start with (or contain) what you type
+let sugI=-1;
+function showSug(){
+  const t=norm($('#g-in').value),box=$('#sug');if(!t){hideSug();return}
+  const used=new Set(S.g);
+  const list=NAMES.filter(x=>!used.has(x.k)&&x.keys.some(k=>k.startsWith(t))).concat(NAMES.filter(x=>!used.has(x.k)&&!x.keys.some(k=>k.startsWith(t))&&x.keys.some(k=>k.includes(t)))).slice(0,6);
+  if(!list.length){hideSug();return}
+  sugI=0;box.innerHTML='';list.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.textContent=x.n;b.dataset.k=x.k;if(!i)b.className='on';box.append(b)});box.hidden=false;
+}
+function hideSug(){$('#sug').hidden=true;sugI=-1}
+$('#g-in').addEventListener('input',showSug);
+$('#g-in').addEventListener('keydown',e=>{
+  const bs=[...$('#sug').children];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){if($('#sug').hidden)return;e.preventDefault();sugI=(sugI+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle('on',i===sugI));return}
+  if(e.key==='Enter'){e.preventDefault();const b=!$('#sug').hidden&&bs[sugI];guess(b?C[b.dataset.k].n:$('#g-in').value)}
+  if(e.key==='Escape')hideSug();
+});
+$('#sug').addEventListener('mousedown',e=>{const b=e.target.closest('button');if(b){e.preventDefault();guess(C[b.dataset.k].n)}});
+$('#g-in').addEventListener('blur',()=>setTimeout(hideSug,120));
+
+function drawWorld(){
+  const w=$('#world');w.hidden=false;const [x,y]=A.w;
+  w.innerHTML=`<svg viewBox="0 0 400 200" role="img" aria-label="${A.n} en el mapa"><path class="land" d="${RETO.land}"/><circle class="ring" cx="${x}" cy="${y}" r="9"/><circle class="pin" cx="${x}" cy="${y}" r="3.6"/></svg>`;
+}
+
+/* ---------- step 2: the capital ---------- */
+const capOK=t=>{const n=norm(t);return n&&(n===norm(A.cap.n)||A.cap.a.includes(n))};
+const s2done=()=>S.cap.some(capOK)||S.cap.length>=3;
+function capHint(){
+  const n=A.cap.n;
+  if(S.cap.length===1)return `Pista: empieza por «${n[0]}»`;
+  if(S.cap.length===2)return `Pista: ${n.replace(/\s/g,'').length} letras, «${n.slice(0,Math.min(3,Math.ceil(n.length/3)))}…»`;
+  return '';
+}
+$('#c-in').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||s2done())return;e.preventDefault();
+  const v=$('#c-in').value.trim();if(!v)return;
+  if(S.cap.map(norm).includes(norm(v))){$('#s2-msg').textContent='Esa ya la has dicho';$('#s2-msg').className='msg bad';return}
+  S.cap.push(v);save();$('#c-in').value='';render();
+});
+
+/* ---------- step 3 and 4: four options each ---------- */
+const sig=(v,n=2)=>{const p=10**Math.max(0,Math.floor(Math.log10(v))-n+1);return Math.round(v/p)*p};
+function fmtPop(v){
+  if(v>=1e9)return (v/1e9).toLocaleString('es',{maximumFractionDigits:2})+' mil millones';
+  if(v>=1e6)return (v/1e6).toLocaleString('es',{maximumFractionDigits:v>=1e7?0:1})+' millones';
+  return Math.round(v/1000).toLocaleString('es')+' mil';
+}
+function popOptions(){
+  const p=sig(A.pop),f=[0.18,0.35,0.55,1.9,3.2,6];const pick=[];
+  const fr=[...f];for(let i=fr.length-1;i>0;i--){const j=R()*(i+1)|0;[fr[i],fr[j]]=[fr[j],fr[i]]}
+  // never all above or all below the answer
+  const lo=fr.filter(x=>x<1),hi=fr.filter(x=>x>1);pick.push(lo[0],hi[0],fr.find(x=>x!==lo[0]&&x!==hi[0]));
+  return [p,...pick.map(x=>sig(A.pop*x))].sort((a,b)=>a-b);
+}
+function borOptions(){
+  const n=A.b.length,c=[n-3,n-2,n-1,n+1,n+2,n+3,n+4].filter(x=>x>=0);
+  for(let i=c.length-1;i>0;i--){const j=R()*(i+1)|0;[c[i],c[j]]=[c[j],c[i]]}
+  const near=c.sort((a,b)=>Math.abs(a-n)-Math.abs(b-n)).slice(0,3);
+  return [n,...near].sort((a,b)=>a-b);
+}
+const POPS=popOptions(),BORS=borOptions();
+function drawOpts(box,vals,chosen,right,label,onPick){
+  box.innerHTML='';
+  for(const v of vals){const b=document.createElement('button');b.type='button';b.textContent=label(v);
+    if(chosen!=null){b.disabled=true;if(v===right)b.className='right';else if(v===chosen)b.className='wrong';else b.className='dim'}
+    else b.onclick=()=>onPick(v);box.append(b)}
+}
+
+/* ---------- drawing the whole page from the state ---------- */
+function render(){
+  drawGuesses();
+  const d1=s1done(),won1=S.g.includes(ANS);
+  $('#g-in').disabled=d1;$('#sil').className='sil'+(d1?(won1?' won':' lost'):'');
+  if(d1){$('#g-in').placeholder=A.n;drawWorld();if(!won1&&!$('#s1-msg').classList.contains('bad')){$('#s1-msg').textContent=`Era ${A.n}`;$('#s1-msg').className='msg bad'}
+    else if(won1&&$('#s1-msg').className==='msg'){$('#s1-msg').textContent=`¡Es ${A.n}! A la ${S.g.indexOf(ANS)+1}.ª`;$('#s1-msg').className='msg ok'}}
+  // step 2
+  $('#s2').classList.toggle('locked',!d1);
+  $('#s2-q').innerHTML=`¿Cuál es la capital de <em></em>?`;$('#s2-q em').textContent=d1?A.n:'este país';
+  const d2=s2done(),won2=S.cap.some(capOK);
+  $('#s2-n').textContent=`${S.cap.length}/3`;$('#c-in').disabled=!d1||d2;
+  const m2=$('#s2-msg');
+  if(won2){m2.textContent=`¡Sí, ${A.cap.n}!`+(S.cap.length>1?` A la ${S.cap.length}.ª`:'');m2.className='msg ok'}
+  else if(d2){m2.textContent=`Era ${A.cap.n}`;m2.className='msg bad'}
+  else if(S.cap.length){m2.textContent=`«${S.cap[S.cap.length-1]}» no es. ${capHint()}`;m2.className='msg bad'}
+  // step 3
+  $('#s3').classList.toggle('locked',!d2);
+  $('#s3-q').innerHTML=`¿Cuántos habitantes tiene <em></em>?`;$('#s3-q em').textContent=d1?A.n:'este país';
+  drawOpts($('#s3-o'),POPS,S.pop,POPS.find(v=>v===sig(A.pop)),fmtPop,v=>{S.pop=v;save();render()});
+  $('#s3-x').innerHTML=S.pop!=null?`Unos <b>${fmtPop(sig(A.pop,3))}</b>${A.pop>=1e6?' de':''} habitantes, en ${Math.round(A.km2).toLocaleString('es')} km².`:'';
+  // step 4
+  const d3=S.pop!=null;$('#s4').classList.toggle('locked',!d3);
+  $('#s4-q').innerHTML=`¿Con cuántos países limita <em></em> por tierra?`;$('#s4-q em').textContent=d1?A.n:'este país';
+  drawOpts($('#s4-o'),BORS,S.bor,A.b.length,v=>v===0?'Ninguno':v===1?'1 país':v+' países',v=>{S.bor=v;save();render()});
+  $('#s4-x').innerHTML='';if(S.bor!=null){const x=$('#s4-x');x.textContent=A.b.length?'Limita con '+listEs(A.b.map(k=>C[k].n).sort((a,b)=>a.localeCompare(b,'es')))+'.':'No tiene fronteras terrestres con ningún país.'}
+  if(d1&&!d2&&document.activeElement!==$('#c-in')&&S.cap.length===0)setTimeout(()=>$('#c-in').focus({preventScroll:true}),400);
+  if(S.bor!=null)finish();
+}
+const listEs=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' y '+a[a.length-1];
+
+/* ---------- the end: score, share and the daily streak ---------- */
+function result(){
+  const won1=S.g.includes(ANS);
+  const sq=S.g.map(k=>k===ANS?'🟩':(p=>p>=90?'🟨':p>=75?'🟧':'🟥')(prox(dist(C[k].ll,A.ll))));
+  const capN=S.cap.findIndex(capOK)+1;
+  const pts=(won1?1:0)+(capN?1:0)+(S.pop===sig(A.pop)?1:0)+(S.bor===A.b.length?1:0);
+  return {won1,sq,capN,pts};
+}
+let ended=false;
+function finish(){
+  const r=result();
+  if(!ST.hist[TODAY]){
+    // a streak counts days in a row with the reto finished
+    const y=new Date(today);y.setDate(y.getDate()-1);
+    ST.streak=ST.last===dkey(y)?ST.streak+1:1;ST.best=Math.max(ST.best,ST.streak);ST.last=TODAY;ST.played++;if(r.won1)ST.found++;
+    ST.hist[TODAY]={c:ANS,g:r.won1?S.g.length:0,p:r.pts};store.set('mapeo.reto.stats',ST);
+  }
+  drawStreak();
+  if(ended)return;ended=true;
+  const e=$('#end');e.hidden=false;
+  const share=shareText(r);
+  e.innerHTML=`<div class="big">${r.pts} de 4</div><div class="line">${r.sq.join('')}</div>
+    <div class="sub">${r.won1?`País a la ${S.g.length}.ª`:'País sin adivinar'} · capital ${r.capN?`a la ${r.capN}.ª`:'fallada'} · población ${S.pop===sig(A.pop)?'✓':'✗'} · fronteras ${S.bor===A.b.length?'✓':'✗'}</div>
+    <div class="acts"><button class="btn" id="share" type="button">compartir</button><a class="btn soft" href="./#mundo" style="text-decoration:none">ir al mapa</a></div>
+    <div class="sub" style="margin-top:14px" id="next"></div>`;
+  $('#share').onclick=async()=>{
+    try{if(navigator.share&&matchMedia('(pointer:coarse)').matches){await navigator.share({text:share});return}await navigator.clipboard.writeText(share);$('#share').textContent='copiado'}
+    catch(err){$('#share').textContent='no se pudo copiar'}
+    setTimeout(()=>$('#share').textContent='compartir',1800);
+  };
+  const tick=()=>{const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const s=Math.max(0,(m-n)/1000|0);$('#next').textContent=`Siguiente país en ${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')} min`};
+  tick();setInterval(tick,30000);
+  if(!render.first)setTimeout(()=>e.scrollIntoView({behavior:'smooth',block:'center'}),250);
+}
+function shareText(r){
+  return `Mapeo · reto ${today.toLocaleDateString('es',{day:'numeric',month:'short'})} · ${r.pts}/4\n🗺️ ${r.sq.join('')}${r.won1?'':' ✗'}\n🏛️ ${r.capN?`✓ ${r.capN}/3`:'✗'}  👥 ${S.pop===sig(A.pop)?'✓':'✗'}  🧱 ${S.bor===A.b.length?'✓':'✗'}\n${location.origin.startsWith('http')&&!/claude/.test(location.host)?location.origin+location.pathname:'typemaps.vercel.app/mapeo/reto.html'}`;
+}
+function drawStreak(){
+  const y=new Date(today);y.setDate(y.getDate()-1);
+  const live=ST.last===TODAY||ST.last===dkey(y)?ST.streak:0;
+  $('#streak').innerHTML=`<span title="Días seguidos completando el reto"><b>${live}</b>${live===1?'día':'días seguidos'}</span><span title="Tu mejor racha"><b>${ST.best}</b>mejor</span>`;
+}
+render.first=true;drawStreak();render();render.first=false;
+if(!s1done())$('#g-in').focus({preventScroll:true});
+</script>
+</body>
+</html>
