@@ -148,6 +148,15 @@ main>.games:last-child{margin-bottom:60px}
 .qz-o .kbd{position:absolute;top:6px;left:9px;font-size:10.5px;color:var(--sub)}
 .qz-o .flag{max-width:200px}.mini-flag{width:38px;flex:none}.mini-flag .flag{width:38px}
 svg.duel{width:100%;max-width:200px;height:auto}svg.duel path{fill:var(--text);fill-rule:evenodd}
+.ds-val{font-family:var(--display);font-size:44px;text-align:center}.ds-val b{font-weight:400;color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);margin:12px 0 4px}
+.ds-scale{display:flex;justify-content:space-between;color:var(--sub);font-size:11px;margin-bottom:12px}
+.q .sm{font-family:var(--mono);font-size:14px;color:var(--sub)}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-bottom:12px}
+.thumb{position:relative;padding:6px;border-radius:12px;background:var(--alt);transition:background-color .2s,box-shadow .2s}
+.thumb .gmap{pointer-events:none;cursor:pointer}.thumb .opos{position:absolute;top:8px;left:12px;font-family:var(--display);font-size:26px;color:var(--accent);z-index:2}
+.thumb .ty{display:block;text-align:center;font-size:13px;min-height:18px;margin-top:4px}
+.thumb.set{box-shadow:0 0 0 2px var(--accent)}.thumb.good{box-shadow:0 0 0 2px var(--accent);background:color-mix(in srgb,var(--accent) 18%,var(--alt))}.thumb.bad{box-shadow:0 0 0 2px var(--err)}
 /* más o menos */
 .hl{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
 .hl-c{padding:18px;border-radius:16px;background:var(--bg);text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:background-color .3s}
@@ -894,6 +903,92 @@ quizGame({id:'mal-pintada',title:'Bandera mal pintada',desc:'Cuatro versiones de
       if(out.length<3)continue;
       const opts=shuffle([opt(`<img class="flag" src="${svgURI(t)}" alt="">`,true),...out.map(v=>opt(`<img class="flag" src="${svgURI(v)}" alt="">`,false))]);
       return {q:`<p class="q">¿Cuál es la bandera correcta de <em>${esc(C[k].n)}</em>?</p>`,wide:true,opts,after:''}}
+  }});
+
+
+/* Distancia: how far apart are two capitals? */
+game({id:'distancia',group:'Pensar',title:'Distancia',desc:'¿Cuántos kilómetros hay entre dos capitales? Cuanto más te acerques, más puntos. Cinco rondas.',
+  rec:()=>{const b=REC.distancia?.best;return b!=null?`mejor: ${b} de 500`:''},
+  async start(main){
+    let round,total,a,b,done;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="ds-n"></span></div><p class="q" id="ds-q"></p>
+      <div class="panel"><div class="ds-val"><b id="ds-v">5.000</b> km</div><input type="range" id="ds-r" min="0" max="20000" step="50" value="5000" aria-label="Distancia en kilómetros">
+      <div class="ds-scale"><span>0</span><span>5.000</span><span>10.000</span><span>15.000</span><span>20.000 km</span></div>
+      <div class="row"><div class="msg" id="ds-msg">Mueve la barra (o usa las flechas) y confirma.</div><button class="btn" id="ds-go" type="button">confirmar</button></div><div id="ds-map"></div></div>
+      <div class="end" id="ds-end" hidden></div></div>`;
+    try{await loadScript('caps.js')}catch(e){return}
+    if(location.hash!=='#distancia')return;
+    const pool=CODES.filter(k=>CAPS[k]&&C[k].cap);
+    const real=()=>Math.round(dist(CAPS[a].ll,CAPS[b].ll));
+    const score=()=>{setScore(`<span><b>${total}</b>puntos</span><span><b>${REC.distancia?.best??0}</b>récord</span>`);$('#ds-n').textContent=round<5?`ronda ${round+1} de 5`:''};
+    const showV=()=>$('#ds-v').textContent=fmtN(+$('#ds-r').value);
+    function deal(){for(;;){a=rnd(pool);b=rnd(pool);if(a!==b&&real()>300)break}done=false;
+      $('#ds-q').innerHTML=`De <em>${esc(C[a].cap.n)}</em> <span class="sm">(${esc(C[a].n)})</span> a <em>${esc(C[b].cap.n)}</em> <span class="sm">(${esc(C[b].n)})</span>`;
+      $('#ds-r').disabled=false;$('#ds-go').textContent='confirmar';$('#ds-msg').textContent='Mueve la barra (o usa las flechas) y confirma.';$('#ds-msg').className='msg';$('#ds-map').innerHTML='';score();$('#ds-r').focus()}
+    $('#ds-r').oninput=showV;
+    $('#ds-go').onclick=()=>{
+      if(!done){done=true;const g=+$('#ds-r').value,r=real(),err=Math.abs(g-r),pts=Math.max(0,Math.round(100*(1-err/Math.max(r,800))));total+=pts;round++;
+        $('#ds-r').disabled=true;$('#ds-msg').innerHTML=`Son <b>${fmtN(r)} km</b>; dijiste ${fmtN(g)}. +${pts}`;$('#ds-msg').className='msg '+(pts>=70?'ok':'bad');
+        const p=[CAPS[a],CAPS[b]].map(c=>C[c===CAPS[a]?a:b].w);$('#ds-map').innerHTML=miniMap(`<polyline class="path" points="${C[a].w.join(',')} ${C[b].w.join(',')}"/><circle class="pin" cx="${C[a].w[0]}" cy="${C[a].w[1]}" r="3"/><circle class="pin" cx="${C[b].w[0]}" cy="${C[b].w[1]}" r="3"/>`);
+        $('#ds-go').textContent=round<5?'siguiente →':'ver resultado';score();return}
+      if(round<5){deal();return}
+      const r=saveScore('distancia',total);score();endCard($('#ds-end'),{big:`${total} de 500`,sub:'cinco distancias entre capitales',rec:recLine(r,' de 500'),again:reset});
+    };
+    function reset(){round=0;total=0;$('#ds-end').hidden=true;deal()}
+    reset();
+  }});
+
+/* Ordena la historia: five maps of Europe, put them in time order */
+game({id:'ordena-historia',group:'Historia',title:'Ordena la historia',desc:'Cinco mapas de Europa desordenados: ponlos en orden cronológico. Tres rondas.',
+  rec:()=>{const b=REC['ordena-historia']?.best;return b!=null?`mejor: ${b} de 15`:''},
+  async start(main){
+    let round,total,set,picked,checked;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="oh-n"></span></div><p class="q">Ordénalos <em>del más antiguo al más reciente</em></p>
+      <div class="thumbs" id="oh-l"><p class="msg">Cargando mapas…</p></div><div class="row"><div class="msg" id="oh-msg">Pulsa los mapas en orden; pulsa uno ya puesto para quitarlo.</div><button class="btn" id="oh-go" type="button" disabled>comprobar</button></div>
+      <div class="end" id="oh-end" hidden></div></div>`;
+    try{await loadScript('data.js')}catch(e){return}
+    const score=()=>{setScore(`<span><b>${total}</b>puntos</span><span><b>${REC['ordena-historia']?.best??0}</b>récord</span>`);$('#oh-n').textContent=round<3?`ronda ${round+1} de 3`:''};
+    async function deal(){
+      set=shuffle([...HYEARS]).slice(0,5);picked=[];checked=false;score();
+      const Ms=await Promise.all(set.map(loadYear));if(location.hash!=='#ordena-historia')return;
+      $('#oh-l').innerHTML=set.map(y=>`<button type="button" class="thumb" data-y="${y}"><span class="opos"></span><span class="tmap"></span><span class="ty"></span></button>`).join('');
+      set.forEach((y,i)=>mapView($(`#oh-l [data-y="${y}"] .tmap`),Ms[i],{onClick(){},tint:1}));
+      draw();$('#oh-go').textContent='comprobar';$('#oh-msg').textContent='Pulsa los mapas en orden; pulsa uno ya puesto para quitarlo.';$('#oh-msg').className='msg';
+    }
+    function draw(){const right=[...set].sort((a,b)=>a-b);
+      for(const y of set){const el=$(`#oh-l [data-y="${y}"]`),i=picked.indexOf(y);el.querySelector('.opos').textContent=i>=0?i+1:'';el.classList.toggle('set',i>=0);
+        el.classList.toggle('good',checked&&right[i]===y);el.classList.toggle('bad',checked&&right[i]!==y);el.querySelector('.ty').textContent=checked?y:''}
+      $('#oh-go').disabled=!checked&&picked.length<5}
+    $('#oh-l').addEventListener('click',e=>{const b=e.target.closest('[data-y]');if(!b||checked)return;const y=+b.dataset.y,i=picked.indexOf(y);if(i>=0)picked.splice(i,1);else picked.push(y);draw()},true);
+    $('#oh-go').onclick=()=>{
+      if(!checked){checked=true;const right=[...set].sort((a,b)=>a-b);const pts=picked.filter((y,i)=>right[i]===y).length;total+=pts;round++;draw();score();
+        $('#oh-msg').textContent=pts===5?'¡Perfecto!':`${pts} de 5 en su sitio: ${right.join(' → ')}`;$('#oh-msg').className='msg '+(pts>=3?'ok':'bad');$('#oh-go').textContent=round<3?'siguiente →':'ver resultado';$('#oh-go').disabled=false;return}
+      if(round<3){deal();return}
+      const r=saveScore('ordena-historia',total);score();endCard($('#oh-end'),{big:`${total} de 15`,sub:'mapas en su sitio',rec:recLine(r,' de 15'),again:reset});
+    };
+    function reset(){round=0;total=0;$('#oh-end').hidden=true;deal()}
+    reset();
+  }});
+
+/* ¿Quién era su vecino? */
+quizGame({id:'vecino-historico',group:'Historia',title:'¿Quién era su vecino?',desc:'En un año dado, ¿cuál de estos estados limitaba con otro? Diez rondas.',
+  async gen(){
+    await loadScript('data.js');
+    for(;;){const y=rnd(TYEARS),M=await loadYear(y);const X=rnd(M.items.filter(it=>it.nb&&it.nb.length>=2&&it.nb.length<M.items.length-4));if(!X)continue;
+      const yes=rnd(X.nb),no=pickN(M.items.filter(it=>it.id!==X.id&&!X.nb.includes(it.id)).map(it=>it.id),3);if(no.length<3)continue;
+      return {q:`<p class="q">En <em>${y}</em>, ¿cuál limitaba con <em>${esc(hName(X.id))}</em>?</p>`,opts:shuffle([yes,...no]).map(id=>opt(esc(hName(id)),id===yes)),
+        after:`Sus vecinos en ${y}: ${esc(listEs(X.nb.map(hName)))}`}}
+  }});
+
+/* Bandera histórica → época */
+quizGame({id:'bandera-epoca',group:'Historia',title:'Bandera histórica → época',desc:'Una bandera de un estado desaparecido: ¿en qué época ondeaba? Diez rondas.',
+  async gen(){
+    await loadScript('banderas-data.js');
+    const H=Object.entries(window.FLAGS).filter(([k,v])=>k.startsWith('h-')&&v.y);
+    const [k,v]=rnd(H);const others=pickN([...new Set(H.filter(([k2,v2])=>v2.y!==v.y).map(([,v2])=>v2.y))],3);
+    const f=v.f||'svg';
+    return {q:`<p class="q">¿Cuándo ondeaba la bandera de <em>${esc(v.n)}</em>?</p><div class="flagbox"><img class="flag" style="aspect-ratio:${v.ar||4/3};object-fit:contain;width:min(300px,70vw)" src="flags/${k}.${f}" alt=""></div>`,
+      opts:shuffle([v.y,...others]).map(y=>opt(esc(y),y===v.y)),after:`${esc(v.n)}: ${esc(v.y)}`}
   }});
 
 /* ---------- hub and routing ---------- */
