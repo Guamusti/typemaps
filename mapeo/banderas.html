@@ -29,9 +29,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 
 .glow{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .6s}
 .glow-on .glow{opacity:1}
-.glow::before,.glow::after{content:"";position:absolute;border-radius:50%;filter:blur(90px)}
-.glow::before{width:52vw;height:52vw;left:-12vw;top:18%;background:color-mix(in srgb,var(--accent) 11%,transparent);animation:drift 26s ease-in-out infinite alternate}
-.glow::after{width:38vw;height:38vw;right:-8vw;top:-10%;background:color-mix(in srgb,var(--err) 6%,transparent);animation:drift 34s ease-in-out infinite alternate-reverse}
+.glow::before,.glow::after{content:"";position:absolute;border-radius:50%}
+.glow::before{width:52vw;height:52vw;left:-12vw;top:18%;background:radial-gradient(closest-side,color-mix(in srgb,var(--accent) 11%,transparent),transparent)}
+.glow::after{width:38vw;height:38vw;right:-8vw;top:-10%;background:radial-gradient(closest-side,color-mix(in srgb,var(--err) 6%,transparent),transparent)}
 @keyframes drift{to{transform:translate(9vw,7vh) scale(1.12)}}
 header,main{position:relative;z-index:1}
 
@@ -53,7 +53,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 .seg.soft button[aria-pressed="true"]{color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
 
 /* control row: stays in view while the wall scrolls */
-.barwrap{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);transition:background-color .45s}
+.barwrap{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--bg) 86%,transparent);transition:background-color .45s}
 .bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;gap:14px 34px;padding:16px 0 26px}
 .count{font-family:var(--display);font-size:64px;line-height:.9;color:var(--accent);font-variant-numeric:tabular-nums;transition:color .45s}
 .count small{font-size:30px;color:var(--sub)}
@@ -103,7 +103,7 @@ kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var
 .note{color:var(--sub);font-size:12px;margin:10px 0 0}
 
 /* drawer */
-.scrim{position:fixed;inset:0;z-index:9;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim{position:fixed;inset:0;z-index:9;background:color-mix(in srgb,var(--bg) 55%,transparent);opacity:0;pointer-events:none;transition:opacity .3s}
 .drawer{position:fixed;z-index:10;top:0;right:0;height:100%;width:min(430px,100%);background:var(--alt);border-left:1px solid var(--line);
   padding:26px 26px 40px;overflow-y:auto;transform:translateX(102%);visibility:hidden;transition:transform .38s cubic-bezier(.22,.9,.3,1),visibility .38s,background-color .45s}
 .open .scrim{opacity:1;pointer-events:auto}

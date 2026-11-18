@@ -27,7 +27,7 @@ button{background:none;border:0;cursor:pointer;padding:0}
 [hidden]{display:none!important}
 .wrap{max-width:720px;margin:0 auto;padding:0 24px}
 .glow{position:fixed;inset:0;pointer-events:none;z-index:0}
-.glow::before{content:"";position:absolute;width:60vw;height:60vw;left:-15vw;top:10%;border-radius:50%;filter:blur(90px);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.glow::before{content:"";position:absolute;width:60vw;height:60vw;left:-15vw;top:10%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--accent) 10%,transparent),transparent)}
 header,main{position:relative;z-index:1}
 header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-bottom:8px}
 .mark{font-family:var(--display);font-style:italic;font-size:34px;line-height:1;color:var(--text);text-decoration:none;letter-spacing:-.01em}

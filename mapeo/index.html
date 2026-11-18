@@ -31,9 +31,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 
 .glow{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0;transition:opacity .6s}
 .glow-on .glow{opacity:1}
-.glow::before,.glow::after{content:"";position:absolute;border-radius:50%;filter:blur(90px)}
-.glow::before{width:52vw;height:52vw;left:-12vw;top:18%;background:color-mix(in srgb,var(--accent) 11%,transparent);animation:drift 26s ease-in-out infinite alternate}
-.glow::after{width:38vw;height:38vw;right:-8vw;top:-10%;background:color-mix(in srgb,var(--err) 6%,transparent);animation:drift 34s ease-in-out infinite alternate-reverse}
+.glow::before,.glow::after{content:"";position:absolute;border-radius:50%}
+.glow::before{width:52vw;height:52vw;left:-12vw;top:18%;background:radial-gradient(closest-side,color-mix(in srgb,var(--accent) 11%,transparent),transparent)}
+.glow::after{width:38vw;height:38vw;right:-8vw;top:-10%;background:radial-gradient(closest-side,color-mix(in srgb,var(--err) 6%,transparent),transparent)}
 @keyframes drift{to{transform:translate(9vw,7vh) scale(1.12)}}
 header,main{position:relative;z-index:1}
 
@@ -76,7 +76,8 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 /* map */
 .stage{position:relative;margin-top:18px;border-radius:18px;overflow:hidden;background:color-mix(in srgb,var(--alt) 38%,var(--bg));transition:background-color .45s;touch-action:none;user-select:none;cursor:grab}
 .stage.drag{cursor:grabbing}
-#map{display:block;width:100%;height:auto;max-height:76vh;transform-origin:0 0;will-change:transform}
+#map{display:block;width:100%;height:auto;max-height:76vh}
+#mapw{transform-origin:0 0;will-change:transform}
 #map.moving path,#map.moving .mk{shape-rendering:optimizeSpeed}
 #map path{stroke:var(--bg);stroke-width:calc(.7px * var(--ik,1));stroke-linejoin:round}
 .ctx{fill:var(--ctx);stroke:none!important;transition:fill .45s}
@@ -138,9 +139,9 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 .full header,.full .board,.full main .note{display:none}
 .full .wrap{max-width:none;padding:0}
 .full .stage{position:fixed;inset:0;margin:0;border-radius:0;z-index:2}
-.full #map{height:100%;max-height:none}
+.full #map{height:100%;max-height:none}.full #mapw{height:100%}
 .full .bar{position:fixed;z-index:5;top:14px;left:50%;transform:translateX(-50%);width:min(780px,calc(100% - 28px));padding:10px 20px 14px;align-items:center;
-  background:color-mix(in srgb,var(--alt) 84%,transparent);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:18px}
+  background:color-mix(in srgb,var(--alt) 96%,transparent);border:1px solid var(--line);border-radius:18px}
 .full .count{font-size:40px}.full .count small{font-size:20px}.full .count em{display:none}
 .full #inp{font-size:18px}
 .full #hint{position:static;margin-top:4px;min-height:16px}
@@ -161,7 +162,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 @keyframes pop{from{opacity:0;transform:translateY(5px)}}
 
 /* drawer */
-.scrim{position:fixed;inset:0;z-index:9;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim{position:fixed;inset:0;z-index:9;background:color-mix(in srgb,var(--bg) 55%,transparent);opacity:0;pointer-events:none;transition:opacity .3s}
 .drawer{position:fixed;z-index:10;top:0;right:0;height:100%;width:min(430px,100%);background:var(--alt);border-left:1px solid var(--line);
   padding:26px 26px 40px;overflow-y:auto;transform:translateX(102%);visibility:hidden;transition:transform .38s cubic-bezier(.22,.9,.3,1),visibility .38s,background-color .45s}
 .open .scrim,.open-rec .scrim{opacity:1;pointer-events:auto}
@@ -286,7 +287,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
     </div>
 
     <div class="stage" id="stage">
-      <svg id="map" role="img" aria-label="Mapa del juego"></svg>
+      <div id="mapw"><svg id="map" role="img" aria-label="Mapa del juego"></svg></div>
       <div class="zoom">
         <button type="button" id="z-in" aria-label="Acercar">+</button>
         <button type="button" id="z-out" aria-label="Alejar">−</button>
@@ -395,7 +396,7 @@ const MASTER=3; // correct answers in a row that count as learned
 
 let cfg=Object.assign({map:'europe',subc:'ES',mode:'type',palette:'medianoche',custom:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],timer:'on',labels:'flash',glow:1},store.get('mapeo.cfg',{}));
 const save=()=>store.set('mapeo.cfg',cfg);
-const root=document.documentElement, body=document.body, svg=$('#map'), stage=$('#stage'), inp=$('#inp');
+const root=document.documentElement, body=document.body, svg=$('#map'), mapw=$('#mapw'), stage=$('#stage'), inp=$('#inp');
 
 /* ---------- look ---------- */
 const activeColors=()=>cfg.palette==='custom'?cfg.custom:(PALETTES.find(p=>p.id===cfg.palette)||PALETTES[0]).c;
@@ -467,18 +468,18 @@ const RCSS=typeof CSS!=='undefined'&&CSS.supports&&CSS.supports('r','1px');
 // which costs almost nothing; the vector map is redrawn at the new view a few times a second and once when it stops.
 let CV=null,baseM=null,baseInv=null,sr0=null,offE=0,offF=0,lastCommit=0,settleT=0;
 function commit(moving){
-  svg.style.transform='';svg.classList.toggle('moving',moving);
+  mapw.style.transform='';svg.classList.toggle('moving',moving);
   viewG.setAttribute('transform',`translate(${V.x.toFixed(2)} ${V.y.toFixed(2)}) scale(${V.k.toFixed(4)})`);CV={...V};
-  const m=svg.getScreenCTM();baseM=m;baseInv=m?m.inverse():null;const r=svg.getBoundingClientRect();sr0=stage.getBoundingClientRect();
+  const m=svg.getScreenCTM();baseM=m;baseInv=m?m.inverse():null;const r=mapw.getBoundingClientRect();sr0=stage.getBoundingClientRect();
   offE=m?m.e-r.left:0;offF=m?m.f-r.top:0;lastCommit=performance.now();
 }
 function drawView(settle=true){
-  if(!settle&&CV&&baseM&&performance.now()-lastCommit<200&&V.k/CV.k<2.2&&CV.k/V.k<2.2){
+  if(!settle&&CV&&baseM&&performance.now()-lastCommit<380&&V.k/CV.k<2.5&&CV.k/V.k<2.5){
     const s=V.k/CV.k,a=baseM.a,tx=V.x-s*CV.x,ty=V.y-s*CV.y;
-    svg.style.transform=`translate(${(a*tx+(1-s)*offE).toFixed(2)}px,${(a*ty+(1-s)*offF).toFixed(2)}px) scale(${s.toFixed(5)})`;
+    mapw.style.transform=`translate(${(a*tx+(1-s)*offE).toFixed(2)}px,${(a*ty+(1-s)*offF).toFixed(2)}px) scale(${s.toFixed(5)})`;
     return;
   }
-  commit(!settle);
+  commit(!settle);applyLod();
   if(drawView.k!==V.k){drawView.k=V.k;drawView.dirty=true;
     const st=svg.style;st.setProperty('--ik',(1/V.k).toFixed(5));st.setProperty('--mr',(mkBase()/V.k).toFixed(4));
     lblG.setAttribute('font-size',(fsBase()/V.k).toFixed(4));lblG.setAttribute('stroke-width',(fsBase()/7/V.k).toFixed(4));}
@@ -498,7 +499,7 @@ function moveView(snap,live){
 }
 // pointer → map units of the untransformed map (the CSS slide is ignored; page scroll is accounted for)
 function svgPoint(e){
-  if(!baseInv||svg.style.transform===''){const m=svg.getScreenCTM();return m?new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()):{x:0,y:0}}
+  if(!baseInv||mapw.style.transform===''){const m=svg.getScreenCTM();return m?new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()):{x:0,y:0}}
   const sr=stage.getBoundingClientRect();return new DOMPoint(e.clientX-(sr.left-sr0.left),e.clientY-(sr.top-sr0.top)).matrixTransform(baseInv)}
 const settleSoon=()=>{clearTimeout(settleT);settleT=setTimeout(()=>{if(!vraf)drawView(true)},140)};
 addEventListener('resize',()=>{CV=null});
@@ -691,18 +692,65 @@ const unpark=k=>{delete PARK[k];store.set('mapeo.park',PARK)};
 // capitals of the world can be narrowed to one continent
 const capR=()=>cfg.map==='capw'&&cfg.capr&&cfg.capr!=='all'?cfg.capr:null;
 const scopeKey=()=>cfg.map+(cfg.map==='sub'?'.'+cfg.subc:capR()?'.'+capR():'');
+// Level of detail. Seen from far away, borders carry far more points than pixels; each zoom band gets its own
+// simplified copy of every outline (Douglas–Peucker, error under a pixel), so the browser draws a fraction of the points.
+const LOD=[[2.2,.45],[5.5,.16],[1/0,0]];
+const lodOf=k=>LOD.findIndex(l=>k<l[0]);
+function parseD(d){
+  const t=d.match(/[MmLlHhVvZz]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g)||[],rings=[];let i=0,c='M',x=0,y=0,cur=null;
+  const num=()=>+t[i++];
+  while(i<t.length){const k=t[i];
+    if(/[A-Za-z]/.test(k)){c=k;i++;if(c==='Z'||c==='z'){if(cur){cur.closed=1;x=cur[0][0];y=cur[0][1];cur=null}continue}}
+    switch(c){
+      case'M':x=num();y=num();rings.push(cur=[[x,y]]);c='L';break;
+      case'm':x+=num();y+=num();rings.push(cur=[[x,y]]);c='l';break;
+      case'L':x=num();y=num();break;case'l':x+=num();y+=num();break;
+      case'H':x=num();break;case'h':x+=num();break;case'V':y=num();break;case'v':y+=num();break;
+      default:i++;continue}
+    if(c!=='M'&&c!=='m'){if(!cur)rings.push(cur=[[x,y]]);else cur.push([x,y])}
+  }
+  return rings;
+}
+function simplify(pts,tol){
+  const n=pts.length;if(n<4||!tol)return pts;const t2=tol*tol,keep=new Uint8Array(n);keep[0]=keep[n-1]=1;const st=[[0,n-1]];
+  while(st.length){const [a,b]=st.pop();const [ax,ay]=pts[a],[bx,by]=pts[b],dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let md=0,mi=-1;
+    for(let j=a+1;j<b;j++){const [px,py]=pts[j];let d;
+      if(L===0)d=(px-ax)**2+(py-ay)**2;else{const u=((px-ax)*dx+(py-ay)*dy)/L,qx=ax+u*dx,qy=ay+u*dy;d=u<0?(px-ax)**2+(py-ay)**2:u>1?(px-bx)**2+(py-by)**2:(px-qx)**2+(py-qy)**2}
+      if(d>md){md=d;mi=j}}
+    if(md>t2){keep[mi]=1;st.push([a,mi],[mi,b])}}
+  const out=[];for(let j=0;j<n;j++)if(keep[j])out.push(pts[j]);return out;
+}
+function lodD(d,tol,keepTiny){
+  if(!tol||!d)return d;let o='';
+  for(const r of parseD(d)){
+    if(r.closed){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const [x,y] of r){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+      if(!keepTiny&&x1-x0<tol*1.5&&y1-y0<tol*1.5)continue}
+    // a closed ring is split in two halves so its far side survives the simplification
+    let q;if(r.closed&&r.length>6){const h=r.length>>1;q=simplify(r.slice(0,h+1),tol).concat(simplify(r.slice(h).concat([r[0]]),tol).slice(1,-1))}else q=simplify(r,tol);
+    if(r.closed&&q.length<3)q=[r[0],r[Math.floor(r.length/3)],r[Math.floor(2*r.length/3)]];
+    o+='M'+q.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')+(r.closed?'Z':'');
+  }
+  return o;
+}
+function applyLod(force){
+  if(!M||!viewG)return;const lv=lodOf(V.k);if(!force&&M.lv===lv)return;M.lv=lv;const tol=LOD[lv][1];
+  const c=(M.lodc=M.lodc||{})[lv]||(M.lodc[lv]={});
+  for(const el of viewG.querySelectorAll(':scope>path')){const key=el.dataset.id||el.getAttribute('class').split(' ')[0];
+    const src=el.dataset.id?M.byId[el.dataset.id].d:M[key];
+    const d=c[key]??(c[key]=lodD(src,tol,!!el.dataset.id));if(el.lv!==lv){el.setAttribute('d',d);el.lv=lv}}
+}
 function buildMap(){
   M=MAPS[cfg.map];svg.setAttribute('viewBox',`0 0 ${M.w} ${M.h}`);
   if(!M.byId){M.byId={};for(const it of M.items)M.byId[it.id]=it}
   body.classList.toggle('sub-map',!!M.sub);body.classList.toggle('cap-map',!!M.cap);
-  let s=`<g id="view"><path class="ctx" d="${M.ctx}"/>`;
-  if(M.fr)s+=`<path class="fr" d="${M.fr}"/>`;
-  for(const it of M.items)if(it.d)s+=`<path class="land" data-id="${it.id}" d="${it.d}"/>`;
-  if(M.cb)s+=`<path class="cb" d="${M.cb}"/>`;
+  let s=`<g id="view"><path class="ctx" d=""/>`;
+  if(M.fr)s+=`<path class="fr" d=""/>`;
+  for(const it of M.items)if(it.d)s+=`<path class="land" data-id="${it.id}" d=""/>`;
+  if(M.cb)s+=`<path class="cb" d=""/>`;
   for(const it of M.items)if(it.m)s+=`<circle class="mk" data-id="${it.id}" cx="${it.c[0]}" cy="${it.c[1]}" r="1"/>`;
   svg.innerHTML=s+'<g id="fx"></g><g id="lbl"></g></g>';
   viewG=$('#view');fxG=$('#fx');lblG=$('#lbl');els={};marks=$$('.mk');
-  drawView.k=null;CV=null;svg.style.transform='';svg.classList.toggle('rcss',RCSS);
+  drawView.k=null;CV=null;mapw.style.transform='';svg.classList.toggle('rcss',RCSS);M.lv=-1;V.k=1;applyLod(true);
   // a place with a marker answers through both its shape and its dot
   for(const el of $$('#view [data-id]'))(els[el.dataset.id]=els[el.dataset.id]||[]).push(el);
   for(const k in els){const a=els[k];els[k]=a.find(x=>x.tagName==='path')||a[0];els[k].all=a}
