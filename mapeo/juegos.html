@@ -168,6 +168,7 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:12px 0 4px}
 .hub-tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:4px 0 6px}.srch{flex:1;min-width:220px}
 .sm-seg{padding:3px}.sm-seg button{padding:4px 10px;font-size:12.5px}.hl-r{display:flex;align-items:center;gap:16px}
 .qz-kb{margin:4px 0 6px}
+.tflag{object-fit:contain!important;background:transparent;box-shadow:none!important;max-height:240px;width:auto!important;max-width:min(360px,80vw)!important}
 .flagbox.sm .flag{width:min(150px,40vw)}
 .cmap{margin-top:4px}.cmap .gmap{max-height:52vh}
 .gmap .city{fill:var(--err)}.gmap .cityr{fill:none;stroke:var(--err);stroke-width:1.2;vector-effect:non-scaling-stroke}
@@ -860,21 +861,21 @@ game({id:'rellena',group:'Con mapa',title:'Rellena el continente',desc:'El mapa 
 /* ---------- a generic quiz: a question, a few options, rounds or lives or a clock ---------- */
 // gen() returns (or resolves to) {q, opts:[{html,ok}], wide, after}
 const QGENS=[];
-function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,lives=null,mix=true}){
+function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,lives=null,mix=true,filters=null}){
   if(mix)QGENS.push({id,title,gen});
   game({id,group,title,desc,
-    rec:()=>{const b=REC[id]?.best;return b!=null?(time?`mejor: ${b} en ${time} s`:lives?`mejor: ${b} seguidas`:`mejor: ${b} de ${rounds}`):''},
+    rec:()=>{const b=filters?Math.max(-1,...filters.opts.map(([v])=>REC[id+'.'+v]?.best??-1)):REC[id]?.best;if(b===-1)return '';return b!=null?(time?`mejor: ${b} en ${time} s`:lives?`mejor: ${b} seguidas`:`mejor: ${b} de ${rounds}`):''},
     start(main){
-      let n,right,busy,cur,T=null,running=false,ended=false,lost=0;
-      main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="qz-n"></span><span class="hl-r">${inputSeg()}${time?'<span class="clock" id="qz-t"></span>':''}${lives?'<span class="lives" id="qz-l"></span>':''}</span></div>
+      let n,right,busy,cur,T=null,running=false,ended=false,lost=0,fv=filters?store.get('mapeo.juegos.f.'+id,filters.def):null;const RK=()=>filters?id+'.'+fv:id;
+      main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="qz-n"></span>${filters?`<span class="seg" id="qz-f">${filters.opts.map(([v,t])=>`<button type="button" data-f="${v}" aria-pressed="${v===fv}">${t}</button>`).join('')}</span>`:''}<span class="hl-r">${inputSeg()}${time?'<span class="clock" id="qz-t"></span>':''}${lives?'<span class="lives" id="qz-l"></span>':''}</span></div>
         <div class="qz-q" id="qz-q"></div><div class="qz-kb" id="qz-kb" hidden>${fieldHTML('qz-in','Escribe la respuesta…')}</div><div class="qz-o" id="qz-o"></div><div class="msg" id="qz-msg"></div><div class="end" id="qz-end" hidden></div></div>`;
       let kbList=[];
       textBox($('#qz-in'),$('#qz-in-sug'),()=>kbList,txt=>typed(txt));
       bindInputSeg(()=>{if(cur&&!busy)showMode()});
-      const score=()=>{setScore(`<span><b>${right}</b>aciertos</span><span><b>${REC[id]?.best??0}</b>récord</span>`);$('#qz-n').textContent=time?'':lives?(cur&&cur.tag?cur.tag:''):`${Math.min(n+1,rounds)} de ${rounds}`;if(lives)$('#qz-l').innerHTML='<i class="on"></i>'.repeat(lives-lost)+'<i></i>'.repeat(lost)};
+      const score=()=>{setScore(`<span><b>${right}</b>aciertos</span><span><b>${REC[RK()]?.best??0}</b>récord</span>`);$('#qz-n').textContent=time?'':lives?(cur&&cur.tag?cur.tag:''):`${Math.min(n+1,rounds)} de ${rounds}`;if(lives)$('#qz-l').innerHTML='<i class="on"></i>'.repeat(lives-lost)+'<i></i>'.repeat(lost)};
       async function next(){
         if(ended)return;busy=true;$('#qz-msg').textContent='';
-        cur=await gen();if(here()!==id||ended)return;
+        cur=await gen(fv);if(here()!==id||ended)return;
         $('#qz-q').innerHTML=cur.q;if(cur.mount)cur.mount($('#qz-q'));
         $('#qz-o').className='qz-o'+(cur.wide?' wide':'')+(cur.opts.length===2?' two':cur.opts.length===3?' three':'');
         $('#qz-o').innerHTML=cur.opts.map((o,i)=>`<button type="button" data-i="${i}"><span class="kbd">${i+1}</span>${o.html}</button>`).join('');busy=false;score();showMode();
@@ -901,10 +902,11 @@ function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,lives=null
         $('#qz-msg').innerHTML=(ok?'¡Sí! ':typedMsg||'No. ')+(cur.after||'');$('#qz-msg').className='msg '+(ok?'ok':'bad');score();
         setTimeout(()=>{if(ended||here()!==id)return;if(lives?lost>=lives:!time&&n>=rounds)finish();else next()},time?(ok?450:1300):(ok?1100:2300));
       }
-      function finish(){if(ended)return;ended=true;T&&T.stop();const r=saveScore(id,right);score();$('#qz-n').textContent='';
+      function finish(){if(ended)return;ended=true;T&&T.stop();const r=saveScore(RK(),right);score();$('#qz-n').textContent='';
         endCard($('#qz-end'),{big:time||lives?`${right}`:`${right} de ${rounds}`,sub:time?`aciertos en ${time} segundos`:lives?'aciertos antes de perder las tres vidas':title,rec:recLine(r,time||lives?'':` de ${rounds}`),again:reset})}
       function reset(){T&&T.stop();n=0;right=0;lost=0;ended=false;running=false;$('#qz-end').hidden=true;if(time)$('#qz-t').textContent=time+' s';next()}
       $('#qz-o').onclick=e=>{const b=e.target.closest('[data-i]');if(b)answer(+b.dataset.i)};
+      if(filters)$('#qz-f').onclick=e=>{const b=e.target.closest('[data-f]');if(!b||b.dataset.f===fv)return;fv=b.dataset.f;store.set('mapeo.juegos.f.'+id,fv);$$('#qz-f button').forEach(x=>x.setAttribute('aria-pressed',x===b));ended=true;setTimeout(reset,0)};
       const key=e=>{if(/^[1-4]$/.test(e.key)&&document.activeElement.tagName!=='INPUT'&&$('#qz-o').hidden===false)answer(+e.key-1)};
       document.addEventListener('keydown',key);stopGame=()=>{document.removeEventListener('keydown',key);T&&T.stop();ended=true};
       reset();
@@ -1139,6 +1141,16 @@ quizGame({id:'bandera-test',title:'Bandera → país',desc:'¿De qué país es l
 quizGame({id:'silueta-test',title:'Silueta → país',desc:'¿De qué país es la silueta? Cuatro opciones de la misma zona. Diez rondas.',
   async gen(){const k=rnd(CODES.filter(x=>C[x].d&&C[x].km2>=10000));const d=await loadSil(k);const w=sameRegion(k,3,x=>C[x].km2>=10000);
     return {q:`<p class="q">¿De qué país es esta silueta?</p><div class="silbox">${silSVG(d)}</div>`,opts:shuffle([k,...w]).map(x=>opt(esc(C[x].n),x===k)),after:`Es ${esc(C[k].n)}`}}});
+
+
+/* Banderas de territorios: unrecognised states, autonomies, dependencies and regions */
+quizGame({id:'territorios',group:'Banderas',title:'Banderas de territorios',desc:'Abjasia, Osetia del Sur, Transnistria, Somalilandia, Groenlandia, Cataluña… 115 banderas de estados no reconocidos, autonomías, dependencias y regiones.',
+  filters:{def:'all',opts:[['all','todas'],['nr','no reconocidos'],['au','autonomías'],['dep','dependencias'],['reg','regiones']]},
+  async gen(cat){await loadScript('territorios-data.js');
+    const pool=TERR.filter(t=>cat==='all'||t.c===cat);const t=rnd(pool);
+    const same=TERR.filter(x=>x!==t&&x.c===t.c);const w=pickN(same,3);
+    return {pool:TERR.map(x=>x.n),q:`<p class="q">¿De dónde es esta bandera?</p><div class="flagbox"><img class="flag tflag" style="aspect-ratio:${t.ar}" src="tflags/${t.k}.svg" alt=""></div>`,
+      opts:shuffle([t,...w]).map(x=>opt(esc(x.n),x===t)),after:`<b>${esc(t.n)}</b> · ${esc(TERRCAT[t.c])}. ${esc(t.note)}`}}});
 
 /* Maratón: questions from every quiz, mixed, three lives */
 quizGame({id:'maraton',group:'Mezcla',title:'Maratón',desc:'Preguntas de todos los juegos tipo test mezcladas, una tras otra. Tres vidas.',lives:3,mix:false,
