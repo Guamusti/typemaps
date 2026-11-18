@@ -1149,7 +1149,7 @@ quizGame({id:'territorios',group:'Banderas',title:'Banderas de territorios',desc
   async gen(cat){await loadScript('territorios-data.js');
     const pool=TERR.filter(t=>cat==='all'||t.c===cat);const t=rnd(pool);
     const same=TERR.filter(x=>x!==t&&x.c===t.c);const w=pickN(same,3);
-    return {pool:TERR.map(x=>x.n),q:`<p class="q">¿De dónde es esta bandera?</p><div class="flagbox"><img class="flag tflag" style="aspect-ratio:${t.ar}" src="tflags/${t.k}.svg" alt=""></div>`,
+    return {pool:TERR.map(x=>x.n),q:`<p class="q">¿De dónde es esta bandera?</p><div class="flagbox"><img class="flag tflag" style="aspect-ratio:${t.ar}" src="${svgURI(t.s)}" alt=""></div>`,
       opts:shuffle([t,...w]).map(x=>opt(esc(x.n),x===t)),after:`<b>${esc(t.n)}</b> · ${esc(TERRCAT[t.c])}. ${esc(t.note)}`}}});
 
 /* Maratón: questions from every quiz, mixed, three lives */

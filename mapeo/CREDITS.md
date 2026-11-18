@@ -72,4 +72,4 @@ Banderas históricas: obra de sus autores en Wikimedia Commons, recopiladas en [
 
 Idiomas, monedas y prefijos: world-countries (ODbL), nombres en español del navegador. Ciudades, ríos, mares, lagos y cordilleras: Natural Earth (dominio público).
 
-Banderas de territorios (tflags/): niemela/flags, a partir de Wikimedia Commons (cada archivo con su licencia original; la mayoría de dominio público).
+Banderas de territorios (territorios-data.js): niemela/flags, a partir de Wikimedia Commons (cada archivo con su licencia original; la mayoría de dominio público).
