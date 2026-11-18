@@ -175,6 +175,11 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:12px 0 4px}
 .wf img{width:100%;max-height:70px;object-fit:contain}.wf figcaption{font-size:11px;min-height:15px;text-align:center;line-height:1.25}
 .wf.on{background:color-mix(in srgb,var(--accent) 22%,var(--bg))}.wf.on figcaption{color:var(--accent)}
 .wf.miss{background:color-mix(in srgb,var(--err) 18%,var(--bg))}.wf.miss figcaption{color:var(--err)}
+.ubflag{width:140px}.ubflag .flag{box-shadow:none}
+.gmap .ubl{stroke:var(--text);stroke-width:1.2;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
+.gmap .ubc{fill:var(--text);stroke:var(--bg);stroke-width:1;vector-effect:non-scaling-stroke}
+.gmap .ubt{fill:var(--accent);stroke:var(--bg);stroke-width:1;vector-effect:non-scaling-stroke}.gmap .ubr{fill:none;stroke:var(--accent);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.bm-ask .btn{margin-left:auto;flex:none}
 .flagbox.sm .flag{width:min(150px,40vw)}
 .cmap{margin-top:4px}.cmap .gmap{max-height:52vh}
 .gmap .city{fill:var(--err)}.gmap .cityr{fill:none;stroke:var(--err);stroke-width:1.2;vector-effect:non-scaling-stroke}
@@ -610,7 +615,7 @@ const loaded={};
 const loadScript=src=>loaded[src]||(loaded[src]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>{delete loaded[src];rej()};document.head.append(s)}));
 
 // a map you can zoom with the wheel or pinch-drag, and click
-function mapView(el,M,{onClick,box,tint}){
+function mapView(el,M,{onClick,box,tint,onPoint}){
   const NS='http://www.w3.org/2000/svg';
   let vb=box?[...box]:[0,0,M.w,M.h];const full=[0,0,M.w,M.h];
   let h=`<svg class="gmap" viewBox="${vb.join(' ')}"><path class="ctx" d="${M.ctx}"/>`;
@@ -625,7 +630,7 @@ function mapView(el,M,{onClick,box,tint}){
   svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:[...vb]};moved=false;svg.setPointerCapture(e.pointerId)});
   svg.addEventListener('pointermove',e=>{if(!drag)return;const r=svg.getBoundingClientRect(),dx=(e.clientX-drag.x)/r.width*vb[2],dy=(e.clientY-drag.y)/r.height*vb[3];
     if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>4)moved=true;if(moved){vb=[drag.vb[0]-dx,drag.vb[1]-dy,vb[2],vb[3]];setVB()}});
-  svg.addEventListener('pointerup',e=>{const was=drag;drag=null;if(!was||moved)return;const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-id]');if(t)onClick(t.dataset.id)});
+  svg.addEventListener('pointerup',e=>{const was=drag;drag=null;if(!was||moved)return;const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-id]');if(onPoint)onPoint(pt(e),t?t.dataset.id:null);else if(t)onClick(t.dataset.id)});
   const els=id=>svg.querySelectorAll(`[data-id="${id}"]`);
   return {cls(id,c,on=true){els(id).forEach(x=>x.classList.toggle(c,on))},
     reset(){vb=box?[...box]:[...full];setVB()},
@@ -1198,6 +1203,55 @@ game({id:'territorios-mural',group:'Banderas',title:'Mural de territorios',desc:
     $('#tm-f').onclick=e=>{const b=e.target.closest('[data-f]');if(!b||b.dataset.f===cat)return;cat=b.dataset.f;store.set('mapeo.juegos.f.territorios-mural',cat);$$('#tm-f button').forEach(x=>x.setAttribute('aria-pressed',x===b));setup()};
     stopGame=()=>clearInterval(tick);
     setup();
+  }});
+
+
+/* the world map's projection (Natural Earth, centred at 11°E), forwards and backwards, to turn a click into a place */
+const WPJ={k:187.5115988579835,tx:489.24644187323713,ty:283.56520954005475,rot:11};
+function wfwd(lon,lat){let l=(lon-WPJ.rot)*Math.PI/180;l=((l+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;const p=lat*Math.PI/180,p2=p*p,p4=p2*p2;
+  return [WPJ.tx+WPJ.k*l*(0.8707-0.131979*p2+p4*(-0.013791+p4*(0.003971*p2-0.001529*p4))),WPJ.ty-WPJ.k*p*(1.007226+p2*(0.015085+p4*(-0.044475+0.028874*p2-0.005916*p4)))]}
+function winv(X,Y){const x=(X-WPJ.tx)/WPJ.k,y=(WPJ.ty-Y)/WPJ.k;let p=y;
+  for(let i=0;i<25;i++){const p2=p*p,p4=p2*p2;const f=p*(1.007226+p2*(0.015085+p4*(-0.044475+0.028874*p2-0.005916*p4)))-y;
+    const df=1.007226+p2*(3*0.015085+p4*(7*-0.044475+9*0.028874*p2-11*0.005916*p4));p-=f/df;if(Math.abs(f)<1e-9)break}
+  const p2=p*p,p4=p2*p2;const l=x/(0.8707-0.131979*p2+p4*(-0.013791+p4*(0.003971*p2-0.001529*p4)));
+  return [l*180/Math.PI+WPJ.rot,Math.max(-90,Math.min(90,p*180/Math.PI))]}
+
+/* ¿Dónde está? Flag of a country or territory: click where it is; points by distance */
+game({id:'ubicar',group:'Con mapa',title:'¿Dónde está esta bandera?',desc:'Una bandera de un país o de un territorio: haz clic donde está. Cuanto más cerca, más puntos. Diez rondas.',
+  rec:()=>{const b=Math.max(-1,...['all','pais','terr'].map(v=>REC['ubicar.'+v]?.best??-1));return b>=0?`mejor: ${b} de 10.000`:''},
+  async start(main){
+    let mode=store.get('mapeo.juegos.f.ubicar','all'),round,total,cur,V,done;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="seg" id="ub-f">${[['all','todo'],['pais','países'],['terr','territorios']].map(([v,t])=>`<button type="button" data-f="${v}" aria-pressed="${v===mode}">${t}</button>`).join('')}</span><span class="crumb" id="ub-n"></span></div>
+      <div class="bm-ask"><div class="bm-flag ubflag" id="ub-flag"></div><div><p class="q" style="margin:0" id="ub-q">¿Dónde está?</p><div class="msg" id="ub-msg">Haz clic en el mapa. Rueda para acercar, arrastra para mover.</div></div><button class="btn" id="ub-next" type="button" hidden>siguiente →</button></div>
+      <div class="panel mappanel" id="ub-map"><p class="msg">Cargando el mapa…</p></div><div class="end" id="ub-end" hidden></div></div>`;
+    try{await Promise.all([loadScript('data.js'),loadScript('territorios-data.js')])}catch(e){return}
+    if(here()!=='ubicar')return;
+    const pool=()=>{const P=CODES.filter(k=>C[k].ll).map(k=>({k,n:C[k].n,ll:C[k].ll,img:`${FB}${k.toLowerCase()}.svg`,country:k})),T=TERR.map(t=>({k:t.k,n:t.n,ll:t.ll,img:svgURI(t.s),ar:t.ar,note:t.note}));
+      return mode==='pais'?P:mode==='terr'?T:[...P,...T]};
+    const score=()=>{setScore(`<span><b>${total}</b>puntos</span><span><b>${REC['ubicar.'+mode]?.best??0}</b>récord</span>`);$('#ub-n').textContent=round<10?`${round+1} de 10`:''};
+    let bag=[];
+    function deal(){
+      done=false;if(!bag.length)bag=shuffle(pool());cur=bag.pop();
+      $('#ub-flag').innerHTML=`<img class="flag" src="${cur.img}" alt="" style="object-fit:contain;${cur.ar?'aspect-ratio:'+cur.ar:''}">`;
+      $('#ub-q').textContent='¿Dónde está?';$('#ub-msg').textContent='Haz clic en el mapa. Rueda para acercar, arrastra para mover.';$('#ub-msg').className='msg';$('#ub-next').hidden=true;
+      V=mapView($('#ub-map'),MAPS.world,{onClick(){},onPoint:click});score();
+    }
+    function click([x,y],id){
+      if(done)return;done=true;
+      const ll=winv(x,y);let d=dist(ll,cur.ll);if(cur.country&&id===cur.country)d=0;
+      const pts=Math.round(1000*Math.exp(-d/1500));total+=pts;round++;
+      const [tx,ty]=wfwd(...cur.ll);
+      if(cur.country)V.cls(cur.country,'on');
+      V.svg.insertAdjacentHTML('beforeend',`<line class="ubl" x1="${x}" y1="${y}" x2="${tx}" y2="${ty}"/><circle class="ubc" cx="${x}" cy="${y}" r="2.2"/><circle class="ubt" cx="${tx}" cy="${ty}" r="3"/><circle class="ubr" cx="${tx}" cy="${ty}" r="8"/>`);
+      $('#ub-q').textContent=cur.n;
+      $('#ub-msg').innerHTML=(d<1?'¡Justo ahí! ':`A ${fmtN(d)} km. `)+`+${pts}`+(cur.note?` · ${esc(cur.note)}`:'');$('#ub-msg').className='msg '+(pts>=700?'ok':'bad');
+      score();$('#ub-next').hidden=false;$('#ub-next').textContent=round<10?'siguiente →':'ver resultado';$('#ub-next').focus({preventScroll:true});
+    }
+    $('#ub-next').onclick=()=>{if(round<10){deal();return}
+      const r=saveScore('ubicar.'+mode,total);score();$('#ub-next').hidden=true;endCard($('#ub-end'),{big:`${fmtN(total)}`,sub:'puntos de 10.000',rec:recLine(r,'',fmtN),again:reset})};
+    function reset(){round=0;total=0;bag=[];$('#ub-end').hidden=true;deal()}
+    $('#ub-f').onclick=e=>{const b=e.target.closest('[data-f]');if(!b||b.dataset.f===mode)return;mode=b.dataset.f;store.set('mapeo.juegos.f.ubicar',mode);$$('#ub-f button').forEach(x=>x.setAttribute('aria-pressed',x===b));reset()};
+    reset();
   }});
 
 /* Maratón: questions from every quiz, mixed, three lives */
