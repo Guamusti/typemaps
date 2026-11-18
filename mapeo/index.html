@@ -76,12 +76,14 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 /* map */
 .stage{position:relative;margin-top:18px;border-radius:18px;overflow:hidden;background:color-mix(in srgb,var(--alt) 38%,var(--bg));transition:background-color .45s;touch-action:none;user-select:none;cursor:grab}
 .stage.drag{cursor:grabbing}
-#map{display:block;width:100%;height:auto;max-height:76vh}
-#map path{vector-effect:non-scaling-stroke;stroke:var(--bg);stroke-width:.7;stroke-linejoin:round}
+#map{display:block;width:100%;height:auto;max-height:76vh;transform-origin:0 0;will-change:transform}
+#map.moving path,#map.moving .mk{shape-rendering:optimizeSpeed}
+#map path{stroke:var(--bg);stroke-width:calc(.7px * var(--ik,1));stroke-linejoin:round}
 .ctx{fill:var(--ctx);stroke:none!important;transition:fill .45s}
 .land{fill:var(--land);transition:fill .7s cubic-bezier(.2,.8,.2,1)}
-.mk{fill:var(--land);stroke:var(--sub);vector-effect:non-scaling-stroke;stroke-width:1;transition:fill .7s}
-.cap-map .mk{fill:var(--bg);stroke:var(--text);stroke-width:1.4}
+.mk{fill:var(--land);stroke:var(--sub);stroke-width:calc(1px * var(--ik,1));transition:fill .7s}
+.rcss .mk{r:calc(var(--mr,1) * 1px)}
+.cap-map .mk{fill:var(--bg);stroke:var(--text);stroke-width:calc(1.4px * var(--ik,1))}
 .land.on,.mk.on{fill:var(--accent)}
 .mk.on{stroke:var(--bg)}
 .land.miss,.mk.miss{fill:color-mix(in srgb,var(--err) 62%,var(--bg))}
@@ -126,9 +128,9 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 [data-mode="click"] .land:not(.off):not(.on):not(.late):not(.miss),[data-mode="click"] .mk:not(.off){cursor:pointer}
 [data-mode="click"] .land:not(.off):not(.on):not(.late):not(.miss):hover{fill:color-mix(in srgb,var(--land) 72%,var(--text))}
 [data-mode="click"] .stage{cursor:default}
-#map path.cb{fill:none;stroke:var(--sub);stroke-width:1.3;pointer-events:none}
-#map path.fr{fill:color-mix(in srgb,var(--alt) 38%,var(--bg));stroke:var(--line);stroke-width:1}
-.sub-map #map path.land{stroke-width:.45}
+#map path.cb{fill:none;stroke:var(--sub);stroke-width:calc(1.3px * var(--ik,1));pointer-events:none}
+#map path.fr{fill:color-mix(in srgb,var(--alt) 38%,var(--bg));stroke:var(--line);stroke-width:calc(1px * var(--ik,1))}
+.sub-map #map path.land{stroke-width:calc(.45px * var(--ik,1))}
 .lbl.learn{font-weight:500}
 .chip.late{background:color-mix(in srgb,var(--accent) 22%,var(--alt))}
 
@@ -459,25 +461,48 @@ function clampT(){
   T.k=Math.max(1,Math.min(maxK(),T.k));
   T.x=Math.min(0,Math.max(M.w-M.w*T.k,T.x));T.y=Math.min(0,Math.max(M.h-M.h*T.k,T.y));
 }
-function drawView(){
-  viewG.setAttribute('transform',`translate(${V.x.toFixed(2)} ${V.y.toFixed(2)}) scale(${V.k.toFixed(4)})`);
-  if(drawView.k!==V.k){drawView.k=V.k;const r=(mkBase()/V.k).toFixed(4);for(const m of marks)m.setAttribute('r',r);
-    const fs=(fsBase()/V.k).toFixed(4),sw=(fsBase()/7/V.k).toFixed(4);for(const t of lblG.children){t.setAttribute('font-size',fs);t.setAttribute('stroke-width',sw)}
-    cullLabels();}
+// one transform, a couple of inherited values and nothing per element while the view moves; the per-element work waits until it settles
+const RCSS=typeof CSS!=='undefined'&&CSS.supports&&CSS.supports('r','1px');
+// While the view moves, the map already drawn is slid and scaled as a picture by the compositor (CSS transform on the <svg>),
+// which costs almost nothing; the vector map is redrawn at the new view a few times a second and once when it stops.
+let CV=null,baseM=null,baseInv=null,sr0=null,offE=0,offF=0,lastCommit=0,settleT=0;
+function commit(moving){
+  svg.style.transform='';svg.classList.toggle('moving',moving);
+  viewG.setAttribute('transform',`translate(${V.x.toFixed(2)} ${V.y.toFixed(2)}) scale(${V.k.toFixed(4)})`);CV={...V};
+  const m=svg.getScreenCTM();baseM=m;baseInv=m?m.inverse():null;const r=svg.getBoundingClientRect();sr0=stage.getBoundingClientRect();
+  offE=m?m.e-r.left:0;offF=m?m.f-r.top:0;lastCommit=performance.now();
+}
+function drawView(settle=true){
+  if(!settle&&CV&&baseM&&performance.now()-lastCommit<200&&V.k/CV.k<2.2&&CV.k/V.k<2.2){
+    const s=V.k/CV.k,a=baseM.a,tx=V.x-s*CV.x,ty=V.y-s*CV.y;
+    svg.style.transform=`translate(${(a*tx+(1-s)*offE).toFixed(2)}px,${(a*ty+(1-s)*offF).toFixed(2)}px) scale(${s.toFixed(5)})`;
+    return;
+  }
+  commit(!settle);
+  if(drawView.k!==V.k){drawView.k=V.k;drawView.dirty=true;
+    const st=svg.style;st.setProperty('--ik',(1/V.k).toFixed(5));st.setProperty('--mr',(mkBase()/V.k).toFixed(4));
+    lblG.setAttribute('font-size',(fsBase()/V.k).toFixed(4));lblG.setAttribute('stroke-width',(fsBase()/7/V.k).toFixed(4));}
+  if(settle&&drawView.dirty){drawView.dirty=false;if(!RCSS){const r=(mkBase()/V.k).toFixed(4);for(const m of marks)m.setAttribute('r',r)}cullLabels()}
 }
 function stepView(now){
   const dt=Math.min(48,Math.max(1,now-vlast));vlast=now;const a=1-Math.exp(-dt/85);
   V.x+=(T.x-V.x)*a;V.y+=(T.y-V.y)*a;V.k+=(T.k-V.k)*a;
-  if(Math.abs(T.x-V.x)<.02&&Math.abs(T.y-V.y)<.02&&Math.abs(T.k-V.k)<.0005){Object.assign(V,T);vraf=0;drawView();return}
-  drawView();vraf=requestAnimationFrame(stepView);
+  if(Math.abs(T.x-V.x)<.02&&Math.abs(T.y-V.y)<.02&&Math.abs(T.k-V.k)<.0005){Object.assign(V,T);vraf=0;drawView(true);return}
+  drawView(false);vraf=requestAnimationFrame(stepView);
 }
-function moveView(snap){
+function moveView(snap,live){
   clampT();
+  if(live){Object.assign(V,T);cancelAnimationFrame(vraf);vraf=0;drawView(false);settleSoon();return}
   if(snap||reduced.matches){Object.assign(V,T);cancelAnimationFrame(vraf);vraf=0;drawView();return}
   if(!vraf){vlast=performance.now();vraf=requestAnimationFrame(stepView)}
 }
-function svgPoint(e){const m=svg.getScreenCTM();return m?new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()):{x:0,y:0}}
-function zoomAt(px,py,f,snap){const k=Math.max(1,Math.min(maxK(),T.k*f)),r=k/T.k;T.x=px-(px-T.x)*r;T.y=py-(py-T.y)*r;T.k=k;moveView(snap)}
+// pointer → map units of the untransformed map (the CSS slide is ignored; page scroll is accounted for)
+function svgPoint(e){
+  if(!baseInv||svg.style.transform===''){const m=svg.getScreenCTM();return m?new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()):{x:0,y:0}}
+  const sr=stage.getBoundingClientRect();return new DOMPoint(e.clientX-(sr.left-sr0.left),e.clientY-(sr.top-sr0.top)).matrixTransform(baseInv)}
+const settleSoon=()=>{clearTimeout(settleT);settleT=setTimeout(()=>{if(!vraf)drawView(true)},140)};
+addEventListener('resize',()=>{CV=null});
+function zoomAt(px,py,f,snap,live){const k=Math.max(1,Math.min(maxK(),T.k*f)),r=k/T.k;T.x=px-(px-T.x)*r;T.y=py-(py-T.y)*r;T.k=k;moveView(snap,live)}
 function fitBox(b,snap,fill=.86){
   const w=Math.max(b[2]-b[0],1),h=Math.max(b[3]-b[1],1);
   T.k=Math.max(1,Math.min(maxK(),fill*Math.min(M.w/w,M.h/h)));
@@ -506,9 +531,9 @@ stage.addEventListener('pointermove',e=>{
   const prev=ptrs.get(e.pointerId);if(!prev){hover(e);return}
   const p=svgPoint(e);
   if(ptrs.size===1){const dx=p.x-prev.x,dy=p.y-prev.y;moved+=Math.abs(dx)+Math.abs(dy);
-    if(moved>4){stage.classList.add('drag');try{stage.setPointerCapture(e.pointerId)}catch(err){}T.x+=dx;T.y+=dy;moveView(true)}
+    if(moved>4){stage.classList.add('drag');try{stage.setPointerCapture(e.pointerId)}catch(err){}T.x+=dx;T.y+=dy;moveView(true,true)}
   }else if(ptrs.size===2){ptrs.set(e.pointerId,p);const [a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y);
-    if(pinch>0)zoomAt((a.x+b.x)/2,(a.y+b.y)/2,d/pinch,true);pinch=d;return}
+    if(pinch>0)zoomAt((a.x+b.x)/2,(a.y+b.y)/2,d/pinch,true,true);pinch=d;return}
   ptrs.set(e.pointerId,p);
 });
 const endPtr=e=>{
@@ -677,6 +702,7 @@ function buildMap(){
   for(const it of M.items)if(it.m)s+=`<circle class="mk" data-id="${it.id}" cx="${it.c[0]}" cy="${it.c[1]}" r="1"/>`;
   svg.innerHTML=s+'<g id="fx"></g><g id="lbl"></g></g>';
   viewG=$('#view');fxG=$('#fx');lblG=$('#lbl');els={};marks=$$('.mk');
+  drawView.k=null;CV=null;svg.style.transform='';svg.classList.toggle('rcss',RCSS);
   // a place with a marker answers through both its shape and its dot
   for(const el of $$('#view [data-id]'))(els[el.dataset.id]=els[el.dataset.id]||[]).push(el);
   for(const k in els){const a=els[k];els[k]=a.find(x=>x.tagName==='path')||a[0];els[k].all=a}
@@ -794,7 +820,6 @@ function hint(t,c){const h=$('#hint');h.textContent=t;h.className=c||''}
 function label(id,keep,cls2){
   const it=item(id),t=document.createElementNS(NS,'text');
   t.setAttribute('class','lbl'+(cls2?' '+cls2:''));t.setAttribute('x',it.c[0]);t.setAttribute('y',it.c[1]);t.dataset.l=id;
-  t.setAttribute('font-size',(fsBase()/V.k).toFixed(4));t.setAttribute('stroke-width',(fsBase()/7/V.k).toFixed(4));
   if(M.cap)t.setAttribute('dy','-.75em');
   t.textContent=COUNTRIES[id].n;lblG.append(t);
   if(!keep)setTimeout(()=>{t.style.opacity=0;setTimeout(()=>t.remove(),650)},1700);
