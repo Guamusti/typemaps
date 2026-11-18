@@ -89,6 +89,14 @@ header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-b
 .flags button.right,.flags button.wrong{background:var(--bg)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .fph{display:block;width:100%;max-width:220px;aspect-ratio:4/3;border-radius:6px;background:var(--line)}
+.locmap{border-radius:12px;overflow:hidden;background:var(--bg)}
+.gmap{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair}
+.gmap .ctx{fill:color-mix(in srgb,var(--sub) 11%,var(--bg))}
+.gmap .land,.gmap .mk{fill:color-mix(in srgb,var(--sub) 42%,var(--bg));stroke:var(--bg);stroke-width:.5;vector-effect:non-scaling-stroke;transition:fill .3s}
+.gmap .mk{stroke:var(--sub)}.gmap:not(.done) .land:hover{fill:color-mix(in srgb,var(--accent) 35%,var(--bg))}
+.gmap .on{fill:var(--accent)!important}
+.gmap .ubl{stroke:var(--text);stroke-width:1.2;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
+.gmap .ubc{fill:var(--text);stroke:var(--bg);stroke-width:1;vector-effect:non-scaling-stroke}.gmap .ubt{fill:var(--accent);stroke:var(--bg);stroke-width:1;vector-effect:non-scaling-stroke}
 .chip{padding:6px 11px;border-radius:9px;background:color-mix(in srgb,var(--accent) 22%,var(--bg))}
 .chip.miss{background:color-mix(in srgb,var(--err) 25%,var(--bg))}
 .chip.left{background:transparent;border:1px dashed var(--line);color:var(--sub)}
@@ -132,25 +140,31 @@ header .wrap{display:flex;align-items:center;gap:18px;padding-top:22px;padding-b
     <div class="guesses" id="guesses"></div>
     <div class="world" id="world" hidden></div>
   </section>
+  <section class="step locked" id="sl">
+    <h2>2 · Dónde está<span id="sl-n"></span></h2>
+    <p class="q" id="sl-q">¿Dónde está?</p>
+    <div class="locmap" id="sl-map"></div>
+    <div class="msg" id="sl-msg">Haz clic en el país. Rueda para acercar, arrastra para mover.</div>
+  </section>
   <section class="step locked" id="sf">
-    <h2>2 · Su bandera<span></span></h2>
+    <h2>3 · Su bandera<span></span></h2>
     <p class="q" id="sf-q">¿Cuál es su bandera?</p>
     <div class="opts flags" id="sf-o"></div>
   </section>
   <section class="step locked" id="s2">
-    <h2>3 · Su capital<span id="s2-n">0/3</span></h2>
+    <h2>4 · Su capital<span id="s2-n">0/3</span></h2>
     <p class="q" id="s2-q">¿Cuál es su capital?</p>
     <div class="field"><input id="c-in" autocomplete="off" spellcheck="false" placeholder="Escribe la capital…" aria-label="Capital"></div>
     <div class="msg" id="s2-msg">Tres intentos; cada fallo te da una pista.</div>
   </section>
   <section class="step locked" id="s3">
-    <h2>4 · Su población<span></span></h2>
+    <h2>5 · Su población<span></span></h2>
     <p class="q" id="s3-q">¿Cuántos habitantes tiene?</p>
     <div class="opts" id="s3-o"></div>
     <div class="extra" id="s3-x"></div>
   </section>
   <section class="step locked" id="s4">
-    <h2>5 · Sus vecinos<span id="s4-n"></span></h2>
+    <h2>6 · Sus vecinos<span id="s4-n"></span></h2>
     <p class="q" id="s4-q">¿Con qué países limita por tierra?</p>
     <div class="nb" id="s4-nb" hidden>
       <div class="field"><input id="b-in" list="clist" autocomplete="off" spellcheck="false" placeholder="Escribe un país vecino…" aria-label="País vecino"></div>
@@ -361,21 +375,66 @@ $('#b-in').addEventListener('keydown',e=>{
 });
 $('#b-give').onclick=()=>{S.nbg=1;save();render()};
 
+
+/* step 2: find the country on a real map (loaded on demand) */
+const WPJ={k:187.5115988579835,tx:489.24644187323713,ty:283.56520954005475,rot:11};
+function wfwd(lon,lat){let l=(lon-WPJ.rot)*Math.PI/180;l=((l+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;const p=lat*Math.PI/180,p2=p*p,p4=p2*p2;
+  return [WPJ.tx+WPJ.k*l*(0.8707-0.131979*p2+p4*(-0.013791+p4*(0.003971*p2-0.001529*p4))),WPJ.ty-WPJ.k*p*(1.007226+p2*(0.015085+p4*(-0.044475+0.028874*p2-0.005916*p4)))]}
+function winv(X,Y){const x=(X-WPJ.tx)/WPJ.k,y=(WPJ.ty-Y)/WPJ.k;let p=y;
+  for(let i=0;i<25;i++){const p2=p*p,p4=p2*p2;const f=p*(1.007226+p2*(0.015085+p4*(-0.044475+0.028874*p2-0.005916*p4)))-y;const df=1.007226+p2*(3*0.015085+p4*(7*-0.044475+9*0.028874*p2-11*0.005916*p4));p-=f/df;if(Math.abs(f)<1e-9)break}
+  const p2=p*p,p4=p2*p2;return [x/(0.8707-0.131979*p2+p4*(-0.013791+p4*(0.003971*p2-0.001529*p4)))*180/Math.PI+WPJ.rot,p*180/Math.PI]}
+let LOCV=null,locLoading=false;
+const LOC_OK=d=>d<=150;
+function drawLoc(){
+  if(LOCV){LOCV.sync();return}
+  if(!window.MAPS){if(locLoading)return;locLoading=true;$('#sl-map').innerHTML='<p class="msg">Cargando el mapa…</p>';
+    window.MAPS={};const sc=document.createElement('script');sc.src='data.js';sc.onload=()=>{locLoading=false;drawLoc()};sc.onerror=()=>{$('#sl-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>'};document.head.append(sc);return}
+  const M=MAPS.world;if(!M)return;
+  let vb=[0,0,M.w,M.h];
+  let h=`<svg class="gmap" viewBox="${vb.join(' ')}"><path class="ctx" d="${M.ctx}"/>`;
+  for(const it of M.items)if(it.d)h+=`<path class="land" data-id="${it.id}" d="${it.d}"/>`;
+  for(const it of M.items)if(it.m)h+=`<circle class="mk" data-id="${it.id}" cx="${it.c[0]}" cy="${it.c[1]}"/>`;
+  $('#sl-map').innerHTML=h+'</svg>';const svg=$('#sl-map svg');
+  const setVB=()=>{svg.setAttribute('viewBox',vb.join(' '));svg.querySelectorAll('.mk').forEach(c=>c.setAttribute('r',(vb[2]/170).toFixed(2)))};setVB();
+  const pt=e=>{const r=svg.getBoundingClientRect();return [vb[0]+(e.clientX-r.left)/r.width*vb[2],vb[1]+(e.clientY-r.top)/r.height*vb[3]]};
+  svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=pt(e),f=e.deltaY>0?1.2:1/1.2;const w=Math.min(M.w,Math.max(M.w/40,vb[2]*f)),k=w/vb[2];vb=[x-(x-vb[0])*k,y-(y-vb[1])*k,w,vb[3]*k];setVB()},{passive:false});
+  let drag=null,moved=false;
+  svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:[...vb]};moved=false;svg.setPointerCapture(e.pointerId)});
+  svg.addEventListener('pointermove',e=>{if(!drag)return;const r=svg.getBoundingClientRect(),dx=(e.clientX-drag.x)/r.width*vb[2],dy=(e.clientY-drag.y)/r.height*vb[3];if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>4)moved=true;if(moved){vb=[drag.vb[0]-dx,drag.vb[1]-dy,vb[2],vb[3]];setVB()}});
+  svg.addEventListener('pointerup',e=>{const was=drag;drag=null;if(!was||moved||S.loc!=null)return;
+    const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-id]'),[x,y]=pt(e);
+    let d=Math.round(dist(winv(x,y),A.ll));if(t&&t.dataset.id===ANS)d=0;
+    S.loc={d,x:+x.toFixed(1),y:+y.toFixed(1)};save();render()});
+  LOCV={sync(){
+    const done=S.loc!=null;svg.classList.toggle('done',done);
+    if(!done){$('#sl-n').textContent='';return}
+    svg.querySelectorAll(`[data-id="${ANS}"]`).forEach(x=>x.classList.add('on'));
+    if(!svg.querySelector('.ubt')){const [tx,ty]=wfwd(...A.ll);svg.insertAdjacentHTML('beforeend',(S.loc.d?`<line class="ubl" x1="${S.loc.x}" y1="${S.loc.y}" x2="${tx}" y2="${ty}"/><circle class="ubc" cx="${S.loc.x}" cy="${S.loc.y}" r="2.2"/>`:'')+`<circle class="ubt" cx="${tx}" cy="${ty}" r="2.6"/>`)}
+    const ok=LOC_OK(S.loc.d);$('#sl-n').textContent=ok?'✓':'✗';
+    $('#sl-msg').textContent=S.loc.d===0?`¡Justo! Has señalado ${A.n}`:ok?`¡Casi encima! A ${S.loc.d.toLocaleString('es')} km`:`Te has quedado a ${S.loc.d.toLocaleString('es')} km de ${A.n}`;$('#sl-msg').className='msg '+(ok?'ok':'bad');
+  }};
+  LOCV.sync();
+}
+
 /* ---------- drawing the whole page from the state ---------- */
 function render(){
   drawGuesses();
   const d1=s1done(),won1=S.g.includes(ANS);
   $('#g-in').disabled=d1;$('#sil').className='sil'+(d1?(won1?' won':' lost'):'');
-  if(d1){$('#g-in').placeholder=A.n;drawWorld();if(!won1&&!$('#s1-msg').classList.contains('bad')){$('#s1-msg').textContent=`Era ${A.n}`;$('#s1-msg').className='msg bad'}
+  if(d1){$('#g-in').placeholder=A.n;if(!won1&&!$('#s1-msg').classList.contains('bad')){$('#s1-msg').textContent=`Era ${A.n}`;$('#s1-msg').className='msg bad'}
     else if(won1&&$('#s1-msg').className==='msg'){$('#s1-msg').textContent=`¡Es ${A.n}! A la ${S.g.indexOf(ANS)+1}.ª`;$('#s1-msg').className='msg ok'}}
   // flag
-  $('#sf').classList.toggle('locked',!d1);
+  // locate it on the map
+  $('#sl').classList.toggle('locked',!d1);$('#sl-q').innerHTML=d1?`¿Dónde está <em></em>?`:'¿Dónde está?';if(d1)$('#sl-q em').textContent=A.n;
+  if(d1)drawLoc();
+  const dl=S.loc!=null;
+  $('#sf').classList.toggle('locked',!dl);
   $('#sf-q').innerHTML=`¿Cuál es la bandera de <em></em>?`;$('#sf-q em').textContent=d1?A.n:'este país';
   {const box=$('#sf-o');box.innerHTML='';for(const k of FLAGS){const b=document.createElement('button');b.type='button';
     // no flags before the country is found: four of them would give it away
     b.innerHTML=d1?`<img src="${FB}${k.toLowerCase()}.svg" alt="${S.flag!=null?C[k].n:'Bandera'}" loading="lazy">`:'<span class="fph"></span>';
     if(S.flag!=null){b.disabled=true;b.className=k===ANS?'right':k===S.flag?'wrong':'dim';b.title=C[k].n}else b.onclick=()=>{S.flag=k;save();render()};box.append(b)}}
-  const df=S.flag!=null;
+  const df=S.flag!=null&&dl;
   // capital
   $('#s2').classList.toggle('locked',!df);
   $('#s2-q').innerHTML=`¿Cuál es la capital de <em></em>?`;$('#s2-q em').textContent=d1?A.n:'este país';
@@ -423,8 +482,9 @@ function result(){
   const sq=S.g.map(k=>k===ANS?'🟩':(p=>p>=90?'🟨':p>=75?'🟧':'🟥')(prox(dist(C[k].ll,A.ll))));
   const capN=S.cap.findIndex(capOK)+1;
   const flag=S.flag===ANS,pop=S.pop===sig(A.pop),nbAll=NBN?S.nb.length===NBN:S.bor===0;
-  const pts=(won1?1:0)+(flag?1:0)+(capN?1:0)+(pop?1:0)+(nbAll?1:0);
-  return {won1,sq,capN,pts,flag,pop,nbAll,nbTxt:NBN?`${S.nb.length}/${NBN}`:(nbAll?'✓':'✗')};
+  const loc=S.loc!=null&&LOC_OK(S.loc.d);
+  const pts=(won1?1:0)+(loc?1:0)+(flag?1:0)+(capN?1:0)+(pop?1:0)+(nbAll?1:0);
+  return {won1,sq,capN,pts,flag,pop,nbAll,loc,locD:S.loc?S.loc.d:null,nbTxt:NBN?`${S.nb.length}/${NBN}`:(nbAll?'✓':'✗')};
 }
 let ended=false;
 function finish(){
@@ -440,8 +500,8 @@ function finish(){
   if(ended)return;ended=true;
   const e=$('#end');e.hidden=false;
   const share=shareText(r);
-  e.innerHTML=`<div class="big">${r.pts} de 5</div><div class="line">${r.sq.join('')}</div>
-    <div class="sub">${r.won1?`País a la ${S.g.length}.ª`:'País sin adivinar'} · bandera ${r.flag?'✓':'✗'} · capital ${r.capN?`a la ${r.capN}.ª`:'fallada'} · población ${r.pop?'✓':'✗'} · vecinos ${r.nbTxt}</div>
+  e.innerHTML=`<div class="big">${r.pts} de 6</div><div class="line">${r.sq.join('')}</div>
+    <div class="sub">${r.won1?`País a la ${S.g.length}.ª`:'País sin adivinar'} · mapa ${r.loc?'✓':`✗ (${(r.locD||0).toLocaleString('es')} km)`} · bandera ${r.flag?'✓':'✗'} · capital ${r.capN?`a la ${r.capN}.ª`:'fallada'} · población ${r.pop?'✓':'✗'} · vecinos ${r.nbTxt}</div>
     <div class="acts"><button class="btn" id="share" type="button">compartir</button>${FREE?'<button class="btn soft" id="again" type="button">otro país</button>':'<a class="btn soft" href="#libre" style="text-decoration:none">modo ilimitado</a>'}</div>
     <div class="sub" style="margin-top:14px" id="next"></div>`;
   $('#share').onclick=async()=>{
@@ -455,11 +515,11 @@ function finish(){
   if(!render.first)setTimeout(()=>e.scrollIntoView({behavior:'smooth',block:'center'}),250);
 }
 function shareText(r){
-  return `Mapeo · ${FREE?'ilimitado':'reto '+today.toLocaleDateString('es',{day:'numeric',month:'short'})} · ${r.pts}/5\n🗺️ ${r.sq.join('')}${r.won1?'':' ✗'}\n🚩 ${r.flag?'✓':'✗'}  🏛️ ${r.capN?`✓ ${r.capN}/3`:'✗'}  👥 ${r.pop?'✓':'✗'}  🧱 ${r.nbTxt}\n${location.origin.startsWith('http')&&!/claude/.test(location.host)?location.origin+location.pathname:'typemaps.vercel.app/mapeo/reto.html'}`;
+  return `Mapeo · ${FREE?'ilimitado':'reto '+today.toLocaleDateString('es',{day:'numeric',month:'short'})} · ${r.pts}/6\n🗺️ ${r.sq.join('')}${r.won1?'':' ✗'}\n📍 ${r.loc?'✓':`✗ ${(r.locD||0).toLocaleString('es')} km`}  🚩 ${r.flag?'✓':'✗'}  🏛️ ${r.capN?`✓ ${r.capN}/3`:'✗'}  👥 ${r.pop?'✓':'✗'}  🧱 ${r.nbTxt}\n${location.origin.startsWith('http')&&!/claude/.test(location.host)?location.origin+location.pathname:'typemaps.vercel.app/mapeo/reto.html'}`;
 }
 function drawStreak(){
   if(FREE){const F=store.get('mapeo.reto.libre.stats',{played:0,pts:0,found:0});
-    $('#streak').innerHTML=`<span title="Partidas en modo ilimitado"><b>${F.played}</b>${F.played===1?'partida':'partidas'}</span><span title="Puntos de media, sobre 5"><b>${F.played?(F.pts/F.played).toLocaleString('es',{maximumFractionDigits:1}):'–'}</b>media</span>`;return}
+    $('#streak').innerHTML=`<span title="Partidas en modo ilimitado"><b>${F.played}</b>${F.played===1?'partida':'partidas'}</span><span title="Puntos de media, sobre 6"><b>${F.played?(F.pts/F.played).toLocaleString('es',{maximumFractionDigits:1}):'–'}</b>media</span>`;return}
   const y=new Date(today);y.setDate(y.getDate()-1);
   const live=ST.last===TODAY||ST.last===dkey(y)?ST.streak:0;
   $('#streak').innerHTML=`<span title="Días seguidos completando el reto"><b>${live}</b>${live===1?'día':'días seguidos'}</span><span title="Tu mejor racha"><b>${ST.best}</b>mejor</span>`;
