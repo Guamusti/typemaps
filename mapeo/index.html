@@ -107,6 +107,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 #hint.bad{color:var(--err)}
 .land.off,.mk.off{fill:color-mix(in srgb,var(--land) 42%,var(--bg));pointer-events:none}
 .sub-map.one .land.off{pointer-events:auto;cursor:pointer}
+.cap-map .mk.off{opacity:.18}.cap-map .land.off{fill:color-mix(in srgb,var(--land) 30%,var(--bg))}
 .sub-map .land.off.ra1,.sub-map .mk.off.ra1{fill:var(--accent)}
 .sub-map .land.off.ra2,.sub-map .mk.off.ra2{fill:color-mix(in srgb,var(--accent) 62%,var(--land))}
 .sub-map .land.off.ra3,.sub-map .mk.off.ra3{fill:color-mix(in srgb,var(--accent) 36%,var(--land))}
@@ -245,7 +246,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
       <button type="button" data-map="caps" title="Capitales del mundo o de Europa">Capitales</button>
       <a class="reto-l" href="juegos.html" title="Reto diario y minijuegos">Juegos</a>
     </div>
-    <label class="pick" id="cpick" hidden><span class="pick-l">De</span><select id="capsel" aria-label="Capitales de"><option value="cape">Europa</option><option value="capw">Mundo</option></select></label>
+    <label class="pick" id="cpick" hidden><span class="pick-l">De</span><select id="capsel" aria-label="Capitales de"><option value="cape">Europa</option><option value="capw.af">África</option><option value="capw.as">Asia</option><option value="capw.na">América del Norte</option><option value="capw.sa">América del Sur</option><option value="capw.oc">Oceanía</option><option value="capw">Mundo</option></select></label>
     <label class="pick" id="ypick" hidden><span class="pick-l">Año</span><select id="year" aria-label="Año del mapa histórico"></select></label>
     <label class="pick" id="pick" hidden><span class="pick-l">Regiones de</span><select id="subc" aria-label="País de las regiones"><option value="ES">España</option></select></label>
     <div class="seg soft" data-key="mode" aria-label="Modo de juego">
@@ -422,7 +423,7 @@ function syncUI(){
   $$('.seg[data-key]').forEach(s=>[...s.children].forEach(b=>b.setAttribute('aria-pressed',String(cfg[s.dataset.key])===b.dataset.val)));
   $$('[data-pal]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pal===cfg.palette));
   $$('[data-map]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.map===cfg.map||b.dataset.map==='hist'&&isHist(cfg.map)||b.dataset.map==='caps'&&isCap(cfg.map)));
-  $('#cpick').hidden=!isCap(cfg.map);if(isCap(cfg.map))$('#capsel').value=cfg.map;
+  $('#cpick').hidden=!isCap(cfg.map);if(isCap(cfg.map))$('#capsel').value=cfg.map==='capw'&&cfg.capr&&cfg.capr!=='all'?'capw.'+cfg.capr:cfg.map;
   $('#pick').hidden=cfg.map!=='sub';
   $('#ypick').hidden=!isHist(cfg.map);if(isHist(cfg.map))$('#year').value=cfg.map;
   const c=activeColors();for(let i=0;i<6;i++)$('#c-'+i).value=c[i];
@@ -441,7 +442,7 @@ document.addEventListener('click',e=>{
 });
 $('#subc').addEventListener('change',e=>{cfg.subc=e.target.value;save();start();focusInput()});
 $('#year').innerHTML=YEARS.map(y=>`<option value="e${y}">${y}</option>`).join('');
-$('#capsel').addEventListener('change',e=>{cfg.map=cfg.caps=e.target.value;save();syncUI();try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}start();focusInput()});
+$('#capsel').addEventListener('change',e=>{const [m,r]=e.target.value.split('.');cfg.map=cfg.caps=m;cfg.capr=r||'all';save();syncUI();try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}start();focusInput()});
 $('#year').addEventListener('change',e=>{cfg.map=cfg.hist=e.target.value;save();syncUI();try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}start();focusInput()});
 for(let i=0;i<6;i++)$('#c-'+i).addEventListener('input',e=>{
   if(cfg.palette!=='custom'){cfg.custom=[...activeColors()];cfg.palette='custom'}
@@ -577,7 +578,7 @@ function fillPick(){
 /* ---------- records of "señalar": best complete round per map / country ---------- */
 const REC=store.get('mapeo.rec',{}),STREAK=store.get('mapeo.streak',{});
 const pointing=()=>cfg.mode==='click'||cfg.mode==='streak';
-const MAPNAME={europe:'Europa',world:'Mundo',cape:'Capitales de Europa',capw:'Capitales del mundo','sub.all':'Toda Europa (regiones)'};for(const y of YEARS)MAPNAME['e'+y]='Europa en '+y;
+const MAPNAME={europe:'Europa',world:'Mundo',cape:'Capitales de Europa',capw:'Capitales del mundo','capw.af':'Capitales de África','capw.as':'Capitales de Asia','capw.na':'Capitales de América del Norte','capw.sa':'Capitales de América del Sur','capw.oc':'Capitales de Oceanía','capw.eu':'Capitales de Europa (mapamundi)','sub.all':'Toda Europa (regiones)'};for(const y of YEARS)MAPNAME['e'+y]='Europa en '+y;
 // rounds played before this view existed only kept a count: bring them in as they were
 for(const k of Object.keys((()=>{try{return localStorage}catch(e){return {}}})())){
   const m=k.match(/^mapeo\.pb\.(.+)\.click$/);if(!m||REC[m[1]])continue;const pb=store.get(k,null);
@@ -633,7 +634,7 @@ const openRecords=o=>{if(o){openDrawer(false);renderRecords()}body.classList.tog
 $('#open-records').onclick=()=>openRecords(true);$('#close-records').onclick=()=>openRecords(false);
 $('#rec-body').addEventListener('click',e=>{
   const b=e.target.closest('[data-rec]');if(!b)return;const s=b.dataset.rec;
-  if(s.startsWith('sub.')){cfg.map='sub';cfg.subc=s.slice(4)}else cfg.map=s;
+  if(s.startsWith('sub.')){cfg.map='sub';cfg.subc=s.slice(4)}else if(s.startsWith('capw')){cfg.map=cfg.caps='capw';cfg.capr=s.split('.')[1]||'all'}else cfg.map=s;
   cfg.mode=b.dataset.streak?'streak':'click';save();syncUI();if(MAPS.sub&&cfg.map==='sub')$('#subc').value=cfg.subc;
   try{history.replaceState(null,'','#'+HASH[cfg.map])}catch(err){}
   body.classList.remove('open-rec');start();
@@ -662,7 +663,9 @@ function park(){
   store.set('mapeo.park',PARK);
 }
 const unpark=k=>{delete PARK[k];store.set('mapeo.park',PARK)};
-const scopeKey=()=>cfg.map+(cfg.map==='sub'?'.'+cfg.subc:'');
+// capitals of the world can be narrowed to one continent
+const capR=()=>cfg.map==='capw'&&cfg.capr&&cfg.capr!=='all'?cfg.capr:null;
+const scopeKey=()=>cfg.map+(cfg.map==='sub'?'.'+cfg.subc:capR()?'.'+capR():'');
 function buildMap(){
   M=MAPS[cfg.map];svg.setAttribute('viewBox',`0 0 ${M.w} ${M.h}`);
   if(!M.byId){M.byId={};for(const it of M.items)M.byId[it.id]=it}
@@ -683,9 +686,10 @@ function buildMap(){
 }
 const cls=(id,c,on=true)=>els[id]&&els[id].all.forEach(x=>x.classList.toggle(c,on));
 function scopeBox(){
-  if(M.sub&&cfg.subc!=='all'){const b=[1e9,1e9,-1e9,-1e9];
+  if(M.sub&&cfg.subc!=='all'||capR()){const b=[1e9,1e9,-1e9,-1e9];
     for(const id of G.ids){const el=els[id];let x0,y0,x1,y1;
-      if(el.tagName==='path'){const r=el.getBBox();x0=r.x;y0=r.y;x1=r.x+r.width;y1=r.y+r.height}else{const it=item(id);x0=x1=it.c[0];y0=y1=it.c[1]}
+      // for capitals use the dot, so Alaska, Hawaii or overseas pieces do not stretch the view
+      if(el.tagName==='path'&&!capR()){const r=el.getBBox();x0=r.x;y0=r.y;x1=r.x+r.width;y1=r.y+r.height}else{const it=item(id);x0=x1=it.c[0];y0=y1=it.c[1]}
       b[0]=Math.min(b[0],x0);b[1]=Math.min(b[1],y0);b[2]=Math.max(b[2],x1);b[3]=Math.max(b[3],y1)}
     return b}
   return [0,0,M.w,M.h];
@@ -722,7 +726,7 @@ function newGame(saved,smooth){
   clearInterval(tick);clearTimeout(nextT);
   const wasSub=M&&M.sub,from={...V};buildMap();
   const all=M.items.map(i=>i.id);
-  const ids=M.sub&&cfg.subc!=='all'?all.filter(id=>COUNTRIES[id].r===cfg.subc):all;
+  const ids=M.sub&&cfg.subc!=='all'?all.filter(id=>COUNTRIES[id].r===cfg.subc):capR()?all.filter(id=>COUNTRIES[id].r===capR()):all;
   const look=new Map();
   for(const id of ids){const c=COUNTRIES[id];for(const k of [norm(c.n),...c.a]){if(!look.has(k))look.set(k,[]);if(!look.get(k).includes(id))look.get(k).push(id)}}
   G={ids,in:new Set(ids),look,keys:[...look.keys()],found:new Set(),order:[],started:false,ended:false,t0:0,elapsed:0,carry:'',lastId:'',
