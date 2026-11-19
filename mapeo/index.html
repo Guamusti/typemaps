@@ -77,7 +77,8 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 .stage{position:relative;margin-top:18px;border-radius:18px;overflow:hidden;background:color-mix(in srgb,var(--alt) 38%,var(--bg));transition:background-color .45s;touch-action:none;user-select:none;cursor:grab}
 .stage.drag{cursor:grabbing}
 #map{display:block;width:100%;height:auto;max-height:76vh}
-#mapw{transform-origin:0 0;will-change:transform}
+#mapw{position:relative;transform-origin:0 0;will-change:transform}
+.stage.drag #map{pointer-events:none}
 #map.moving path,#map.moving .mk{shape-rendering:optimizeSpeed}
 #map path{stroke:var(--bg);stroke-width:calc(.7px * var(--ik,1));stroke-linejoin:round}
 .ctx{fill:var(--ctx);stroke:none!important;transition:fill .45s}
@@ -124,8 +125,13 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
 .land.lv0,.mk.lv0{fill:color-mix(in srgb,var(--accent) 24%,var(--land))}
 .land.lv1,.mk.lv1{fill:color-mix(in srgb,var(--accent) 45%,var(--land))}
 .land.lv2,.mk.lv2{fill:color-mix(in srgb,var(--accent) 68%,var(--land))}
-.land.tgt,.mk.tgt{fill:var(--text);animation:tgt 1.2s ease-in-out infinite}
-@keyframes tgt{50%{fill:color-mix(in srgb,var(--text) 45%,var(--accent))}}
+.land.tgt,.mk.tgt{fill:var(--text)}
+/* the pulsing target lives in its own see-through layer: only its opacity animates, so the big map is never repainted for it */
+#ov{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible;opacity:0}
+#ov.on{will-change:opacity;animation:tgt 1.2s ease-in-out infinite}
+#ov .pl{fill:color-mix(in srgb,var(--text) 45%,var(--accent));stroke:none}
+#ov .pmk{r:calc(var(--mr,1) * 1px)}
+@keyframes tgt{0%,100%{opacity:0}50%{opacity:1}}
 [data-mode="click"] .land:not(.off):not(.on):not(.late):not(.miss),[data-mode="click"] .mk:not(.off){cursor:pointer}
 [data-mode="click"] .land:not(.off):not(.on):not(.late):not(.miss):hover{fill:color-mix(in srgb,var(--land) 72%,var(--text))}
 [data-mode="click"] .stage{cursor:default}
@@ -287,7 +293,7 @@ a.mark:hover::after,a.mark:focus-visible::after{opacity:1;transform:translate(0,
     </div>
 
     <div class="stage" id="stage">
-      <div id="mapw"><svg id="map" role="img" aria-label="Mapa del juego"></svg></div>
+      <div id="mapw"><svg id="map" role="img" aria-label="Mapa del juego"></svg><svg id="ov" aria-hidden="true"><g id="ovg"></g></svg></div>
       <div class="zoom">
         <button type="button" id="z-in" aria-label="Acercar">+</button>
         <button type="button" id="z-out" aria-label="Alejar">−</button>
@@ -396,7 +402,7 @@ const MASTER=3; // correct answers in a row that count as learned
 
 let cfg=Object.assign({map:'europe',subc:'ES',mode:'type',palette:'medianoche',custom:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],timer:'on',labels:'flash',glow:1},store.get('mapeo.cfg',{}));
 const save=()=>store.set('mapeo.cfg',cfg);
-const root=document.documentElement, body=document.body, svg=$('#map'), mapw=$('#mapw'), stage=$('#stage'), inp=$('#inp');
+const root=document.documentElement, body=document.body, svg=$('#map'), mapw=$('#mapw'), ov=$('#ov'), ovg=$('#ovg'), stage=$('#stage'), inp=$('#inp');
 
 /* ---------- look ---------- */
 const activeColors=()=>cfg.palette==='custom'?cfg.custom:(PALETTES.find(p=>p.id===cfg.palette)||PALETTES[0]).c;
@@ -468,10 +474,11 @@ const RCSS=typeof CSS!=='undefined'&&CSS.supports&&CSS.supports('r','1px');
 // which costs almost nothing; the vector map is redrawn at the new view a few times a second and once when it stops.
 let CV=null,baseM=null,baseInv=null,sr0=null,offE=0,offF=0,lastCommit=0,settleT=0;
 function commit(moving){
-  mapw.style.transform='';svg.classList.toggle('moving',moving);
-  viewG.setAttribute('transform',`translate(${V.x.toFixed(2)} ${V.y.toFixed(2)}) scale(${V.k.toFixed(4)})`);CV={...V};
-  const m=svg.getScreenCTM();baseM=m;baseInv=m?m.inverse():null;const r=mapw.getBoundingClientRect();sr0=stage.getBoundingClientRect();
-  offE=m?m.e-r.left:0;offF=m?m.f-r.top:0;lastCommit=performance.now();
+  mapw.style.transform='';
+  const tr=`translate(${V.x.toFixed(2)} ${V.y.toFixed(2)}) scale(${V.k.toFixed(4)})`;viewG.setAttribute('transform',tr);ovg.setAttribute('transform',tr);CV={...V};
+  // the screen position of the map only changes when the page lays out again, not when the view moves: measured once, not per redraw
+  if(!baseM){const m=svg.getScreenCTM();if(m){baseM=m;baseInv=m.inverse();const r=mapw.getBoundingClientRect();sr0=stage.getBoundingClientRect();offE=m.e-r.left;offF=m.f-r.top}}
+  lastCommit=performance.now();
 }
 function drawView(settle=true){
   if(!settle&&CV&&baseM&&performance.now()-lastCommit<380&&V.k/CV.k<2.5&&CV.k/V.k<2.5){
@@ -480,8 +487,10 @@ function drawView(settle=true){
     return;
   }
   commit(!settle);applyLod();
-  if(drawView.k!==V.k){drawView.k=V.k;drawView.dirty=true;
-    const st=svg.style;st.setProperty('--ik',(1/V.k).toFixed(5));st.setProperty('--mr',(mkBase()/V.k).toFixed(4));
+  // stroke widths, dot and label sizes only follow the zoom once it stops (each change restyles every shape);
+  // mid-gesture they simply scale with the map, exactly as the sliding picture already shows them
+  if(settle&&drawView.k!==V.k){drawView.k=V.k;drawView.dirty=true;
+    const st=mapw.style;st.setProperty('--ik',(1/V.k).toFixed(5));st.setProperty('--mr',(mkBase()/V.k).toFixed(4));
     lblG.setAttribute('font-size',(fsBase()/V.k).toFixed(4));lblG.setAttribute('stroke-width',(fsBase()/7/V.k).toFixed(4));}
   if(settle&&drawView.dirty){drawView.dirty=false;if(!RCSS){const r=(mkBase()/V.k).toFixed(4);for(const m of marks)m.setAttribute('r',r)}cullLabels()}
 }
@@ -502,7 +511,8 @@ function svgPoint(e){
   if(!baseInv||mapw.style.transform===''){const m=svg.getScreenCTM();return m?new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse()):{x:0,y:0}}
   const sr=stage.getBoundingClientRect();return new DOMPoint(e.clientX-(sr.left-sr0.left),e.clientY-(sr.top-sr0.top)).matrixTransform(baseInv)}
 const settleSoon=()=>{clearTimeout(settleT);settleT=setTimeout(()=>{if(!vraf)drawView(true)},140)};
-addEventListener('resize',()=>{CV=null});
+addEventListener('resize',()=>{CV=null;baseM=null});
+if(window.ResizeObserver)new ResizeObserver(()=>{baseM=null;CV=null}).observe(mapw);
 function zoomAt(px,py,f,snap,live){const k=Math.max(1,Math.min(maxK(),T.k*f)),r=k/T.k;T.x=px-(px-T.x)*r;T.y=py-(py-T.y)*r;T.k=k;moveView(snap,live)}
 function fitBox(b,snap,fill=.86){
   const w=Math.max(b[2]-b[0],1),h=Math.max(b[3]-b[1],1);
@@ -696,41 +706,48 @@ const scopeKey=()=>cfg.map+(cfg.map==='sub'?'.'+cfg.subc:capR()?'.'+capR():'');
 // simplified copy of every outline (Douglas–Peucker, error under a pixel), so the browser draws a fraction of the points.
 const LOD=[[2.2,.45],[5.5,.16],[1/0,0]];
 const lodOf=k=>LOD.findIndex(l=>k<l[0]);
+// fast hand-rolled reader for the path data (M/L/H/V/Z, absolute or relative, implicit repeats)
 function parseD(d){
-  const t=d.match(/[MmLlHhVvZz]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g)||[],rings=[];let i=0,c='M',x=0,y=0,cur=null;
-  const num=()=>+t[i++];
-  while(i<t.length){const k=t[i];
-    if(/[A-Za-z]/.test(k)){c=k;i++;if(c==='Z'||c==='z'){if(cur){cur.closed=1;x=cur[0][0];y=cur[0][1];cur=null}continue}}
+  const rings=[],n=d.length;let i=0,c=77,x=0,y=0,cur=null;
+  const num=()=>{while(i<n){const ch=d.charCodeAt(i);if(ch===32||ch===44||ch===10||ch===13||ch===9)i++;else break}
+    const st=i;if(d.charCodeAt(i)===45||d.charCodeAt(i)===43)i++;let dot=false;
+    while(i<n){const ch=d.charCodeAt(i);if(ch>=48&&ch<=57)i++;else if(ch===46&&!dot){dot=true;i++}else if((ch===101||ch===69)&&i>st){i++;if(d.charCodeAt(i)===45||d.charCodeAt(i)===43)i++}else break}
+    return +d.slice(st,i)};
+  while(i<n){let ch=d.charCodeAt(i);
+    if(ch===32||ch===44||ch===10||ch===13||ch===9){i++;continue}
+    if((ch>=65&&ch<=90)||(ch>=97&&ch<=122)){i++;c=ch;
+      if(ch===90||ch===122){if(cur){cur.closed=1;x=cur[0];y=cur[1];cur=null}continue}continue}
     switch(c){
-      case'M':x=num();y=num();rings.push(cur=[[x,y]]);c='L';break;
-      case'm':x+=num();y+=num();rings.push(cur=[[x,y]]);c='l';break;
-      case'L':x=num();y=num();break;case'l':x+=num();y+=num();break;
-      case'H':x=num();break;case'h':x+=num();break;case'V':y=num();break;case'v':y+=num();break;
-      default:i++;continue}
-    if(c!=='M'&&c!=='m'){if(!cur)rings.push(cur=[[x,y]]);else cur.push([x,y])}
+      case 77:x=num();y=num();rings.push(cur=[x,y]);c=76;continue;
+      case 109:x+=num();y+=num();rings.push(cur=[x,y]);c=108;continue;
+      case 76:x=num();y=num();break;case 108:x+=num();y+=num();break;
+      case 72:x=num();break;case 104:x+=num();break;case 86:y=num();break;case 118:y+=num();break;
+      default:num();continue}
+    if(!cur)rings.push(cur=[x,y]);else cur.push(x,y);
   }
-  return rings;
+  return rings; // each ring: flat [x0,y0,x1,y1,…] (+ .closed)
 }
-function simplify(pts,tol){
-  const n=pts.length;if(n<4||!tol)return pts;const t2=tol*tol,keep=new Uint8Array(n);keep[0]=keep[n-1]=1;const st=[[0,n-1]];
-  while(st.length){const [a,b]=st.pop();const [ax,ay]=pts[a],[bx,by]=pts[b],dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let md=0,mi=-1;
-    for(let j=a+1;j<b;j++){const [px,py]=pts[j];let d;
-      if(L===0)d=(px-ax)**2+(py-ay)**2;else{const u=((px-ax)*dx+(py-ay)*dy)/L,qx=ax+u*dx,qy=ay+u*dy;d=u<0?(px-ax)**2+(py-ay)**2:u>1?(px-bx)**2+(py-by)**2:(px-qx)**2+(py-qy)**2}
+// Douglas–Peucker on a flat coordinate list between point indices a..b (inclusive), marking survivors in keep
+function dp(r,a,b,t2,keep){
+  keep[a]=keep[b]=1;const st=[a,b];
+  while(st.length){const bb=st.pop(),aa=st.pop();const ax=r[2*aa],ay=r[2*aa+1],bx=r[2*bb],by=r[2*bb+1],dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let md=0,mi=-1;
+    for(let j=aa+1;j<bb;j++){const px=r[2*j],py=r[2*j+1];let d;
+      if(L===0)d=(px-ax)*(px-ax)+(py-ay)*(py-ay);else{let u=((px-ax)*dx+(py-ay)*dy)/L;u=u<0?0:u>1?1:u;const qx=ax+u*dx-px,qy=ay+u*dy-py;d=qx*qx+qy*qy}
       if(d>md){md=d;mi=j}}
-    if(md>t2){keep[mi]=1;st.push([a,mi],[mi,b])}}
-  const out=[];for(let j=0;j<n;j++)if(keep[j])out.push(pts[j]);return out;
+    if(md>t2){keep[mi]=1;st.push(aa,mi,mi,bb)}}
 }
+const f1=v=>Math.round(v*10)/10;
 function lodD(d,tol,keepTiny){
-  if(!tol||!d)return d;let o='';
-  for(const r of parseD(d)){
-    if(r.closed){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const [x,y] of r){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-      if(!keepTiny&&x1-x0<tol*1.5&&y1-y0<tol*1.5)continue}
-    // a closed ring is split in two halves so its far side survives the simplification
-    let q;if(r.closed&&r.length>6){const h=r.length>>1;q=simplify(r.slice(0,h+1),tol).concat(simplify(r.slice(h).concat([r[0]]),tol).slice(1,-1))}else q=simplify(r,tol);
-    if(r.closed&&q.length<3)q=[r[0],r[Math.floor(r.length/3)],r[Math.floor(2*r.length/3)]];
-    o+='M'+q.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')+(r.closed?'Z':'');
-  }
-  return o;
+  if(!tol||!d)return d;const out=[];
+  for(const r of parseD(d)){const np=r.length>>1;if(!np)continue;
+    if(r.closed&&!keepTiny){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let j=0;j<r.length;j+=2){const x=r[j],y=r[j+1];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+      if(x1-x0<tol*1.5&&y1-y0<tol*1.5)continue}
+    const keep=new Uint8Array(np);
+    if(np<4)keep.fill(1);else if(r.closed){const h=np>>1;dp(r,0,h,tol*tol,keep);dp(r,h,np-1,tol*tol,keep)}else dp(r,0,np-1,tol*tol,keep);
+    let s='',cnt=0;for(let j=0;j<np;j++)if(keep[j]){s+=(cnt?'L':'M')+f1(r[2*j])+' '+f1(r[2*j+1]);cnt++}
+    if(r.closed&&cnt<3){const q=[0,Math.floor(np/3),Math.floor(2*np/3)];s='M'+q.map(j=>f1(r[2*j])+' '+f1(r[2*j+1])).join('L')}
+    out.push(r.closed?s+'Z':s)}
+  return out.join('');
 }
 function applyLod(force){
   if(!M||!viewG)return;const lv=lodOf(V.k);if(!force&&M.lv===lv)return;M.lv=lv;const tol=LOD[lv][1];
@@ -738,9 +755,21 @@ function applyLod(force){
   for(const el of viewG.querySelectorAll(':scope>path')){const key=el.dataset.id||el.getAttribute('class').split(' ')[0];
     const src=el.dataset.id?M.byId[el.dataset.id].d:M[key];
     const d=c[key]??(c[key]=lodD(src,tol,!!el.dataset.id));if(el.lv!==lv){el.setAttribute('d',d);el.lv=lv}}
+  for(const n of ovg.children)if(n.tagName==='path'&&els[n.dataset.p])n.setAttribute('d',els[n.dataset.p].getAttribute('d'));
+}
+// the simplified outlines for every zoom band are prepared in spare moments, so the first zoom-in never stutters;
+// the other big maps are fetched into the cache meanwhile so switching to them is quicker
+const ric=window.requestIdleCallback||(f=>setTimeout(()=>f({timeRemaining:()=>8}),60));
+function warmLod(){
+  const m=M,jobs=[];
+  for(let lv=0;lv<LOD.length;lv++){const tol=LOD[lv][1];if(!tol)continue;const c=(m.lodc=m.lodc||{})[lv]||(m.lodc[lv]={});
+    for(const k of['ctx','fr','cb'])if(m[k]&&c[k]==null)jobs.push(()=>{c[k]=lodD(m[k],tol,false)});
+    for(const it of m.items)if(it.d&&c[it.id]==null)jobs.push(()=>{if(c[it.id]==null)c[it.id]=lodD(it.d,tol,true)})}
+  const run=dl=>{if(M!==m)return;if(vraf||performance.now()-lastCommit<800)return setTimeout(()=>ric(run),400);while(jobs.length&&dl.timeRemaining()>1)jobs.shift()();if(jobs.length)ric(run)};setTimeout(()=>ric(run),300);
+  if(!warmLod.pf){warmLod.pf=1;setTimeout(()=>ric(()=>{for(const f of['subdiv.js','caps.js']){const l=document.createElement('link');l.rel='prefetch';l.href=f;document.head.append(l)}}),4000)}
 }
 function buildMap(){
-  M=MAPS[cfg.map];svg.setAttribute('viewBox',`0 0 ${M.w} ${M.h}`);
+  M=MAPS[cfg.map];svg.setAttribute('viewBox',`0 0 ${M.w} ${M.h}`);ov.setAttribute('viewBox',`0 0 ${M.w} ${M.h}`);ovg.textContent='';ov.classList.remove('on');
   if(!M.byId){M.byId={};for(const it of M.items)M.byId[it.id]=it}
   body.classList.toggle('sub-map',!!M.sub);body.classList.toggle('cap-map',!!M.cap);
   let s=`<g id="view"><path class="ctx" d=""/>`;
@@ -750,7 +779,7 @@ function buildMap(){
   for(const it of M.items)if(it.m)s+=`<circle class="mk" data-id="${it.id}" cx="${it.c[0]}" cy="${it.c[1]}" r="1"/>`;
   svg.innerHTML=s+'<g id="fx"></g><g id="lbl"></g></g>';
   viewG=$('#view');fxG=$('#fx');lblG=$('#lbl');els={};marks=$$('.mk');
-  drawView.k=null;CV=null;mapw.style.transform='';svg.classList.toggle('rcss',RCSS);M.lv=-1;V.k=1;applyLod(true);
+  drawView.k=null;CV=null;mapw.style.transform='';svg.classList.toggle('rcss',RCSS);M.lv=-1;V.k=1;applyLod(true);warmLod();
   // a place with a marker answers through both its shape and its dot
   for(const el of $$('#view [data-id]'))(els[el.dataset.id]=els[el.dataset.id]||[]).push(el);
   for(const k in els){const a=els[k];els[k]=a.find(x=>x.tagName==='path')||a[0];els[k].all=a}
@@ -758,7 +787,15 @@ function buildMap(){
   if(!M.zDone){M.zDone=1;for(const it of M.items)if(it.z==null){const el=els[it.id];if(el&&el.tagName==='path'){const r=el.getBBox();it.z=+(Math.max(r.width,r.height)/2).toFixed(1)}else it.z=2}}
   T.x=T.y=0;T.k=1;drawView.k=0;moveView(true);
 }
-const cls=(id,c,on=true)=>els[id]&&els[id].all.forEach(x=>x.classList.toggle(c,on));
+const cls=(id,c,on=true)=>{if(!els[id])return;els[id].all.forEach(x=>x.classList.toggle(c,on));if(c==='tgt')pulse(id,on)};
+function pulse(id,on){
+  for(const n of [...ovg.children])if(n.dataset.p===id)n.remove();
+  if(on)for(const x of els[id].all){const tg=x.tagName;if(tg!=='path'&&tg!=='circle')continue;const n=document.createElementNS(NS,tg);n.dataset.p=id;
+    if(tg==='path'){n.setAttribute('class','pl');n.setAttribute('d',x.getAttribute('d'))}
+    else{n.setAttribute('class','pl pmk');for(const a of['cx','cy','r'])if(x.hasAttribute(a))n.setAttribute(a,x.getAttribute(a))}
+    ovg.appendChild(n)}
+  ov.classList.toggle('on',ovg.childElementCount>0);
+}
 function scopeBox(){
   if(M.sub&&cfg.subc!=='all'||capR()){const b=[1e9,1e9,-1e9,-1e9];
     for(const id of G.ids){const el=els[id];let x0,y0,x1,y1;
