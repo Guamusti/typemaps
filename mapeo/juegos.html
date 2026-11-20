@@ -1218,7 +1218,7 @@ quizGame({id:'silueta-test',title:'Silueta → país',desc:'¿De qué país es l
 /* Banderas de territorios: unrecognised states, autonomies, dependencies and regions */
 quizGame({id:'territorios',group:'Banderas',title:'Banderas de territorios',desc:'Abjasia, Osetia del Sur, Transnistria, Somalilandia, Groenlandia, Cataluña… 115 banderas de estados no reconocidos, autonomías, dependencias y regiones.',
   filters:{def:'all',opts:[['all','todas'],['nr','no reconocidos'],['au','autonomías'],['dep','dependencias'],['reg','regiones']]},
-  async gen(cat){await loadScript('territorios-data.js');
+  async gen(cat='all'){await loadScript('territorios-data.js');
     const pool=TERR.filter(t=>cat==='all'||t.c===cat);const t=rnd(pool);
     const same=TERR.filter(x=>x!==t&&x.c===t.c);const w=pickN(same,3);
     return {pool:TERR.map(x=>x.n),q:`<p class="q">¿De dónde es esta bandera?</p><div class="flagbox"><img class="flag tflag" style="aspect-ratio:${t.ar}" src="${svgURI(t.s)}" alt=""></div>`,
