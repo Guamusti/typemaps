@@ -201,6 +201,67 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:12px 0 4px}
 .hl-btns button:hover{background:color-mix(in srgb,var(--accent) 20%,var(--alt))}
 .hl-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 @media(max-width:620px){.hl{grid-template-columns:1fr;gap:10px}.hl-vs{text-align:center}.hl-c{min-height:0}.q{font-size:27px}.intro{font-size:32px}}
+/* new games */
+.vf-flag{display:block;width:min(200px,50vw);margin:14px auto 0}.q.vf{text-align:center}
+.mini-flag.inl{display:inline-block;vertical-align:middle;margin-right:6px}
+.flag.inl{display:inline-block;width:30px;vertical-align:middle;margin-right:6px}
+.silask{width:130px}.silask svg{width:100%;height:auto;display:block}.silask path{fill:var(--text)}
+.rv{position:relative;width:min(340px,80vw);margin:4px auto 16px}.rv .flag{width:100%}
+.rv-g{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);border-radius:6px;overflow:hidden}
+.rv-g i{background:var(--alt);box-shadow:inset 0 0 0 1px var(--bg);transition:opacity .35s}.rv-g i.off{opacity:0}
+.mem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:560px;margin:0 auto 12px}
+.mc{aspect-ratio:4/3;border-radius:10px;background:var(--alt);position:relative;overflow:hidden;padding:0;transition:background-color .2s,box-shadow .2s}
+.mc::before{content:"?";position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-size:28px;color:var(--sub);transition:opacity .2s}
+.mc-b{position:absolute;inset:0;display:grid;place-items:center;padding:8px;opacity:0;transition:opacity .2s}
+.mc.up .mc-b{opacity:1}.mc.up::before{opacity:0}.mc.up{background:color-mix(in srgb,var(--accent) 12%,var(--alt))}.mc.ok{box-shadow:0 0 0 2px var(--accent)}
+.mc .flag{width:100%;height:100%;box-shadow:none}.mc-n{font-size:13px;line-height:1.15;text-align:center}
+.pl-l{font-family:var(--display);font-size:84px;line-height:1;text-align:center;color:var(--accent);margin:6px 0 14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--alt);font-size:13px}
+.chip .mini-flag,.chip .mini-flag .flag{width:24px}.chip.q{padding:4px 14px;color:var(--sub)}.chip.miss{opacity:.55;box-shadow:inset 0 0 0 1px var(--err)}
+input.shake{animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.an-w{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:8px 0 6px}
+.an-w b{display:grid;place-items:center;min-width:34px;height:42px;padding:0 4px;border-radius:8px;background:var(--alt);font-family:var(--display);font-weight:400;font-size:26px}
+.an-w .sp{width:18px}.an-w b.p{background:none}.an-h{text-align:center;color:var(--sub);font-size:12.5px;margin-bottom:12px}
+.ah-art{display:grid;place-items:center}.ah-art svg{width:110px;height:120px;fill:none;stroke:var(--text);stroke-width:3;stroke-linecap:round}
+.ah-w b{min-width:28px;border-bottom:2px solid var(--sub);border-radius:0;background:none}
+.ah-k{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:14px 0 8px}
+.ah-k button{width:36px;height:40px;border-radius:8px;background:var(--alt);font-size:15px}
+.ah-k button:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 16%,var(--alt))}
+.ah-k button.hit{background:color-mix(in srgb,var(--accent) 34%,var(--bg))}.ah-k button.miss{opacity:.35}
+.vc-top{display:flex;align-items:center;gap:10px;font-size:20px;margin-bottom:12px}.vc-top .sm{font-size:12.5px;color:var(--sub)}.vc-s{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.silbox.dc svg{border-radius:14px;background:color-mix(in srgb,var(--alt) 60%,transparent)}
+/* card illustrations */
+.card .art{margin:-8px -8px 6px;aspect-ratio:2/1;border-radius:11px;background:color-mix(in srgb,var(--bg) 55%,var(--alt));overflow:hidden}
+.card .art svg{display:block;width:100%;height:100%;transition:transform .35s}
+.card:hover .art svg{transform:scale(1.04)}
+.art text{font-family:var(--display);fill:var(--text)}.art text.acc{fill:var(--accent)}.art text.err{fill:var(--err)}.art text.sub{fill:var(--sub)}
+.art{--aland:color-mix(in srgb,var(--sub) 50%,var(--bg))}
+.art .a-ctx{fill:color-mix(in srgb,var(--sub) 22%,var(--bg))}
+.art .a-l{fill:var(--aland);stroke:color-mix(in srgb,var(--bg) 70%,var(--alt));stroke-width:.35;stroke-linejoin:round}
+.art .a-l2{fill:var(--aland);stroke:none}
+.art .a-a{fill:var(--accent);stroke:color-mix(in srgb,var(--bg) 70%,var(--alt));stroke-width:.35}
+.art .a-a2{fill:color-mix(in srgb,var(--accent) 45%,var(--aland));stroke:color-mix(in srgb,var(--bg) 70%,var(--alt));stroke-width:.35}
+.art .a-e{fill:var(--err)}.art .a-t{fill:var(--text)}.art .a-s{fill:color-mix(in srgb,var(--sub) 70%,var(--alt))}
+.art .a-ov{fill:none;stroke:var(--text);stroke-width:.45;stroke-dasharray:1.5 1.5;opacity:.7}
+.art .h0{fill:color-mix(in srgb,var(--accent) 50%,var(--aland))}.art .h1{fill:color-mix(in srgb,var(--err) 30%,var(--aland))}.art .h2{fill:color-mix(in srgb,var(--text) 28%,var(--aland))}.art .h3{fill:var(--aland)}
+.art [class^=h]{stroke:color-mix(in srgb,var(--bg) 70%,var(--alt));stroke-width:.35}
+.art .c1{fill:var(--accent)}.art .c2{fill:var(--err)}.art .c3{fill:color-mix(in srgb,var(--accent) 50%,var(--text))}.art .c4{fill:color-mix(in srgb,var(--err) 50%,var(--aland))}.art .c5{fill:color-mix(in srgb,var(--text) 55%,var(--aland))}.art .c6{fill:color-mix(in srgb,var(--accent) 40%,var(--aland))}
+.art .fb{fill:none;stroke:color-mix(in srgb,var(--text) 22%,transparent);stroke-width:.7}
+.art .ln{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.art .ln2s{fill:none;stroke:var(--sub);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.art .dash{stroke-dasharray:3 3}.art .thick{stroke-width:5}
+.art .ring{fill:none;stroke:var(--sub);stroke-width:1.4}.art .ring.thick{stroke:var(--text)}
+.art .ring2{fill:none;stroke:var(--err);stroke-width:2}
+.art .dot{fill:var(--accent);stroke:var(--bg);stroke-width:1}.art .dot2{fill:var(--text);opacity:.75}
+.art .pill{fill:color-mix(in srgb,var(--alt) 70%,var(--text) 6%)}.art .pill.solid{fill:var(--alt)}.art .pill.on{fill:color-mix(in srgb,var(--accent) 42%,var(--alt))}.art .pill.bad{fill:color-mix(in srgb,var(--err) 38%,var(--alt))}
+.art .coin{fill:color-mix(in srgb,var(--sub) 30%,var(--alt))}.art .coin.on{fill:color-mix(in srgb,var(--accent) 55%,var(--alt))}
+.art .bub{fill:color-mix(in srgb,var(--alt) 70%,var(--text) 6%)}.art .bub.on{fill:color-mix(in srgb,var(--accent) 42%,var(--alt))}
+.art .key{fill:color-mix(in srgb,var(--sub) 40%,var(--alt))}
+.art .sea{fill:color-mix(in srgb,var(--accent) 22%,var(--bg))}.art .snow{fill:var(--text)}.art .river{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round}
+.art .tile{fill:var(--alt);stroke:color-mix(in srgb,var(--bg) 60%,var(--alt));stroke-width:1}
+.art .gal{fill:none;stroke:var(--text);stroke-width:3;stroke-linecap:round}
+.art .pin{fill:var(--err)}
 </style>
 </head>
 <body>
@@ -918,7 +979,7 @@ function quizGame({id,group='Test',title,desc,gen,rounds=10,time=null,lives=null
       function reset(){T&&T.stop();n=0;right=0;lost=0;ended=false;running=false;$('#qz-end').hidden=true;if(time)$('#qz-t').textContent=time+' s';next()}
       $('#qz-o').onclick=e=>{const b=e.target.closest('[data-i]');if(b)answer(+b.dataset.i)};
       if(filters)$('#qz-f').onclick=e=>{const b=e.target.closest('[data-f]');if(!b||b.dataset.f===fv)return;fv=b.dataset.f;store.set('mapeo.juegos.f.'+id,fv);$$('#qz-f button').forEach(x=>x.setAttribute('aria-pressed',x===b));ended=true;setTimeout(reset,0)};
-      const key=e=>{if(/^[1-4]$/.test(e.key)&&document.activeElement.tagName!=='INPUT'&&$('#qz-o').hidden===false)answer(+e.key-1)};
+      const key=e=>{if(/^[1-6]$/.test(e.key)&&document.activeElement.tagName!=='INPUT'&&$('#qz-o').hidden===false)answer(+e.key-1)};
       document.addEventListener('keydown',key);stopGame=()=>{document.removeEventListener('keydown',key);T&&T.stop();ended=true};
       reset();
     }});
@@ -1254,6 +1315,252 @@ game({id:'ubicar',group:'Con mapa',title:'¿Dónde está esta bandera?',desc:'Un
     reset();
   }});
 
+
+/* ===================== more games ===================== */
+// options from the same part of the world, so the wrong answers are believable
+const sameZone=(k,pool,n)=>{const near=pool.filter(x=>x!==k&&C[x].r===C[k].r);return pickN(near.length>=n?near:pool.filter(x=>x!==k),n)};
+const flagName=k=>`<span class="mini-flag">${flagImg(k)}</span>${esc(C[k].n)}`;
+
+/* Bandera → capital */
+quizGame({id:'bandera-capital',title:'Bandera → capital',desc:'Una bandera y cuatro capitales: ¿cuál es la de ese país? Diez rondas.',
+  gen(){const pool=CODES.filter(k=>C[k].cap);const k=rnd(pool);const w=sameZone(k,pool,3);
+    return {pool:pool.map(x=>C[x].cap.n),kbOk:C[k].cap.a||[],q:`<p class="q">¿Cuál es la capital del país de esta bandera?</p><div class="flagbox sm">${flagImg(k)}</div>`,
+      opts:shuffle([k,...w]).map(x=>opt(esc(C[x].cap.n),x===k)),after:`${esc(C[k].n)}: ${esc(C[k].cap.n)}`}}});
+
+/* Capital → bandera */
+quizGame({id:'capital-bandera',title:'Capital → bandera',desc:'Te damos una capital: elige la bandera de su país entre cuatro. Diez rondas.',
+  gen(){const pool=CODES.filter(k=>C[k].cap);const k=rnd(pool);const w=sameZone(k,pool,3);
+    return {kb:false,wide:true,q:`<p class="q">¿De qué país es la capital <em>${esc(C[k].cap.n)}</em>?</p>`,
+      opts:shuffle([k,...w]).map(x=>opt(flagImg(x),x===k)),after:`${esc(C[k].cap.n)} es la capital de ${esc(C[k].n)}`}}});
+
+/* ¿Cuál tiene más habitantes? */
+quizGame({id:'poblado',title:'¿Cuál tiene más habitantes?',desc:'Cuatro países de la misma zona: elige el más poblado. Diez rondas.',
+  gen(){const pool=CODES.filter(k=>C[k].pop>2e5);let g,s;
+    for(;;){const k=rnd(pool);g=[k,...sameZone(k,pool,3)];s=[...g].sort((a,b)=>C[b].pop-C[a].pop);if(C[s[0]].pop>1.12*C[s[1]].pop)break}
+    return {kb:false,q:`<p class="q">¿Cuál tiene <em>más habitantes</em>?</p>`,opts:shuffle(g).map(x=>opt(flagName(x),x===s[0])),
+      after:s.map(x=>`${esc(C[x].n)} ${fmtPop(C[x].pop)}`).join(' · ')}}});
+
+/* La capital más cercana */
+quizGame({id:'cercana',group:'Pensar',title:'La capital más cercana',desc:'¿Cuál de estas cuatro capitales está más cerca de la que te damos? Diez rondas.',
+  async gen(){await loadScript('caps.js');const pool=CODES.filter(k=>CAPS[k]&&C[k].cap);
+    for(;;){const k=rnd(pool);const cand=pool.filter(x=>x!==k).map(x=>[x,dist(CAPS[k].ll,CAPS[x].ll)]).filter(([,d])=>d<5000).sort((a,b)=>a[1]-b[1]);if(cand.length<6)continue;
+      const g=pickN(cand.slice(0,14),4).sort((a,b)=>a[1]-b[1]);if(g[1][1]<g[0][1]*1.2)continue;
+      return {pool:pool.map(x=>C[x].cap.n),q:`<p class="q">¿Qué capital está más cerca de <em>${esc(C[k].cap.n)}</em> <span class="sm">(${esc(C[k].n)})</span>?</p>`,
+        opts:shuffle([...g]).map(([x])=>opt(esc(C[x].cap.n),x===g[0][0])),after:g.map(([x,d])=>`${esc(C[x].cap.n)} ${fmtN(d)} km`).join(' · ')}}}});
+
+/* Verdadero o falso: a minute of quick facts */
+quizGame({id:'verdadero-falso',group:'Rápidos',title:'Verdadero o falso',desc:'Capitales, fronteras, continentes, habitantes y banderas: ¿es cierto? Todas las que puedas en 60 segundos.',time:60,
+  gen(){const pool=CODES.filter(k=>C[k].km2>=5000);
+    for(;;){const k=rnd(pool),T=Math.random()<.5,A=esc(C[k].n);const other=f=>{const l=pool.filter(x=>x!==k&&f(x));return l.length?rnd(l):null};let s,truth=T,after;
+      const kind=rnd(['cap','cap','b','b','r','pop','flag']);
+      if(kind==='cap'){if(!C[k].cap)continue;const x=T?k:other(y=>C[y].cap&&C[y].r===C[k].r);if(!x)continue;s=`La capital de <em>${A}</em> es <em>${esc(C[x].cap.n)}</em>`;after=`La capital de ${A} es ${esc(C[k].cap.n)}`}
+      else if(kind==='b'){if(!C[k].b.length)continue;const y=T?rnd(C[k].b):other(y=>C[y].r===C[k].r&&!C[k].b.includes(y));if(!y||!C[y])continue;s=`<em>${A}</em> limita con <em>${esc(C[y].n)}</em>`;
+        after=`Vecinos de ${A}: ${esc(listEs(C[k].b.filter(z=>C[z]).map(z=>C[z].n)))}`}
+      else if(kind==='r'){const r=T?C[k].r:rnd(Object.keys(REGION).filter(r=>r!==C[k].r));s=`<em>${A}</em> está en <em>${REGION[r]}</em>`;after=`${A} está en ${REGION[C[k].r]}`}
+      else if(kind==='pop'){const y=other(y=>{const q=C[y].pop/C[k].pop;return q>1.3||q<.77});if(!y)continue;truth=C[k].pop>C[y].pop;s=`<em>${A}</em> tiene más habitantes que <em>${esc(C[y].n)}</em>`;
+        after=`${A} ${fmtPop(C[k].pop)} · ${esc(C[y].n)} ${fmtPop(C[y].pop)}`}
+      else{const y=T?k:other(y=>C[y].r===C[k].r);if(!y)continue;s=`Esta es la bandera de <em>${A}</em><span class="vf-flag">${flagImg(y)}</span>`;after=`Es la de ${esc(C[y].n)}`}
+      return {kb:false,q:`<p class="q vf">${s}</p>`,opts:[opt('Verdadero',truth),opt('Falso',!truth)],after}}}});
+
+/* Continente relámpago */
+quizGame({id:'continentes',group:'Rápidos',title:'Continente relámpago',desc:'Un país y seis continentes: clasifica todos los que puedas en 45 segundos.',time:45,
+  gen(){const k=rnd(CODES.filter(k=>C[k].km2>=2000));
+    return {kb:false,q:`<p class="q"><span class="mini-flag inl">${flagImg(k)}</span> <em>${esc(C[k].n)}</em></p>`,opts:Object.keys(REGION).map(r=>opt(esc(REGION[r]),r===C[k].r)),after:''}}});
+
+/* Silueta → mapa */
+mapAsk({id:'silueta-mapa',title:'Silueta → mapa',desc:'Ves la silueta de un país sin nombre: búscalo en el mapa. Quince por ronda.',pref:'sm',filter:k=>!!C[k].d,
+  ask:k=>{loadSil(k).then(d=>{const e=$('#bm-f .silask');if(e&&e.dataset.k===k)e.innerHTML=silSVG(d)}).catch(()=>{});return `<div class="silask" data-k="${k}"></div>`}});
+
+/* Bandera revelada: the flag uncovers itself tile by tile */
+game({id:'revelada',group:'Banderas',title:'Bandera revelada',desc:'La bandera se destapa casilla a casilla: adivínala cuanto antes. Diez banderas.',
+  rec:()=>{const b=REC.revelada?.best;return b!=null?`mejor: ${b} de 120`:''},
+  start(main){
+    const N=12;let round,total,k,left,T=0,done,order,used;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="rv-n"></span><span class="clock" id="rv-p"></span></div>
+      <div class="panel"><div class="rv" id="rv-f"></div>${fieldHTML('rv-in','¿De qué país es?')}
+      <div class="row"><div class="msg" id="rv-msg"></div><button class="ghost" id="rv-skip" type="button">no lo sé →</button></div></div>
+      <div class="end" id="rv-end" hidden></div></div>`;
+    const pool=CODES.filter(k=>C[k].km2>=1000);
+    const score=()=>{setScore(`<span><b>${total}</b>puntos</span><span><b>${REC.revelada?.best??0}</b>récord</span>`);$('#rv-n').textContent=round<10?`${round+1} de 10`:''};
+    const uncover=()=>{if(left<=0)return;$$('#rv-f i')[order[N-left]].classList.add('off');left--;$('#rv-p').textContent=left+' pts'};
+    function deal(){clearInterval(T);k=rnd(pool.filter(x=>!used.has(x)));used.add(k);left=N;done=false;order=shuffle([...Array(N).keys()]);
+      $('#rv-f').innerHTML=flagImg(k)+'<div class="rv-g">'+'<i></i>'.repeat(N)+'</div>';$('#rv-p').textContent=N+' pts';
+      // the first tile opens at once, then one more every second
+      setTimeout(()=>{if(!done)uncover()},350);T=setInterval(()=>{if(!done)uncover()},1100);
+      $('#rv-in').disabled=false;$('#rv-in').focus({preventScroll:true});$('#rv-msg').textContent='Cada casilla aún tapada vale un punto; fallar destapa otra.';$('#rv-msg').className='msg';score()}
+    function finish(ok){done=true;clearInterval(T);$$('#rv-f i').forEach(x=>x.classList.add('off'));const pts=ok?Math.max(1,left):0;total+=pts;round++;
+      $('#rv-msg').innerHTML=ok?`¡Sí! ${esc(C[k].n)} · +${pts}`:`Era <b>${esc(C[k].n)}</b>`;$('#rv-msg').className='msg '+(ok?'ok':'bad');$('#rv-in').disabled=true;score();
+      setTimeout(()=>{if(here()!=='revelada')return;if(round<10)deal();else end()},ok?1100:2000)}
+    countryBox($('#rv-in'),$('#rv-in-sug'),x=>{if(done)return;if(x===k)finish(true);else if(x){$('#rv-msg').innerHTML=`${esc(C[x].n)} no. Sigue…`;$('#rv-msg').className='msg bad';uncover()}});
+    $('#rv-skip').onclick=()=>{if(!done)finish(false)};
+    function end(){const r=saveScore('revelada',total);score();endCard($('#rv-end'),{big:`${total} de 120`,sub:'puntos por casillas sin destapar',rec:recLine(r,' de 120'),again:reset})}
+    function reset(){round=0;total=0;used=new Set();$('#rv-end').hidden=true;deal()}
+    stopGame=()=>{clearInterval(T);done=true};
+    reset();
+  }});
+
+/* Memoria de banderas: pairs of flag and name, face down */
+game({id:'memoria',group:'Banderas',title:'Memoria de banderas',desc:'Ocho parejas de bandera y nombre boca abajo: encuéntralas con los menos intentos posibles.',
+  rec:()=>{const b=Math.min(...RG.map(([r])=>REC['memoria.'+r]?.best??1e9));return b<1e9?`mejor: ${b} intentos`:''},
+  start(main){
+    let region=store.get('mapeo.juegos.mem','all'),cards,open,moves,found,lock,t0,T=0;
+    main.innerHTML=`<div class="game"><div class="hl-top">${regionSeg('mem-r',region)}<span class="clock" id="mem-t">0 s</span></div>
+      <div class="mem" id="mem-g"></div><div class="msg" id="mem-msg"></div><div class="end" id="mem-end" hidden></div></div>`;
+    const key=()=>'memoria.'+region;
+    const score=()=>setScore(`<span><b>${moves}</b>intentos</span><span><b>${REC[key()]?.best??'–'}</b>récord</span>`);
+    function setup(){clearInterval(T);t0=0;moves=0;found=0;open=[];lock=false;$('#mem-end').hidden=true;$('#mem-t').textContent='0 s';
+      $('#mem-msg').textContent='Da la vuelta a dos cartas: una bandera y su nombre.';$('#mem-msg').className='msg';
+      const ks=pickN(CODES.filter(k=>C[k].km2>=1000&&inRegion(k,region)),8);cards=shuffle(ks.flatMap(k=>[{k,f:1},{k,f:0}]));
+      $('#mem-g').innerHTML=cards.map((c,i)=>`<button type="button" class="mc" data-i="${i}" aria-label="carta ${i+1}"><span class="mc-b">${c.f?flagImg(c.k):`<span class="mc-n">${esc(C[c.k].n)}</span>`}</span></button>`).join('');score()}
+    $('#mem-g').onclick=e=>{const b=e.target.closest('.mc');if(!b||lock||b.classList.contains('up'))return;
+      if(!t0){t0=performance.now();T=setInterval(()=>$('#mem-t').textContent=Math.round((performance.now()-t0)/1000)+' s',500)}
+      b.classList.add('up');open.push(b);if(open.length<2)return;moves++;score();const [a,c]=open.map(x=>cards[+x.dataset.i]);
+      if(a.k===c.k){open.forEach(x=>x.classList.add('ok'));open=[];found++;$('#mem-msg').textContent=C[a.k].n+' ✓';$('#mem-msg').className='msg ok';if(found===8)end()}
+      else{lock=true;setTimeout(()=>{open.forEach(x=>x.classList.remove('up'));open=[];lock=false},900)}};
+    function end(){clearInterval(T);const secs=Math.round((performance.now()-t0)/1000);const r=saveScore(key(),moves,false);score();
+      endCard($('#mem-end'),{big:`${moves} intentos`,sub:`8 parejas en ${secs} s · ${regionName(region)}`,rec:recLine(r,' intentos'),again:setup})}
+    $('#mem-r').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;region=b.dataset.r;store.set('mapeo.juegos.mem',region);$$('#mem-r button').forEach(x=>x.setAttribute('aria-pressed',x===b));setup()};
+    stopGame=()=>clearInterval(T);
+    setup();
+  }});
+
+/* typed answers that accept a country as soon as it is spelled right (no suggestions, which would give it away) */
+function liveCountry(input,ok){input.addEventListener('input',()=>{const k=findCountry(input.value);if(k&&ok(k)){input.value=''}});
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const k=findCountry(input.value);if(!(k&&ok(k))&&input.value.trim())input.classList.add('shake'),setTimeout(()=>input.classList.remove('shake'),400);input.value=''}})}
+
+/* Países por letra */
+const firstL=k=>norm(C[k].n)[0];
+game({id:'por-letra',group:'Rápidos',title:'Países por letra',desc:'Una letra y 60 segundos: escribe todos los países que empiezan por ella.',
+  rec:()=>{const b=REC['por-letra']?.best;return b!=null?`mejor: ${b} % de una letra`:''},
+  start(main){
+    const LET=[...new Set(CODES.map(firstL))].filter(l=>CODES.filter(k=>firstL(k)===l).length>=5);
+    let L,pool,got,T=null,running,ended;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="pl-n"></span><span class="clock" id="pl-t">60 s</span></div>
+      <div class="panel"><div class="pl-l" id="pl-l"></div><div class="field"><input id="pl-in" autocomplete="off" spellcheck="false" placeholder="Escribe un país…" aria-label="Escribe un país"></div>
+      <div class="chips" id="pl-c"></div><div class="row"><div class="msg" id="pl-msg"></div><button class="ghost" id="pl-stop" type="button">terminar</button></div></div><div class="end" id="pl-end" hidden></div></div>`;
+    const score=()=>{setScore(`<span><b>${got.size}</b>de ${pool.length}</span><span><b>${REC['por-letra']?.best??0} %</b>récord</span>`);$('#pl-n').textContent=`${pool.length} países empiezan por ${L.toUpperCase()}`};
+    liveCountry($('#pl-in'),k=>{if(ended||!pool.includes(k)||got.has(k))return false;if(!running){running=true;T=timerBar($('#pl-t'),60,end)}
+      got.add(k);$('#pl-c').insertAdjacentHTML('beforeend',`<span class="chip">${flagName(k)}</span>`);score();if(got.size===pool.length)end();return true});
+    $('#pl-in').addEventListener('input',()=>{if(!running&&$('#pl-in').value){running=true;T=timerBar($('#pl-t'),60,end)}});
+    function end(){if(ended)return;ended=true;T&&T.stop();$('#pl-in').disabled=true;const pct=Math.round(100*got.size/pool.length);const r=saveScore('por-letra',pct);score();
+      const miss=pool.filter(k=>!got.has(k)).map(k=>C[k].n);
+      endCard($('#pl-end'),{big:`${got.size} de ${pool.length}`,sub:`países con ${L.toUpperCase()} (${pct} %)`+(miss.length?`<br>Te faltaron: ${esc(listEs(miss))}`:''),rec:recLine(r,' %'),again:reset})}
+    $('#pl-stop').onclick=()=>{if(!ended)end()};
+    function reset(){T&&T.stop();L=rnd(LET);pool=CODES.filter(k=>firstL(k)===L);got=new Set();running=false;ended=false;$('#pl-end').hidden=true;$('#pl-c').innerHTML='';$('#pl-in').disabled=false;
+      $('#pl-l').textContent=L.toUpperCase();$('#pl-t').textContent='60 s';$('#pl-msg').textContent='El reloj arranca al escribir. Cada país se acepta solo al escribirlo bien.';$('#pl-msg').className='msg';score();$('#pl-in').focus()}
+    stopGame=()=>{T&&T.stop();ended=true};
+    reset();
+  }});
+
+/* Anagramas */
+const scramble=s=>{for(let t=0;t<20;t++){const r=s.split(' ').map(w=>shuffle([...w.toUpperCase()]).join('')).join(' ');if(norm(r)!==norm(s))return r}return s.toUpperCase()};
+game({id:'anagramas',group:'Rápidos',title:'Anagramas',desc:'Letras desordenadas: ¿qué país es? Todos los que puedas en 60 segundos.',
+  rec:()=>{const b=REC.anagramas?.best;return b!=null?`mejor: ${b} en 60 s`:''},
+  start(main){
+    let cur,n,T=null,running,ended,skipped;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb">Pista: el continente</span><span class="clock" id="an-t">60 s</span></div>
+      <div class="panel"><div class="an-w" id="an-w"></div><div class="an-h" id="an-h"></div><div class="field"><input id="an-in" autocomplete="off" spellcheck="false" placeholder="¿Qué país es?" aria-label="¿Qué país es?"></div>
+      <div class="row"><div class="msg" id="an-msg"></div><button class="ghost" id="an-skip" type="button">pasar →</button></div></div><div class="end" id="an-end" hidden></div></div>`;
+    const pool=CODES.filter(k=>C[k].km2>=5000&&norm(C[k].n).length>=4&&norm(C[k].n).length<=13);
+    const score=()=>setScore(`<span><b>${n}</b>aciertos</span><span><b>${REC.anagramas?.best??0}</b>récord</span>`);
+    const deal=()=>{cur=rnd(pool);$('#an-w').innerHTML=[...scramble(C[cur].n)].map(c=>c===' '?'<i class="sp"></i>':`<b>${esc(c)}</b>`).join('');$('#an-h').textContent=REGION[C[cur].r]};
+    const start=()=>{if(!running){running=true;T=timerBar($('#an-t'),60,end)}};
+    liveCountry($('#an-in'),k=>{if(ended||k!==cur)return false;start();n++;$('#an-msg').textContent=C[k].n+' ✓';$('#an-msg').className='msg ok';score();deal();return true});
+    $('#an-in').addEventListener('input',()=>{if($('#an-in').value)start()});
+    $('#an-skip').onclick=()=>{if(ended)return;start();skipped.push(C[cur].n);$('#an-msg').textContent='Era '+C[cur].n;$('#an-msg').className='msg bad';deal();$('#an-in').focus()};
+    function end(){if(ended)return;ended=true;T&&T.stop();$('#an-in').disabled=true;const r=saveScore('anagramas',n);score();
+      endCard($('#an-end'),{big:`${n}`,sub:'países en 60 segundos'+(skipped.length?`<br>Pasaste: ${esc(listEs(skipped))}`:''),rec:recLine(r,''),again:reset})}
+    function reset(){T&&T.stop();n=0;running=false;ended=false;skipped=[];$('#an-end').hidden=true;$('#an-in').disabled=false;$('#an-t').textContent='60 s';$('#an-msg').textContent='El reloj arranca al escribir.';$('#an-msg').className='msg';score();deal();$('#an-in').focus()}
+    stopGame=()=>{T&&T.stop();ended=true};
+    reset();
+  }});
+
+/* Ahorcado */
+const base1=ch=>ch.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+game({id:'ahorcado',group:'Pensar',title:'Ahorcado',desc:'Adivina el país letra a letra con seis fallos como mucho. Uno tras otro hasta que te ahorquen.',
+  rec:()=>{const b=REC.ahorcado?.best;return b!=null?`mejor: ${b} seguidos`:''},
+  start(main){
+    let cur,tried,miss,streak,over;const MAXM=6;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="ah-h"></span><span class="lives" id="ah-l"></span></div>
+      <div class="panel"><div class="ah-art" id="ah-a"></div><div class="an-w ah-w" id="ah-w"></div><div class="ah-k" id="ah-k"></div><div class="msg" id="ah-msg"></div></div><div class="end" id="ah-end" hidden></div></div>`;
+    const pool=CODES.filter(k=>C[k].km2>=2000);
+    const letters='abcdefghijklmnopqrstuvwxyz'.split('');
+    const score=()=>setScore(`<span><b>${streak}</b>seguidos</span><span><b>${REC.ahorcado?.best??0}</b>récord</span>`);
+    // the gallows, drawn one stroke per mistake
+    const ART=['<path d="M10 92H70"/>','<path d="M25 92V8H60"/>','<path d="M60 8V20"/>','<circle cx="60" cy="28" r="8"/>','<path d="M60 36V60"/>','<path d="M60 42L48 52M60 42L72 52"/><path d="M60 60L50 76M60 60L70 76"/>'];
+    function draw(){const name=C[cur].n;
+      $('#ah-w').innerHTML=[...name].map(c=>/[a-zñáéíóúü]/i.test(c)?`<b>${tried.has(base1(c))||over?esc(c.toUpperCase()):'&nbsp;'}</b>`:c===' '?'<i class="sp"></i>':`<b class="p">${esc(c)}</b>`).join('');
+      $('#ah-a').innerHTML=`<svg viewBox="0 0 90 100">${ART.slice(0,miss).join('')}</svg>`;
+      $('#ah-l').innerHTML='<i class="on"></i>'.repeat(MAXM-miss)+'<i></i>'.repeat(miss);
+      $('#ah-h').textContent=`Pista: ${REGION[C[cur].r]}`;
+      $$('#ah-k button').forEach(b=>{const l=b.dataset.l;b.disabled=over||tried.has(l);b.className=tried.has(l)?(norm(name).includes(l)?'hit':'miss'):''})}
+    function deal(){cur=rnd(pool);tried=new Set();miss=0;over=false;$('#ah-msg').textContent='Pulsa letras o escríbelas con el teclado.';$('#ah-msg').className='msg';draw();score()}
+    function guess(l){if(over||tried.has(l))return;tried.add(l);const name=norm(C[cur].n);if(!name.includes(l))miss++;
+      const solved=[...name].every(c=>tried.has(c));
+      if(solved){over=true;streak++;$('#ah-msg').innerHTML=`${flagImg(cur).replace('class="flag"','class="flag inl"')} ¡${esc(C[cur].n)}!`;$('#ah-msg').className='msg ok';draw();score();setTimeout(()=>{if(here()==='ahorcado')deal()},1400);return}
+      if(miss>=MAXM){over=true;draw();const r=saveScore('ahorcado',streak);score();$('#ah-msg').innerHTML=`Era <b>${esc(C[cur].n)}</b>`;$('#ah-msg').className='msg bad';
+        endCard($('#ah-end'),{big:`${streak}`,sub:`${streak===1?'país adivinado':'países adivinados'} seguidos`,rec:recLine(r,''),again:reset});return}
+      draw()}
+    $('#ah-k').innerHTML=letters.map(l=>`<button type="button" data-l="${l}">${l.toUpperCase()}</button>`).join('');
+    $('#ah-k').onclick=e=>{const b=e.target.closest('[data-l]');if(b)guess(b.dataset.l)};
+    const key=e=>{if(e.ctrlKey||e.metaKey||e.altKey||document.activeElement.tagName==='INPUT')return;const l=base1(e.key);if(/^[a-z]$/.test(l)){e.preventDefault();guess(l)}};
+    document.addEventListener('keydown',key);stopGame=()=>document.removeEventListener('keydown',key);
+    function reset(){streak=0;$('#ah-end').hidden=true;deal()}
+    reset();
+  }});
+
+/* Todos los vecinos */
+game({id:'vecinos',group:'Pensar',title:'Todos los vecinos',desc:'Nombra todos los países que limitan con el que te damos. Cinco países.',
+  rec:()=>{const b=REC.vecinos?.best;return b!=null?`mejor: ${b} % de vecinos`:''},
+  start(main){
+    let round,found,total,k,got,done,errs;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="vc-n"></span></div>
+      <div class="panel"><div class="vc-top" id="vc-c"></div><div class="vc-s" id="vc-s"></div>${fieldHTML('vc-in','Escribe un vecino…')}
+      <div class="row"><div class="msg" id="vc-msg"></div><button class="ghost" id="vc-go" type="button">me rindo</button></div></div><div class="end" id="vc-end" hidden></div></div>`;
+    const pool=CODES.filter(k=>C[k].b.filter(x=>C[x]).length>=3);
+    const score=()=>{setScore(`<span><b>${found}</b>de ${total}</span><span><b>${REC.vecinos?.best??0} %</b>récord</span>`);$('#vc-n').textContent=round<5?`${round+1} de 5`:''};
+    const nb=()=>C[k].b.filter(x=>C[x]);
+    function slots(){$('#vc-s').innerHTML=nb().map(x=>got.has(x)||done?`<span class="chip${got.has(x)?'':' miss'}">${flagName(x)}</span>`:'<span class="chip q">?</span>').join('')}
+    function deal(){k=rnd(pool.filter(x=>x!==k));got=new Set();done=false;errs=0;total+=nb().length;
+      $('#vc-c').innerHTML=`<span class="mini-flag">${flagImg(k)}</span><b>${esc(C[k].n)}</b><span class="sm">${nb().length} vecinos</span>`;slots();$('#vc-go').textContent='me rindo';
+      $('#vc-in').disabled=false;$('#vc-in').focus({preventScroll:true});$('#vc-msg').textContent='Enter acepta la sugerencia; los fallos no restan.';$('#vc-msg').className='msg';score()}
+    countryBox($('#vc-in'),$('#vc-in-sug'),x=>{if(done||!x)return;if(nb().includes(x)&&!got.has(x)){got.add(x);found++;slots();score();$('#vc-msg').textContent=C[x].n+' ✓';$('#vc-msg').className='msg ok';if(got.size===nb().length)close()}
+      else if(!got.has(x)){errs++;$('#vc-msg').textContent=`${C[x].n} no limita con ${C[k].n}`;$('#vc-msg').className='msg bad'}},{exclude:()=>got});
+    function close(){done=true;round++;slots();$('#vc-in').disabled=true;$('#vc-go').textContent=round<5?'siguiente →':'ver resultado';
+      if(got.size===nb().length){$('#vc-msg').textContent='¡Todos!';$('#vc-msg').className='msg ok'}else{$('#vc-msg').textContent=`${got.size} de ${nb().length}`;$('#vc-msg').className='msg bad'}score()}
+    $('#vc-go').onclick=()=>{if(!done){close();return}if(round<5){deal();return}
+      const pct=Math.round(100*found/total);const r=saveScore('vecinos',pct);score();endCard($('#vc-end'),{big:`${found} de ${total}`,sub:`vecinos nombrados (${pct} %)`,rec:recLine(r,' %'),again:reset})};
+    function reset(){round=0;found=0;total=0;k=null;$('#vc-end').hidden=true;deal()}
+    reset();
+  }});
+
+/* De cerca: a silhouette seen from very close, zooming out */
+game({id:'de-cerca',group:'Pensar',title:'De cerca',desc:'Un trocito de costa o frontera que se va alejando: di qué país es antes de verlo entero. Diez rondas.',
+  rec:()=>{const b=REC['de-cerca']?.best;return b!=null?`mejor: ${b} de 100`:''},
+  start(main){
+    let round,total,k,raf=0,t0,done,pts,box;const DUR=15000;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="dc-n"></span><span class="clock" id="dc-p"></span></div>
+      <div class="panel"><div class="silbox dc" id="dc-s"></div>${fieldHTML('dc-in','¿Qué país es?')}
+      <div class="row"><div class="msg" id="dc-msg"></div><button class="ghost" id="dc-skip" type="button">no lo sé →</button></div></div><div class="end" id="dc-end" hidden></div></div>`;
+    const pool=CODES.filter(k=>C[k].d&&C[k].km2>=20000);
+    const score=()=>{setScore(`<span><b>${total}</b>puntos</span><span><b>${REC['de-cerca']?.best??0}</b>récord</span>`);$('#dc-n').textContent=round<10?`${round+1} de 10`:''};
+    async function deal(){cancelAnimationFrame(raf);k=rnd(pool);done=false;const d=await loadSil(k);if(here()!=='de-cerca')return;
+      const P=[...d.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)].map(m=>[+m[1],+m[2]]);const [cx,cy]=rnd(P);
+      $('#dc-s').innerHTML=silSVG(d);const svg=$('#dc-s svg');
+      t0=performance.now();const step=t=>{if(done)return;const p=Math.min(1,(t-t0)/DUR),w=200*Math.pow(1/9,1-p),x=cx+(100-cx)*p,y=cy+(100-cy)*p;
+        svg.setAttribute('viewBox',`${(x-w/2).toFixed(2)} ${(y-w/2).toFixed(2)} ${w.toFixed(2)} ${w.toFixed(2)}`);pts=Math.max(1,10-Math.floor(p*10));$('#dc-p').textContent=pts+' pts';if(p<1)raf=requestAnimationFrame(step)};
+      raf=requestAnimationFrame(step);
+      $('#dc-in').disabled=false;$('#dc-in').focus({preventScroll:true});$('#dc-msg').textContent='Cuanto antes aciertes, más puntos. Fallar no resta.';$('#dc-msg').className='msg';score()}
+    function finish(ok){done=true;cancelAnimationFrame(raf);$('#dc-s svg').setAttribute('viewBox','0 0 200 200');$('#dc-s').classList.toggle('hit',ok);setTimeout(()=>$('#dc-s').classList.remove('hit'),900);
+      const p=ok?pts:0;total+=p;round++;$('#dc-msg').innerHTML=ok?`¡Sí! ${esc(C[k].n)} · +${p}`:`Era <b>${esc(C[k].n)}</b>`;$('#dc-msg').className='msg '+(ok?'ok':'bad');$('#dc-in').disabled=true;score();
+      setTimeout(()=>{if(here()!=='de-cerca')return;if(round<10)deal();else{const r=saveScore('de-cerca',total);score();endCard($('#dc-end'),{big:`${total} de 100`,sub:'puntos por adivinar pronto',rec:recLine(r,' de 100'),again:reset})}},ok?1200:2000)}
+    countryBox($('#dc-in'),$('#dc-in-sug'),x=>{if(done)return;if(x===k)finish(true);else if(x){$('#dc-msg').textContent=`${C[x].n} no. Sigue…`;$('#dc-msg').className='msg bad'}});
+    $('#dc-skip').onclick=()=>{if(!done)finish(false)};
+    function reset(){round=0;total=0;$('#dc-end').hidden=true;deal()}
+    stopGame=()=>{done=true;cancelAnimationFrame(raf)};
+    reset();
+  }});
+
 /* Maratón: questions from every quiz, mixed, three lives */
 quizGame({id:'maraton',group:'Mezcla',title:'Maratón',desc:'Preguntas de todos los juegos tipo test mezcladas, una tras otra. Tres vidas.',lives:3,mix:false,
   async gen(){const g=rnd(QGENS);const r=await g.gen();r.tag=g.title;return r}});
@@ -1278,6 +1585,83 @@ function profile(){
     <div class="ach">${A.map(([t,d,ok])=>`<span class="a${ok?' on':''}" title="${esc(d)}"><b>${ok?'★':'☆'} ${esc(t)}</b><small>${esc(d)}</small></span>`).join('')}</div></section>`;
 }
 
+
+/* ---------- illustrations for the hub cards: drawn from real map data, in the palette's colours ---------- */
+const ARTS={};
+{
+  const fl=(k,x,y,w,r=0)=>{const h=w*.75;return `<g transform="translate(${x} ${y}) rotate(${r})"><image href="${FB}${k.toLowerCase()}.svg" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice"/><rect class="fb" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="1.5"/></g>`};
+  const mp=(M,{x=0,y=0,s=1,hl={},def='a-l',skipCtx=false}={})=>{let o=`<g transform="translate(${x} ${y}) scale(${s})">`+(skipCtx?'':`<path class="a-ctx" d="${M.ctx}"/>`);
+    for(const id in M.items)o+=`<path class="${typeof hl==='function'?hl(id)||def:hl[id]||def}" d="${M.items[id]}"/>`;return o+'</g>'};
+  const W=()=>ART.world,E=()=>ART.europe,H=()=>ART.h1914;
+  const sil=(k,cx,cy,sz,cls='a-t',flip='')=>`<g transform="translate(${cx} ${cy}) ${flip} translate(${-sz/2} ${-sz/2}) scale(${sz/100})"><path class="${cls}" fill-rule="evenodd" d="${ART.sil[k]}"/></g>`;
+  const tx=(x,y,t,sz,cls='',anchor='middle')=>`<text x="${x}" y="${y}" font-size="${sz}" text-anchor="${anchor}" class="${cls}">${t}</text>`;
+  const pill=(x,y,w,h,cls='pill')=>`<rect class="${cls}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(8,h/2)}"/>`;
+  const lines=(x,y,w,n=1)=>Array.from({length:n},(_,i)=>`<rect class="a-s" x="${x}" y="${y+i*7}" width="${w*(i===n-1&&n>1?.6:1)}" height="3" rx="1.5"/>`).join('');
+  const clock=(x,y,r)=>`<g transform="translate(${x} ${y})"><circle class="ring" r="${r}"/><path class="ln" d="M0 0V${-r*.6}M0 0L${r*.45} ${r*.25}"/></g>`;
+  const arrow=(x1,y,x2)=>`<path class="ln2s" d="M${x1} ${y}H${x2}M${x2-5} ${y-4}L${x2} ${y}L${x2-5} ${y+4}"/>`;
+  const opts4=(x,y,on=1)=>[0,1,2,3].map(i=>pill(x+(i%2)*58,y+(i>>1)*22,52,16,i===on?'pill on':'pill')).join('');
+  const heart=(x,y,s,c='a-e')=>`<path class="${c}" transform="translate(${x} ${y}) scale(${s})" d="M0 3C-3-2-9 0-7 5 -5 9 0 12 0 12 0 12 5 9 7 5 9 0 3-2 0 3Z"/>`;
+  const EU={x:0,y:-10,s:1.2},cE=id=>{const c=E().c[id];return [c[0]*1.2,c[1]*1.2-10]},cW=id=>W().c[id];
+  const tiles=(x,y,word,sz=22)=>[...word].map((c,i)=>`<rect class="pill" x="${x+i*(sz+5)}" y="${y}" width="${sz}" height="${sz*1.2}" rx="4"/>`+tx(x+i*(sz+5)+sz/2,y+sz*.92,c,sz*.8)).join('');
+  const regCls={eu:'c1',af:'c2',as:'c3',na:'c4',sa:'c5',oc:'c6'};
+  Object.assign(ARTS,{
+    'reto.html':()=>{const d=new Date().getDate();return `<g transform="translate(40 24)">${pill(0,0,64,72,'pill')}<rect class="a-a" width="64" height="18" rx="8"/><rect class="a-a" y="9" width="64" height="9"/>${tx(32,58,d,34)}</g>`+sil('ES',160,62,92,'a-t')},
+    'reto.html#libre':()=>sil('NO',58,62,80,'a-s')+sil('IT',120,60,92,'a-a')+sil('JP',184,62,80,'a-s'),
+    'banderas.html':()=>['es','fr','de','it','br','jp'].map((k,i)=>fl(k,48+(i%3)*72,i<3?34:86,58,[-6,3,-2,4,-5,2][i])).join(''),
+    'mas-menos':()=>fl('cn',62,56,78,-3)+fl('in',178,56,78,3)+tx(120,52,'↑',28,'acc')+tx(120,82,'↓',28,'err'),
+    'siluetas':()=>sil('GB',56,64,76)+sil('IT',120,64,84,'a-a')+sil('JP',186,64,76)+clock(220,18,11),
+    'capitales':()=>tx(62,70,'Lima',34)+arrow(108,62,134)+fl('pe',182,62,70),
+    'ordenar':()=>['vu','pt','es','de'].map((k,i)=>{const h=24+i*20;return `<rect class="${i===3?'a-a':'a-l'}" x="${34+i*48}" y="${112-h}" width="34" height="${h}" rx="4"/>`+fl(k,51+i*48,104-h,30)}).join(''),
+    'cadena':()=>{const ids=['PT','ES','FR','DE','PL','UA'];return mp(E(),{...EU,hl:Object.fromEntries(ids.map(k=>[k,'a-a2']))})+`<polyline class="ln" points="${ids.map(k=>cE(k).join(',')).join(' ')}"/>`+ids.map(k=>`<circle class="dot" cx="${cE(k)[0]}" cy="${cE(k)[1]}" r="2.6"/>`).join('')},
+    'pistas':()=>tx(70,98,'?',100,'acc')+[0,1,2].map(i=>pill(126,18+i*30,94,22,i?'pill':'pill on')+lines(134,25+i*30,i===0?60:70-i*12)).join(''),
+    'bandera-mapa':()=>mp(W(),{hl:{BR:'a-a'}})+fl('br',40,28,50,-4)+`<circle class="ring2" cx="${cW('BR')[0]}" cy="${cW('BR')[1]}" r="13"/>`,
+    'capital-mapa':()=>mp(E(),{...EU,hl:{IT:'a-a'}})+pill(8,8,70,26,'pill solid')+tx(43,28,'Roma',18),
+    'que-ano':()=>mp(H(),{...EU,hl:id=>'h'+(Object.keys(H().items).indexOf(id)%4)})+pill(150,8,84,30,'pill solid')+tx(192,31,'¿1914?',20),
+    'cambios':()=>mp(H(),{x:-6,y:20,s:.62,hl:{'h1914-ah':'a-a'}})+arrow(112,58,128)+mp(ART.h1920,{x:122,y:20,s:.62}),
+    'hoy':()=>mp(H(),{...EU,hl:{'h1914-ah':'a-a'},def:'a-l2'})+mp(E(),{...EU,def:'a-ov',skipCtx:true}),
+    'banderas-reloj':()=>['ar','se','kr','ca','za'].map((k,i)=>fl(k,60+i*30,66,58,(i-2)*9)).join('')+clock(214,20,12),
+    'rellena':()=>{const on=new Set('PT ES FR IT DE PL CZ AT HU RO BG GR NL BE DK SE NO IE GB'.split(' '));return mp(E(),{...EU,hl:id=>on.has(id)?'a-a':'a-l'})},
+    'parecidas':()=>fl('ro',72,58,84,-3)+fl('td',168,58,84,3)+tx(120,68,'≈',30,'acc'),
+    'intruso':()=>['se','no','br','dk'].map((k,i)=>fl(k,39+i*54,60,46)).join('')+`<rect class="ring2" x="${147-27}" y="${60-21}" width="54" height="42" rx="6"/>`,
+    'brujula':()=>`<g transform="translate(120 60)"><circle class="ring" r="44"/><circle class="ring" r="34" stroke-dasharray="2 4"/><path class="a-a" d="M0-38L7 0H-7Z"/><path class="a-e" d="M0 38L7 0H-7Z"/><circle class="a-t" r="3"/>${tx(0,-48,'N',11)}${tx(0,57,'S',11)}${tx(54,4,'E',11)}${tx(-54,4,'O',11)}</g>`,
+    'duelo':()=>sil('IT',74,62,90,'a-a')+tx(120,68,'vs',18,'sub')+sil('IT',166,62,90,'a-s','scale(-1,1)'),
+    'mal-pintada':()=>{const f=(x,c,r)=>`<g transform="translate(${x} 60) rotate(${r})">${c.map((cc,i)=>`<rect x="${-36+i*24}" y="-27" width="24.5" height="54" fill="${cc}"/>`).join('')}<rect class="fb" x="-36" y="-27" width="72" height="54"/></g>`;
+      return f(70,['#0055a4','#fff','#ef4135'],-3)+f(170,['#ef4135','#fff','#0055a4'],3)+tx(70,104,'✓',16,'acc')+tx(170,104,'✗',16,'err')},
+    'distancia':()=>{const [a,b]=[cW('ES'),cW('JP')];return mp(W())+`<path class="ln dash" d="M${a[0]} ${a[1]}Q${(a[0]+b[0])/2} ${Math.min(a[1],b[1])-48} ${b[0]} ${b[1]}"/><circle class="dot" cx="${a[0]}" cy="${a[1]}" r="3"/><circle class="dot" cx="${b[0]}" cy="${b[1]}" r="3"/>`+pill(84,88,72,22,'pill solid')+tx(120,104,'10.800 km',13)},
+    'ordena-historia':()=>[0,1,2].map(i=>`<g transform="translate(${18+i*72} ${14+i*8})">${pill(0,0,68,44,'pill solid')}${mp(i===1?ART.h1920:H(),{x:2,y:3,s:.32})}${tx(10,62,i===0?'2':i===1?'3':'1',16,'acc')}</g>`).join(''),
+    'vecino-historico':()=>mp(H(),{...EU,hl:{'h1914-ger14':'a-a','h1914-ah':'a-a2','h1914-fra':'a-a2','h1914-rus14':'a-a2','h1914-ned':'a-a2','h1914-bel':'a-a2','h1914-den':'a-a2','h1914-sui':'a-a2','h1914-lux':'a-a2'}}),
+    'bandera-epoca':()=>fl('h-ah',82,58,96,-4)+pill(146,40,82,32,'pill solid')+tx(187,63,'¿1890?',18),
+    'monedas':()=>[['€',72,'on'],['$',124,''],['¥',176,'']].map(([s,x,on],i)=>`<circle class="coin ${on}" cx="${x}" cy="${60+(i===1?-8:6)}" r="27"/><circle class="ring" cx="${x}" cy="${60+(i===1?-8:6)}" r="21"/>`+tx(x,60+(i===1?-8:6)+8,s,24)).join(''),
+    'idiomas':()=>[['Hola',22,20,'on'],['Bonjour',96,48,''],['Ciao',40,78,''],['Olá',150,14,'']].map(([t,x,y,on])=>{const w=t.length*9+22;return `<path class="bub ${on}" d="M${x} ${y}h${w}a6 6 0 0 1 6 6v14a6 6 0 0 1-6 6h${-w+18}l-8 7v-7h-10a6 6 0 0 1-6-6v-14a6 6 0 0 1 6-6Z"/>`+tx(x+w/2,y+18,t,14)}).join(''),
+    'prefijos':()=>`<g transform="translate(36 14)">${[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>`<circle class="${i===4?'a-a':'key'}" cx="${(i%3)*24}" cy="${(i/3|0)*24}" r="9"/>`).join('')}</g>`+tx(168,72,'+34',38,'acc'),
+    'ciudades':()=>mp(W())+['US','MX','BR','AR','GB','FR','EG','NG','IN','CN','JP','ID','AU','RU','TR','ZA','KR','PE','CO','IR','PK','TH'].filter(cW).map((k,i)=>`<circle class="${i===10?'a-a':'dot2'}" cx="${cW(k)[0]+((i*7)%5-2)}" cy="${cW(k)[1]+((i*3)%5-2)}" r="${i===10?3:2}"/>`).join('')+`<circle class="ring2" cx="${cW('JP')[0]}" cy="${cW('JP')[1]}" r="9"/>`,
+    'fisico':()=>`<rect class="sea" x="0" y="84" width="240" height="36"/><path class="a-l" d="M10 84L52 26L78 58L104 18L146 70L168 46L206 84Z"/><path class="snow" d="M45 36L52 26L59 36ZM97 28L104 18L111 28Z"/><path class="river" d="M104 30C96 46 120 52 110 66S90 80 98 96"/>`,
+    'capital-test':()=>tx(120,40,'Kenia → ?',24)+opts4(62,56,2),
+    'bandera-test':()=>fl('ke',120,30,56)+opts4(62,60,1),
+    'silueta-test':()=>sil('MX',120,30,52)+opts4(62,60,0),
+    'territorios':()=>{const ab=`<g transform="translate(64 58) rotate(-4)">${[0,1,2,3,4,5,6].map(i=>`<rect x="-40" y="${-30+i*8.57}" width="80" height="8.6" fill="${i%2?'#fff':'#00993e'}"/>`).join('')}<rect x="-40" y="-30" width="34" height="26" fill="#c00"/><rect class="fb" x="-40" y="-30" width="80" height="60"/></g>`;return ab+fl('tw',160,40,56,4)+fl('xk',176,84,50,-3)},
+    'territorios-mural':()=>['gl','tw','ps','xk','cy','nc','fo','eh'].map((k,i)=>`<g transform="translate(${34+(i%4)*57} ${36+(i>>2)*46})">`+(['tw','ps','xk','cy'].includes(k)?fl(k,0,0,46):pill(-23,-17,46,34,'pill'))+(i<3?tx(0,6,'✓',16,'acc'):'')+'</g>').join(''),
+    'ubicar':()=>mp(W(),{hl:{NZ:'a-a'}})+fl('nz',44,28,52,-4)+`<path class="pin" transform="translate(${cW('NZ')[0]} ${cW('NZ')[1]-2})" d="M0 0C-6-8-8-12-8-15A8 8 0 0 1 8-15C8-12 6-8 0 0Z"/>`,
+    'bandera-capital':()=>fl('es',62,60,82,-3)+arrow(110,60,134)+tx(186,70,'Madrid',26),
+    'capital-bandera':()=>tx(62,70,'Tokio',30)+arrow(108,60,134)+fl('jp',182,60,74,3),
+    'poblado':()=>[[40,30],[96,58],[152,86],[208,44]].map(([x,h],i)=>`<rect class="${i===2?'a-a':'a-l'}" x="${x-16}" y="${110-h}" width="32" height="${h}" rx="5"/><circle class="${i===2?'a-a':'a-l'}" cx="${x}" cy="${100-h}" r="7"/>`).join(''),
+    'cercana':()=>{const c=cE('FR');return mp(E(),{...EU,hl:{FR:'a-a',BE:'a-a2'}})+`<g>${[14,28,42].map(r=>`<circle class="ring dash" cx="${c[0]}" cy="${c[1]}" r="${r}"/>`).join('')}<path class="ln" d="M${c[0]} ${c[1]}L${cE('BE')[0]} ${cE('BE')[1]}"/><circle class="dot" cx="${c[0]}" cy="${c[1]}" r="3"/></g>`},
+    'verdadero-falso':()=>pill(30,34,82,52,'pill on')+tx(71,70,'V ✓',24)+pill(128,34,82,52,'pill bad')+tx(169,70,'F ✗',24),
+    'continentes':()=>mp(W(),{hl:id=>C[id]?regCls[C[id].r]:''}),
+    'silueta-mapa':()=>sil('MX',46,60,74,'a-t')+arrow(86,60,104)+mp(W(),{x:108,y:14,s:.55,hl:{MX:'a-a'}}),
+    'revelada':()=>{const open=new Set([1,2,5,7,10]);return `<g transform="translate(120 60)">${fl('de',0,0,128)}${Array.from({length:12},(_,i)=>open.has(i)?'':`<rect class="tile" x="${-64+(i%4)*32}" y="${-48+(i>>2)*32}" width="32" height="32"/>`).join('')}</g>`},
+    'memoria':()=>Array.from({length:8},(_,i)=>{const x=24+(i%4)*50,y=14+(i>>2)*48;return i===1?`<g transform="translate(${x+21} ${y+20})">${fl('ca',0,0,40)}</g>`:i===6?pill(x,y,42,40,'pill on')+tx(x+21,y+24,'Canadá',9.5):pill(x,y,42,40,'pill')+tx(x+21,y+27,'?',18,'sub')}).join(''),
+    'por-letra':()=>tx(62,94,'B',96,'acc')+['Bolivia','Brasil','Bélgica','Benín'].map((t,i)=>pill(120,12+i*25,t.length*7+20,19,'pill')+tx(130,26+i*25,t,11,'','start')).join(''),
+    'anagramas':()=>tiles(44,30,'RÚEP')+tiles(80,74,'PERÚ',16).replace(/class="pill"/g,'class="pill on"'),
+    'ahorcado':()=>`<path class="gal" d="M24 104H84M40 104V16H72V26"/><circle class="gal" cx="72" cy="34" r="8"/><path class="gal" d="M72 42V68M72 50L62 58M72 50L82 58"/>`+['C','','I','','A'].map((c,i)=>`<path class="gal" d="M${110+i*24} 76h16"/>`+(c?tx(118+i*24,72,c,20):'')).join(''),
+    'vecinos':()=>{const nb='AT CH FR LU BE NL DK PL CZ'.split(' ');return mp(E(),{...EU,hl:Object.assign({DE:'a-a'},Object.fromEntries(nb.map(k=>[k,'a-a2'])))})},
+    'de-cerca':()=>sil('GR',60,60,60,'a-s')+`<defs><clipPath id="dcclip"><circle cx="124" cy="54" r="38"/></clipPath></defs><g clip-path="url(#dcclip)"><rect class="pill solid" x="80" y="10" width="90" height="90"/>${sil('GR',150,40,240,'a-t')}</g><circle class="ring thick" cx="124" cy="54" r="38"/><path class="ln thick" d="M152 82L178 108"/>`,
+    '_def':()=>{const W=ART.world;let o=`<path class="a-ctx" d="${W.ctx}"/>`;for(const id in W.items)o+=`<path class="a-l" d="${W.items[id]}"/>`;return o},
+    'maraton':()=>fl('mx',50,52,58,-5)+sil('IT',120,56,64,'a-a')+tx(190,74,'?',54,'sub')+heart(96,98,1)+heart(120,98,1)+heart(144,98,1,'a-l'),
+  });
+}
+const artSVG=id=>{const f=ARTS[id]||(()=>`<g opacity=".9">${''}</g>`+ARTS._def());if(!f||!window.ART)return '';try{return `<svg viewBox="0 0 240 120" aria-hidden="true">${f()}</svg>`}catch(e){return ''}};
+
 /* ---------- hub and routing ---------- */
 const EXTRA=[{href:'reto.html',group:'Diarios',title:'Reto diario',desc:'Un país cada día: silueta, bandera, capital, población y vecinos.'},
   {href:'reto.html#libre',group:'Diarios',title:'Reto ilimitado',desc:'Lo mismo que el reto, con un país al azar cada vez.'},
@@ -1289,8 +1673,10 @@ function hub(){
   h+=`<div class="hub-tools"><div class="field srch"><input id="hub-q" autocomplete="off" spellcheck="false" placeholder="Buscar un juego…" aria-label="Buscar un juego"></div>${inputSeg()}</div>`;
   h+=`<details class="profd"${store.get('mapeo.juegos.prof',0)?' open':''}><summary>Tu perfil y logros</summary>${profile()}</details>`;
   for(const [gr,list] of Object.entries(groups)){h+=`<h3 class="grp-h">${gr}</h3><div class="games">`;
-    for(const g of list){const r=g.rec?g.rec():'';h+=`<a class="card" href="${g.href||'#'+g.id}"><h3>${g.title}</h3><p>${g.desc}</p>${r?`<span class="rec">${r}</span>`:''}</a>`}h+='</div>'}
+    for(const g of list){const r=g.rec?g.rec():'',ak=g.id||g.href;h+=`<a class="card" href="${g.href||'#'+g.id}"><div class="art" data-a="${ak}">${artSVG(ak)}</div><h3>${g.title}</h3><p>${g.desc}</p>${r?`<span class="rec">${r}</span>`:''}</a>`}h+='</div>'}
   $('#main').innerHTML=h;
+  // the drawings need the simplified maps: fetched once, then every card is filled in
+  if(!window.ART)loadScript('art-data.js').then(()=>{for(const el of $$('.art[data-a]'))if(!el.firstChild)el.innerHTML=artSVG(el.dataset.a)}).catch(()=>{});
   $('.profd').addEventListener('toggle',e=>store.set('mapeo.juegos.prof',e.target.open?1:0));
   bindInputSeg();
   const q=$('#hub-q');q.addEventListener('input',()=>{const t=norm(q.value);
