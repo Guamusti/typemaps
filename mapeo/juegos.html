@@ -269,18 +269,18 @@ input.shake{animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}
 .sr-clock{font-family:var(--display);font-size:56px;line-height:1;font-variant-numeric:tabular-nums;min-width:4.2ch}
 .sr-delta{font-size:20px;font-variant-numeric:tabular-nums}.sr-delta.ok{color:var(--accent)}.sr-delta.bad{color:var(--err)}
 .sr-n{margin-left:auto;color:var(--sub);font-variant-numeric:tabular-nums}
-.sr-body{display:grid;grid-template-columns:minmax(0,1fr) 224px;gap:12px;align-items:start;margin-top:10px}
+.sr-body{display:grid;grid-template-columns:minmax(0,1fr) 236px;gap:12px;align-items:start;margin-top:10px}
 @media (max-width:860px){.sr-body{grid-template-columns:1fr}}
 .sr-side{font-size:12.5px;min-width:0}
-.sr-split{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.sr-split{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
 .sr-split th{font-weight:400;color:var(--sub);font-size:11px;text-align:right;padding:0 4px 6px}.sr-split th:first-child{text-align:left}
-.sr-split td{padding:5px 3px;border-top:1px solid var(--line);text-align:right}.sr-split td:first-child{text-align:left}
+.sr-split td{padding:5px 2px;border-top:1px solid var(--line);text-align:right}.sr-split td:first-child{text-align:left}
 .sr-split tr.done td:first-child{color:var(--accent)}.sr-split td.ok{color:var(--accent)}.sr-split td.bad{color:var(--err)}
 .sr-pb{display:flex;flex-direction:column;gap:4px;margin:12px 0;color:var(--sub)}.sr-pb b{color:var(--text);font-variant-numeric:tabular-nums;margin-left:6px}
 .sr-goal{display:flex;align-items:center;gap:6px;color:var(--sub)}.sr-goal input{width:64px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
 .sr-slow{margin:6px 0;padding-left:20px}.sr-slow li{display:flex;justify-content:space-between;padding:2px 0}
 .sr-tips{margin-top:16px;color:var(--sub);font-size:13.5px}.sr-tips summary{cursor:pointer;color:var(--text)}
-.sr-short{columns:2;padding-left:18px}.sr-tips code{color:var(--text);background:var(--alt);padding:1px 5px;border-radius:5px}
+.sr-alts{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 14px;margin:10px 0}.sr-alts label{display:flex;align-items:center;gap:6px;cursor:pointer}.sr-tips code{color:var(--text);background:var(--alt);padding:1px 5px;border-radius:5px}
 .gmap .land.next,.gmap .mk.next{fill:color-mix(in srgb,var(--accent) 35%,var(--land));stroke:var(--accent);stroke-width:2}
 </style>
 </head>
@@ -1344,34 +1344,37 @@ const SR_PARTS=[['nor','Nórdicos','IS NO SE FI DK EE LV LT'],['oes','Oeste','PT
 const SR_ALL=SR_PARTS.flatMap(p=>p.ids),SR_PART_OF=Object.fromEntries(SR_PARTS.flatMap(p=>p.ids.map(k=>[k,p.id])));
 // a sensible fixed route: west to east in a snake, so the map never has to be searched
 const SR_ROUTE='IS IE GB PT ES AD FR MC BE NL LU DE DK NO SE FI EE LV LT PL CZ SK HU AT CH LI IT SM VA MT SI HR BA ME RS XK AL MK GR CY TR BG RO MD UA BY RU'.split(' ');
-const SR_EN={AL:['Albania'],AD:['Andorra'],AT:['Austria'],BY:['Belarus'],BE:['Belgium'],BA:['Bosnia and Herzegovina','Bosnia'],BG:['Bulgaria'],HR:['Croatia'],CY:['Cyprus'],
-  CZ:['Czechia','Czech Republic'],DK:['Denmark'],EE:['Estonia'],FI:['Finland'],FR:['France'],DE:['Germany'],GR:['Greece'],HU:['Hungary'],IS:['Iceland'],IE:['Ireland'],IT:['Italy'],
-  XK:['Kosovo'],LV:['Latvia'],LI:['Liechtenstein'],LT:['Lithuania'],LU:['Luxembourg'],MT:['Malta'],MD:['Moldova'],MC:['Monaco'],ME:['Montenegro'],NL:['Netherlands','Holland'],
-  MK:['North Macedonia','Macedonia'],NO:['Norway'],PL:['Poland'],PT:['Portugal'],RO:['Romania'],RU:['Russia'],SM:['San Marino'],RS:['Serbia'],SK:['Slovakia'],SI:['Slovenia'],
-  ES:['Spain'],SE:['Sweden'],CH:['Switzerland'],TR:['Turkey','Türkiye'],UA:['Ukraine'],GB:['United Kingdom','UK','Great Britain'],VA:['Vatican City','Vatican']};
-const srKeys=(k,lang)=>lang==='en'?SR_EN[k].map(norm):[norm(C[k].n),...C[k].a];
-const srShort=(k,lang)=>srKeys(k,lang).reduce((a,b)=>b.length<a.length?b:a);
-const srShow=(k,lang)=>lang==='en'?SR_EN[k][0]:C[k].n;
+// Official run: English names only, as Sporcle checks them — case does not matter, but spelling and spaces do.
+const SR_NAME={AL:'Albania',AD:'Andorra',AT:'Austria',BY:'Belarus',BE:'Belgium',BA:'Bosnia and Herzegovina',BG:'Bulgaria',HR:'Croatia',CY:'Cyprus',CZ:'Czech Republic',DK:'Denmark',EE:'Estonia',
+  FI:'Finland',FR:'France',DE:'Germany',GR:'Greece',HU:'Hungary',IS:'Iceland',IE:'Ireland',IT:'Italy',XK:'Kosovo',LV:'Latvia',LI:'Liechtenstein',LT:'Lithuania',LU:'Luxembourg',MT:'Malta',
+  MD:'Moldova',MC:'Monaco',ME:'Montenegro',NL:'Netherlands',MK:'North Macedonia',NO:'Norway',PL:'Poland',PT:'Portugal',RO:'Romania',RU:'Russia',SM:'San Marino',RS:'Serbia',SK:'Slovakia',
+  SI:'Slovenia',ES:'Spain',SE:'Sweden',CH:'Switzerland',TR:'Turkey',UA:'Ukraine',GB:'United Kingdom',VA:'Vatican City'};
+// alternates: only UK is on by default (listed by Sporclepedia among Sporcle-verified alternatives); the rest stay off until checked in Sporcle's practice mode
+const SR_ALTS=[['GB','UK',1],['CZ','Czechia',0],['TR','Türkiye',0],['VA','Vatican',0],['BA','Bosnia',0],['MK','Macedonia',0],['NL','Holland',0],['GB','Great Britain',0],['CZ','Czech Rep',0]];
+const srNorm=v=>v.toLowerCase().replace(/\s+/g,' ').replace(/^ /,'');
+let SR_ON={};
+const srKeys=k=>[SR_NAME[k].toLowerCase(),...SR_ALTS.filter(([c,v])=>c===k&&SR_ON[v]).map(([,v])=>v.toLowerCase())];
+const srShort=k=>srKeys(k).reduce((a,b)=>b.length<a.length?b:a);
+const srShow=k=>SR_NAME[k];
 const fmtSR=ms=>{if(ms==null)return '–';const s=ms/1000;return s<60?s.toFixed(2):Math.floor(s/60)+':'+(s%60).toFixed(2).padStart(5,'0')};
 const fmtD=ms=>(ms<0?'−':'+')+(Math.abs(ms)/1000).toFixed(2);
 // what a part "should" take for a given total: each country costs its shortest name plus a fixed moment to think and move on
-const srWeight=(k,lang)=>srShort(k,lang).length+3;
-function srTargets(goal,lang){const W=SR_ALL.reduce((s,k)=>s+srWeight(k,lang),0);
-  return Object.fromEntries(SR_PARTS.map(p=>[p.id,goal*p.ids.reduce((s,k)=>s+srWeight(k,lang),0)/W]))}
+const srWeight=k=>srShort(k).length+3;
+function srTargets(goal){const W=SR_ALL.reduce((s,k)=>s+srWeight(k),0);
+  return Object.fromEntries(SR_PARTS.map(p=>[p.id,goal*p.ids.reduce((s,k)=>s+srWeight(k),0)/W]))}
 
-game({id:'speedrun-europa',group:'Speedrun',title:'Speedrun Europa',desc:'Los 47 países de Europa (con Turquía, Chipre y Kosovo) contra el reloj, con parciales, fantasma de tu mejor marca y práctica por partes.',
-  rec:()=>{const b=Math.min(...['es','en'].map(l=>REC['speedrun.'+l+'.all']?.best??1e9));return b<1e9?`mejor: ${fmtSR(b)} s`:''},
+game({id:'speedrun-europa',group:'Speedrun',title:'Speedrun Europa',desc:'Los 47 países del test oficial de Sporcle, en inglés y con centésimas: parciales, fantasma de tu mejor marca y práctica por partes.',
+  rec:()=>{const b=REC['speedrun.sporcle.all']?.best;return b!=null?`mejor: ${fmtSR(b)} s`:''},
   async start(main){
-    const S=store.get('mapeo.sr',{lang:'es',mode:'all',part:'nor',goal:46,stats:{}});S.stats=S.stats||{};
+    const S=store.get('mapeo.sr',{mode:'all',part:'nor',goal:46,stats:{}});S.stats=S.stats||{};S.lang='sporcle';S.alts=S.alts||{UK:1};SR_ON=S.alts;
     const save=()=>store.set('mapeo.sr',S);
     const D=()=>S[S.lang]||(S[S.lang]={pb:null,seg:{},part:{}});   // pb: best full run; seg: best time spent per part inside full runs; part: best part practice
     let scope,got,times,t0,raf=0,running,done,last,V,pbT,order,ri,pend=null,pendT=0;
     main.innerHTML=`<div class="game sr">
-      <div class="hl-top"><div class="seg" id="sr-m" role="group" aria-label="Modo">${[['all','Completo'],['part','Por partes'],['slow','Mis lentos'],['route','Ruta guiada']].map(([v,t])=>`<button type="button" data-v="${v}" aria-pressed="${S.mode===v}">${t}</button>`).join('')}</div>
-        <div class="seg" id="sr-l" role="group" aria-label="Idioma de los nombres">${[['es','español'],['en','inglés (Sporcle)']].map(([v,t])=>`<button type="button" data-v="${v}" aria-pressed="${S.lang===v}">${t}</button>`).join('')}</div></div>
+      <div class="hl-top"><div class="seg" id="sr-m" role="group" aria-label="Modo">${[['all','Completo'],['part','Por partes'],['slow','Mis lentos'],['route','Ruta guiada']].map(([v,t])=>`<button type="button" data-v="${v}" aria-pressed="${S.mode===v}">${t}</button>`).join('')}</div></div>
       <div class="seg sr-parts" id="sr-p" role="group" aria-label="Parte" ${S.mode==='part'?'':'hidden'}>${SR_PARTS.map(p=>`<button type="button" data-v="${p.id}" aria-pressed="${S.part===p.id}">${p.n} <span class="sm">${p.ids.length}</span></button>`).join('')}</div>
       <div class="sr-top"><div class="sr-clock" id="sr-t">0.00</div><div class="sr-delta" id="sr-d"></div><div class="sr-n" id="sr-n"></div></div>
-      <div class="field"><input id="sr-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe países: el reloj arranca con la primera tecla" aria-label="Escribe un país"></div>
+      <div class="field"><input id="sr-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type a country — the clock starts on your first key" aria-label="Escribe un país"></div>
       <div class="msg" id="sr-msg"></div>
       <div class="sr-body"><div class="panel mappanel" id="sr-map"><p class="msg">Cargando el mapa…</p></div><div class="sr-side" id="sr-side"></div></div>
       <div class="end" id="sr-end" hidden></div>
@@ -1383,13 +1386,13 @@ game({id:'speedrun-europa',group:'Speedrun',title:'Speedrun Europa',desc:'Los 47
     const key=()=>'speedrun.'+S.lang+'.'+(S.mode==='all'?'all':S.mode==='part'?'part.'+S.part:S.mode);
     const routeOrder=()=>D().pb?.order?.length===47?D().pb.order:SR_ROUTE;
     function side(){
-      const tg=srTargets(S.goal,S.lang),parts=S.mode==='all'||S.mode==='route'?SR_PARTS:S.mode==='part'?SR_PARTS.filter(p=>p.id===S.part):[];
+      const tg=srTargets(S.goal),parts=S.mode==='all'||S.mode==='route'?SR_PARTS:S.mode==='part'?SR_PARTS.filter(p=>p.id===S.part):[];
       const spent=pid=>{let s=0;for(const k of got)if(SR_PART_OF[k]===pid)s+=times[k];return s};
       let h=parts.length?`<table class="sr-split"><thead><tr><th></th><th></th><th>tiempo</th><th title="Lo que corresponde a esta parte para hacer ${S.goal} s en total">obj. ${S.goal}</th><th title="${S.mode==='part'?'Tu mejor tiempo en este tramo':'Tu mejor tiempo en este tramo dentro de una partida completa'}">mejor</th></tr></thead><tbody>`+
         parts.map(p=>{const n=p.ids.filter(k=>got.has(k)).length,sp=spent(p.id),best=S.mode==='part'?D().part[p.id]:D().seg[p.id];const full=n===p.ids.length;
           return `<tr class="${full?'done':''}"><td>${p.n}</td><td>${n}/${p.ids.length}</td><td class="${full&&sp<=tg[p.id]*1000?'ok':full?'bad':''}">${n?fmtSR(sp):'–'}</td><td>${fmtSR(tg[p.id]*1000)}</td><td>${fmtSR(best)}</td></tr>`}).join('')+'</tbody></table>':'';
       if(S.mode==='slow'){const l=slowList();h+=l.length<10?`<p class="msg">Aún no hay datos: juega unas cuantas partidas completas y aquí saldrán los diez países en los que más tardas.</p>`:
-        `<p class="sm">Tus diez países más lentos (media por país):</p><ol class="sr-slow">${l.slice(0,10).map(([k,v])=>`<li><span>${esc(srShow(k,S.lang))}</span><b>${(v/1000).toFixed(2)} s</b></li>`).join('')}</ol>`}
+        `<p class="sm">Tus diez países más lentos (media por país):</p><ol class="sr-slow">${l.slice(0,10).map(([k,v])=>`<li><span>${esc(srShow(k))}</span><b>${(v/1000).toFixed(2)} s</b></li>`).join('')}</ol>`}
       const pb=D().pb;if(S.mode==='all'||S.mode==='route'){const sob=SR_PARTS.every(p=>D().seg[p.id]!=null)?SR_PARTS.reduce((s,p)=>s+D().seg[p.id],0):null;
         h+=`<div class="sr-pb"><span>Mejor marca <b>${fmtSR(pb?.total)}</b></span><span title="La suma de tus mejores parciales: lo que harías juntando tus mejores tramos">Suma de mejores <b>${fmtSR(sob)}</b></span></div>`}
       h+=`<label class="sr-goal">Objetivo <input id="sr-goal" type="number" min="20" max="300" step="1" value="${S.goal}"> s</label>`;
@@ -1397,11 +1400,12 @@ game({id:'speedrun-europa',group:'Speedrun',title:'Speedrun Europa',desc:'Los 47
       $('#sr-goal').onchange=e=>{const v=Math.max(20,Math.min(300,Math.round(+e.target.value||46)));S.goal=v;save();side();tips()};
     }
     function tips(){
-      const ids=SR_ALL,lang=S.lang;
-      const long=ids.map(k=>[k,srShort(k,lang)]).filter(([k,s])=>s.length<norm(srShow(k,lang)).length);
-      $('#sr-tips').innerHTML=`<p>El país se acepta en cuanto lo escribes bien, sin Enter. Da igual mayúsculas, tildes y espacios: <code>${lang==='en'?'sanmarino':'paisesbajos'}</code> vale.</p>
-        ${long.length?`<p>Formas cortas que acepta este juego:</p><ul class="sr-short">${long.map(([k,s])=>`<li>${esc(srShow(k,lang))} → <code>${s}</code></li>`).join('')}</ul><p class="sm">Antes de usarlas en otro sitio, comprueba que ese test también las acepta.</p>`:''}
-        <p>Esc reinicia al instante. En “Por partes” cada tramo tiene su objetivo, calculado para que la suma dé ${S.goal} s.</p>`}
+      $('#sr-tips').innerHTML=`<p>Como en Sporcle: nombres en inglés, da igual mayúsculas o minúsculas, pero la ortografía y los espacios tienen que estar bien. Cada país cuenta en cuanto está escrito, sin Enter. Esc reinicia.</p>
+        <p>Abreviaturas aceptadas. Solo <b>UK</b> viene activada: Sporclepedia la da como alternativa verificada, aunque avisa de que cada test puede aceptar otras. Prueba las demás en el modo práctica de Sporcle (sin reloj) y activa aquí solo las que funcionen, para que tu marca valga igual allí.</p>
+        <div class="sr-alts">${SR_ALTS.map(([k,v])=>`<label><input type="checkbox" data-alt="${esc(v)}" ${SR_ON[v]?'checked':''}> <code>${esc(v)}</code> <span class="sm">= ${esc(SR_NAME[k])}</span></label>`).join('')}</div>
+        <p class="sm">Los objetivos de cada parte se reparten según lo que hay que teclear, para que sumen ${S.goal} s.</p>`;
+      $$('#sr-tips [data-alt]').forEach(c=>c.onchange=()=>{if(c.checked)SR_ON[c.dataset.alt]=1;else delete SR_ON[c.dataset.alt];save();if(!running)reset()});
+    }
     function view(){
       V=mapView($('#sr-map'),M,{onClick(){}});const ids=scopeIds();
       for(const it of M.items)V.cls(it.id,'off',!ids.includes(it.id));
@@ -1437,32 +1441,32 @@ times[k]=now-last;last=now;got.add(k);order.push(k);V.cls(k,'on');V.cls(k,'next'
       if(S.mode==='part'&&(d.part[S.part]==null||total<d.part[S.part]))d.part[S.part]=Math.round(total);
       save();side();
       const slow=[...got].sort((a,b)=>times[b]-times[a]).slice(0,5);
-      const tg=srTargets(S.goal,S.lang);
+      const tg=srTargets(S.goal);
       const goalLine=S.mode==='all'?(total<=S.goal*1000?`¡Por debajo de tu objetivo de ${S.goal} s!`:`Te faltan ${((total-S.goal*1000)/1000).toFixed(2)} s para ${S.goal} s.`):
         S.mode==='part'?(total<=tg[S.part]*1000?`Dentro del objetivo del tramo (${fmtSR(tg[S.part]*1000)} s).`:`El objetivo del tramo es ${fmtSR(tg[S.part]*1000)} s.`):'';
-      endCard($('#sr-end'),{big:`${fmtSR(total)} s`,sub:`${goalLine}<br>Donde más tardaste: ${slow.map(k=>`${esc(srShow(k,S.lang))} ${(times[k]/1000).toFixed(2)}`).join(' · ')}`,
+      endCard($('#sr-end'),{big:`${fmtSR(total)} s`,sub:`${goalLine}<br>Donde más tardaste: ${slow.map(k=>`${esc(srShow(k))} ${(times[k]/1000).toFixed(2)}`).join(' · ')}`,
         rec:r.better&&r.prev!=null?`¡Nueva mejor marca! Antes ${fmtSR(r.prev)} s`:r.prev!=null?`Tu mejor: ${fmtSR(Math.min(r.prev,total))} s`:'Primera marca guardada',again:reset});
     }
     const input=$('#sr-in');
     // A name that is also the start of a longer name of the same country ("Finland" / "Finlandia", "Bosnia" / "Bosnia y Herzegovina")
     // is held for a moment: if you keep typing that longer name it is swallowed; if you start another country, or stop, it counts.
     // The time is always the moment the first valid name was complete, so the wait costs nothing.
-    const longer=(k,t)=>srKeys(k,S.lang).some(x=>x.length>t.length&&x.startsWith(t));
+    const longer=(k,t)=>srKeys(k).some(x=>x.length>t.length&&x.startsWith(t));
     const settle=()=>{if(!pend)return;clearTimeout(pendT);const p=pend;pend=null;accept(p.k,p.at)};
     const hold=()=>{clearTimeout(pendT);pendT=setTimeout(()=>{input.value='';settle()},350)};
     input.addEventListener('input',()=>{
       if(done)return;
       if(!running&&input.value){running=true;t0=performance.now();raf=requestAnimationFrame(tick)}
-      if(pend){const t=norm(input.value);
-        if(t.startsWith(pend.t)&&srKeys(pend.k,S.lang).some(x=>x.startsWith(t))){if(!longer(pend.k,t)){input.value='';settle()}else hold();return}
+      if(pend){const t=srNorm(input.value);
+        if(t.startsWith(pend.t)&&srKeys(pend.k).some(x=>x.startsWith(t))){if(!longer(pend.k,t)){input.value='';settle()}else hold();return}
         const rest=input.value.slice(pend.raw);settle();input.value=rest.replace(/^\s+/,'')}
-      const t=norm(input.value);if(!t)return;
+      const t=srNorm(input.value);if(!t)return;
       for(const k of scope){if(got.has(k))continue;if(S.mode==='route'&&k!==routeOrder()[ri])continue;
-        if(srKeys(k,S.lang).includes(t)){const at=performance.now()-t0;if(longer(k,t)){pend={k,t,at,raw:input.value.length};hold()}else{input.value='';accept(k,at)}return}}
+        if(srKeys(k).includes(t)){const at=performance.now()-t0;if(longer(k,t)){pend={k,t,at,raw:input.value.length};hold()}else{input.value='';accept(k,at)}return}}
     });
     input.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();reset()}else if(e.key==='Enter'){e.preventDefault();if(pend){input.value='';settle()}else if(done)reset()}});
     const seg=(id,f)=>{$(id).onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;$$(id+' button').forEach(x=>x.setAttribute('aria-pressed',x===b));f(b.dataset.v);save();reset()}};
-    seg('#sr-m',v=>{S.mode=v;$('#sr-p').hidden=v!=='part'});seg('#sr-l',v=>{S.lang=v});seg('#sr-p',v=>{S.part=v});
+    seg('#sr-m',v=>{S.mode=v;$('#sr-p').hidden=v!=='part'});seg('#sr-p',v=>{S.part=v});
     const esc_=e=>{if(e.key==='Escape'&&document.activeElement!==input&&here()==='speedrun-europa'){reset()}};document.addEventListener('keydown',esc_);
     stopGame=()=>{running=false;cancelAnimationFrame(raf);document.removeEventListener('keydown',esc_);save()};
     reset();
