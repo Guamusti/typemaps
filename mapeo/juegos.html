@@ -1352,7 +1352,9 @@ const SR_NAME={AL:'Albania',AD:'Andorra',AT:'Austria',BY:'Belarus',BE:'Belgium',
 // alternates: the first five were checked by hand in Sporcle's practice mode; the rest are still to check, so they start off
 // [country, typed form, verified in Sporcle]
 const SR_ALTS=[['GB','UK',1],['CZ','Czechia',1],['MK','Macedonia',1],['VA','Vatican',1],['BA','Bosnia Herzegovina',1],
-  ['NL','Holland',0],['CZ','Czech',0],['GB','Great Britain',0],['GB','Britain',0],['TR','Türkiye',0]];
+  ['GB','Great Britain',0],['GB','Britain',0],['TR','Türkiye',0]];
+// tried in Sporcle and refused: never accepted here either
+const SR_NO=['Bosnia','Holland','Czech'];
 const SR_DEF=Object.fromEntries(SR_ALTS.filter(a=>a[2]).map(a=>[a[1],1]));
 const srNorm=v=>v.toLowerCase().replace(/\s+/g,'');
 let SR_ON={};
@@ -1369,7 +1371,7 @@ function srTargets(goal){const W=SR_ALL.reduce((s,k)=>s+srWeight(k),0);
 game({id:'speedrun-europa',group:'Speedrun',title:'Speedrun Europa',desc:'Los 47 países del test oficial de Sporcle, en inglés y con centésimas: parciales, fantasma de tu mejor marca y práctica por partes.',
   rec:()=>{const b=REC['speedrun.sporcle.all']?.best;return b!=null?`mejor: ${fmtSR(b)} s`:''},
   async start(main){
-    const S=store.get('mapeo.sr',{mode:'all',part:'nor',goal:46,stats:{}});S.stats=S.stats||{};S.lang='sporcle';if(S.altsV!==2){S.alts={...SR_DEF};S.altsV=2}SR_ON=S.alts;
+    const S=store.get('mapeo.sr',{mode:'all',part:'nor',goal:46,stats:{}});S.stats=S.stats||{};S.lang='sporcle';if(S.altsV!==2){S.alts={...SR_DEF};S.altsV=2}for(const v of SR_NO)delete S.alts[v];SR_ON=S.alts;
     const save=()=>store.set('mapeo.sr',S);
     const D=()=>S[S.lang]||(S[S.lang]={pb:null,seg:{},part:{}});   // pb: best full run; seg: best time spent per part inside full runs; part: best part practice
     let scope,got,times,t0,raf=0,running,done,last,V,pbT,order,ri,pend=null,pendT=0;
@@ -1407,7 +1409,8 @@ game({id:'speedrun-europa',group:'Speedrun',title:'Speedrun Europa',desc:'Los 47
         <p>Ojo con <b>UK</b> y <b>Ukraine</b>: al escribir «uk» ya cuenta Reino Unido. Pon UK antes que Ukraine en tu ruta, o tendrás que volver a escribir Ukraine entero.</p>
         <p>Abreviaturas comprobadas en Sporcle:</p>
         <div class="sr-alts">${SR_ALTS.filter(a=>a[2]).map(([k,v])=>`<label><input type="checkbox" data-alt="${esc(v)}" ${SR_ON[v]?'checked':''}> <code>${esc(v)}</code> <span class="sm">= ${esc(SR_NAME[k])}</span></label>`).join('')}</div>
-        <p>Sin comprobar todavía (pruébalas en el modo práctica de Sporcle y actívalas solo si funcionan):</p>
+        <p class="sm">No valen en Sporcle: ${SR_NO.join(', ')}.</p>
+        <p>Sin comprobar todavía (no ahorran letras; solo sirven si se te escapan):</p>
         <div class="sr-alts">${SR_ALTS.filter(a=>!a[2]).map(([k,v])=>`<label><input type="checkbox" data-alt="${esc(v)}" ${SR_ON[v]?'checked':''}> <code>${esc(v)}</code> <span class="sm">= ${esc(SR_NAME[k])}</span></label>`).join('')}</div>
         <p class="sm">Los objetivos de cada parte se reparten según lo que hay que teclear, para que sumen ${S.goal} s.</p>`;
       $$('#sr-tips [data-alt]').forEach(c=>c.onchange=()=>{if(c.checked)SR_ON[c.dataset.alt]=1;else delete SR_ON[c.dataset.alt];save();if(!running)reset()});
