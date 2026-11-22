@@ -301,6 +301,10 @@ input.shake{animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}
 .ay-h{list-style:none;padding:0;margin:14px auto 0;max-width:420px;display:flex;flex-direction:column;gap:4px}
 .ay-h li{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:10px;padding:6px 12px;border-radius:10px;background:color-mix(in srgb,var(--c) 26%,var(--alt));box-shadow:inset 3px 0 0 var(--c);font-variant-numeric:tabular-nums}
 .ay-h li b{font-weight:400;font-size:18px}.ay-h li em{font-style:normal;color:var(--sub);font-size:13px}
+.zoomable{position:relative}.gmap{touch-action:none}
+.zbtn{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:4px;z-index:2}
+.zbtn button{width:32px;height:32px;border-radius:9px;background:color-mix(in srgb,var(--alt) 92%,transparent);color:var(--text);font-size:17px;line-height:1;box-shadow:0 1px 0 var(--line)}
+.zbtn button:hover{background:color-mix(in srgb,var(--accent) 20%,var(--alt))}
 </style>
 </head>
 <body>
@@ -724,13 +728,24 @@ function mapView(el,M,{onClick,box,tint,onPoint}){
   el.innerHTML=h+'</svg>';const svg=el.querySelector('svg');
   const setVB=()=>{svg.setAttribute('viewBox',vb.join(' '));const r=vb[2]/170;svg.querySelectorAll('.mk').forEach(c=>c.setAttribute('r',r.toFixed(2)))};setVB();
   const pt=e=>{const r=svg.getBoundingClientRect();return [vb[0]+(e.clientX-r.left)/r.width*vb[2],vb[1]+(e.clientY-r.top)/r.height*vb[3]]};
-  svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=pt(e),f=e.deltaY>0?1.2:1/1.2;const w=Math.min(full[2],Math.max(full[2]/40,vb[2]*f)),k=w/vb[2];
-    vb=[x-(x-vb[0])*k,y-(y-vb[1])*k,w,vb[3]*k];setVB()},{passive:false});
-  let drag=null,moved=false;
-  svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vb:[...vb]};moved=false;svg.setPointerCapture(e.pointerId)});
-  svg.addEventListener('pointermove',e=>{if(!drag)return;const r=svg.getBoundingClientRect(),dx=(e.clientX-drag.x)/r.width*vb[2],dy=(e.clientY-drag.y)/r.height*vb[3];
+  // zoom: wheel, pinch, double click or the + − buttons
+  const zoom=(x,y,f)=>{const w=Math.min(full[2],Math.max(full[2]/40,vb[2]*f)),k=w/vb[2];vb=[x-(x-vb[0])*k,y-(y-vb[1])*k,w,vb[3]*k];setVB()};
+  svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=pt(e);zoom(x,y,e.deltaY>0?1.2:1/1.2)},{passive:false});
+  svg.addEventListener('dblclick',e=>{e.preventDefault();const [x,y]=pt(e);zoom(x,y,e.shiftKey?1.8:1/1.8)});
+  el.classList.add('zoomable');
+  el.insertAdjacentHTML('beforeend',`<div class="zbtn"><button type="button" data-z="in" aria-label="Ampliar">+</button><button type="button" data-z="out" aria-label="Reducir">−</button><button type="button" data-z="fit" aria-label="Ver todo">⤢</button></div>`);
+  el.querySelector('.zbtn').onclick=e=>{const b=e.target.closest('[data-z]');if(!b)return;const c=[vb[0]+vb[2]/2,vb[1]+vb[3]/2];
+    if(b.dataset.z==='fit'){vb=box?[...box]:[...full];setVB()}else zoom(c[0],c[1],b.dataset.z==='in'?1/1.6:1.6)};
+  let drag=null,moved=false;const ptrs=new Map();let pinch=null;
+  svg.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,[e.clientX,e.clientY]);svg.setPointerCapture(e.pointerId);
+    if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])};drag=null;moved=true;return}
+    drag={x:e.clientX,y:e.clientY,vb:[...vb]};moved=false});
+  svg.addEventListener('pointermove',e=>{if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(d>0){const [x,y]=pt({clientX:(a[0]+b[0])/2,clientY:(a[1]+b[1])/2});zoom(x,y,pinch.d/d);pinch.d=d}return}
+    if(!drag)return;const r=svg.getBoundingClientRect(),dx=(e.clientX-drag.x)/r.width*vb[2],dy=(e.clientY-drag.y)/r.height*vb[3];
     if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>4)moved=true;if(moved){vb=[drag.vb[0]-dx,drag.vb[1]-dy,vb[2],vb[3]];setVB()}});
-  svg.addEventListener('pointerup',e=>{const was=drag;drag=null;if(!was||moved)return;const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-id]');if(onPoint)onPoint(pt(e),t?t.dataset.id:null);else if(t)onClick(t.dataset.id)});
+  svg.addEventListener('pointercancel',e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;drag=null});
+  svg.addEventListener('pointerup',e=>{ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;drag=null;return}const was=drag;drag=null;if(!was||moved)return;const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-id]');if(onPoint)onPoint(pt(e),t?t.dataset.id:null);else if(t)onClick(t.dataset.id)});
   const els=id=>svg.querySelectorAll(`[data-id="${id}"]`);
   return {cls(id,c,on=true){els(id).forEach(x=>x.classList.toggle(c,on))},
     reset(){vb=box?[...box]:[...full];setVB()},
@@ -826,9 +841,10 @@ game({id:'que-ano',group:'Historia',title:'¿Qué año es?',desc:'Un mapa de Eur
   }});
 
 /* Afina el año: one map, a year picker and five tries; each try says how far and which way */
-const AY_MIN=1450,AY_MAX=2020;
+const AY_MIN=950,AY_MAX=2025;
+const AYEARS=[1000,1100,1200,1300,1400,1500,1600,1700,1800,2010,...HYEARS].sort((a,b)=>a-b);
 const ayBand=d=>d<=3?['¡Clavado!','b0']:d<=10?['Muy cerca','b1']:d<=30?['Cerca','b2']:d<=80?['Templado','b3']:['Lejos','b4'];
-game({id:'afina-ano',group:'Historia',title:'Afina el año',desc:'Un mapa de Europa de un año cualquiera: elige el año en una línea del tiempo y afina con las pistas. Cinco intentos por mapa.',
+game({id:'afina-ano',group:'Historia',title:'Afina el año',desc:'Un mapa de Europa de cualquier año entre el 1000 y hoy: elige el año en una línea del tiempo y afina con las pistas. Cinco intentos por mapa.',
   rec:()=>{const b=REC['afina-ano']?.best;return b!=null?`mejor: ${b} de 25`:''},
   async start(main){
     const ROUNDS=5,TRIES=5;let round,total,ans,tries,lo,hi,done,bag;
@@ -854,16 +870,16 @@ game({id:'afina-ano',group:'Historia',title:'Afina el año',desc:'Un mapa de Eur
     const pct=y=>(100*(y-AY_MIN)/(AY_MAX-AY_MIN)).toFixed(2)+'%';
     // the timeline: ruled-out years shaded, every try a dot coloured by how close it was, the current pick as a line
     function tl(){
-      const ticks=[1500,1600,1700,1800,1900,2000].map(t=>`<span class="ay-tk" style="left:${pct(t)}">${t}</span>`).join('');
+      const ticks=[1000,1200,1400,1600,1800,2000].map(t=>`<span class="ay-tk" style="left:${pct(t)}">${t}</span>`).join('');
       const shade=`<i class="ay-in" style="left:${pct(lo)};width:calc(${pct(hi)} - ${pct(lo)})"></i>`;
       const dots=tries.map(t=>`<b class="ay-dot ${ayBand(Math.abs(t-ans))[1]}" style="left:${pct(t)}" title="${t}"></b>`).join('');
       const cur=done?`<b class="ay-ans" style="left:${pct(ans)}"><span>${ans}</span></b>`:`<b class="ay-cur" style="left:${pct(+yIn.value||AY_MIN)}"></b>`;
       $('#ay-tl').innerHTML=`<div class="ay-bar">${shade}${dots}${cur}</div>${ticks}`;
     }
     async function deal(){
-      done=false;tries=[];lo=AY_MIN;hi=AY_MAX;if(!bag.length)bag=shuffle([...HYEARS]);ans=bag.pop();
+      done=false;tries=[];lo=AY_MIN;hi=AY_MAX;if(!bag.length)bag=shuffle([...AYEARS]);ans=bag.pop();
       $('#ay-h').innerHTML='';$('#ay-msg').textContent='';$('#ay-msg').className='msg';
-      $$('.ay-ctl button,#ay-y,#ay-r').forEach(x=>x.disabled=false);setY(1735);score();
+      $$('.ay-ctl button,#ay-y,#ay-r').forEach(x=>x.disabled=false);setY(1500);score();
       const M=await loadYear(ans);if(here()!=='afina-ano')return;
       mapView($('#ay-map'),M,{onClick(){},tint:1});yIn.focus({preventScroll:true});
     }
@@ -890,7 +906,7 @@ game({id:'afina-ano',group:'Historia',title:'Afina el año',desc:'Un mapa de Eur
     yIn.oninput=()=>{if(+yIn.value>=AY_MIN&&+yIn.value<=AY_MAX){rg.value=yIn.value;tl()}};
     yIn.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();guess()}};
     rg.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();guess()}};
-    $$('.ay-ctl [data-d]').forEach(b=>b.onclick=()=>setY((+yIn.value||1735)+ +b.dataset.d));
+    $$('.ay-ctl [data-d]').forEach(b=>b.onclick=()=>setY((+yIn.value||1500)+ +b.dataset.d));
     $('#ay-go').onclick=guess;
     // clicking the timeline picks that year
     $('#ay-tl').onclick=e=>{if(done)return;const r=$('#ay-tl .ay-bar').getBoundingClientRect();setY(AY_MIN+(e.clientX-r.left)/r.width*(AY_MAX-AY_MIN))};
