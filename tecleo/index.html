@@ -121,12 +121,23 @@ kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var
 .pacing #pacer{display:block}
 #spark{display:block;margin-top:4px}
 .minis b small{font-size:12px;color:var(--sub);margin-left:8px}
+#r-time small{display:block;margin:2px 0 0}
+.r-eu{grid-column:1/-1;padding-top:24px;border-top:1px solid var(--line)}
+.eu-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.btn.sm{padding:8px 14px;font-size:13px}
+.eu-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:4px 28px}
+.eu-row{display:grid;grid-template-columns:150px 1fr 38px;align-items:center;gap:10px;font-size:14px;padding:3px 0}
+.eu-row .eu-x{grid-column:1/-1;margin-top:-4px;font-size:11px;color:var(--sub);min-height:0}
+.eu-row .eu-x:empty{display:none}
+.eu-w{overflow:hidden;text-overflow:ellipsis}.eu-row b{font-weight:400;text-align:right;font-variant-numeric:tabular-nums}
+.eu-bar{height:6px;border-radius:3px;background:color-mix(in srgb,var(--sub) 18%,transparent);overflow:hidden}.eu-bar i{display:block;height:100%;border-radius:3px;background:var(--accent)}
+.eu-row.bad .eu-w{color:var(--err)}.eu-row.bad .eu-bar i{background:var(--err)}
 #chart svg{display:block;width:100%;height:auto}
 #chart text{font-family:var(--mono);font-size:11px;fill:var(--sub)}
 .legend{display:flex;gap:18px;color:var(--sub);font-size:12px;margin-top:6px;flex-wrap:wrap}
 .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:7px}
 .minis{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px 28px;padding-top:24px;border-top:1px solid var(--line)}
-.minis b{display:block;font-weight:400;font-size:20px;white-space:nowrap;color:var(--text);font-variant-numeric:tabular-nums}
+.minis b{display:block;font-weight:400;font-size:20px;white-space:normal;overflow-wrap:anywhere;color:var(--text);font-variant-numeric:tabular-nums}
 .actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .btn{padding:11px 18px;border-radius:12px;background:var(--accent);color:var(--bg);transition:transform .15s,filter .2s}
 .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
@@ -196,7 +207,7 @@ input[type=range]{flex:1;accent-color:var(--accent)}
           <button type="button" data-val="europe">europa</button>
         </div>
         <div class="seg soft" data-key="eorder" id="seg-eorder">
-          <button type="button" data-val="route">mi ruta</button><button type="button" data-val="random">al azar</button>
+          <button type="button" data-val="route">mi ruta</button><button type="button" data-val="random">al azar</button><button type="button" data-val="slow">mis lentos</button>
         </div>
         <div class="seg soft" data-key="time" id="seg-time">
           <button type="button" data-val="15">15</button><button type="button" data-val="30">30</button>
@@ -263,6 +274,7 @@ input[type=range]{flex:1;accent-color:var(--accent)}
         <div><span class="stat-l">tiempo</span><b id="r-time">0s</b></div>
         <div><span class="stat-l">test</span><b id="r-mode">–</b></div>
       </div>
+      <div class="r-eu" id="r-eu" hidden></div>
       <div class="actions">
         <button class="btn" id="next" type="button">Texto nuevo</button>
         <button class="btn alt" id="again" type="button">Repetir este texto</button>
@@ -546,8 +558,13 @@ const EU_TYPE={AL:'albania',AD:'andorra',AT:'austria',BY:'belarus',BE:'belgium',
   SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',TR:'turkey',UA:'ukraine',GB:'uk',VA:'vatican'};
 const EU_ROUTE='IS IE GB PT ES AD FR MC BE NL LU DE DK NO SE FI EE LV LT PL CZ SK HU AT CH LI IT SM VA MT SI HR BA ME RS XK AL MK GR CY TR BG RO MD UA BY RU'.split(' ');
 // "mi ruta" is the order of your best Speedrun Europa run in Mapeo (same site, same storage); until there is one, west to east
+// speed per country, from the time between finishing the previous name and finishing this one (space included)
+const euStats=()=>store.get('tecleo.eu.words',{});
+const euSlow=()=>Object.entries(euStats()).filter(([w,v])=>v.length).map(([w,v])=>[w,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>a[1]-b[1]);
 function euWords(){
   let order=EU_ROUTE;try{const o=store.get('mapeo.sr',{})?.sporcle?.pb?.order;if(Array.isArray(o)&&o.length===47&&o.every(k=>EU_TYPE[k]))order=o}catch(e){}
+  if(cfg.eorder==='slow'){const sl=euSlow().slice(0,10).map(x=>x[0]);if(sl.length>=5){const out=[];let pool=[...sl,...sl,...sl];
+      while(pool.length){const c=pool.filter(w=>w!==out[out.length-1]);const w=(c.length?c:pool)[Math.random()*(c.length?c.length:pool.length)|0];out.push(w);pool.splice(pool.indexOf(w),1)}return out}}
   if(cfg.eorder==='random'){order=[...order];for(let i=order.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[order[i],order[j]]=[order[j],order[i]]}}
   return order.map(k=>EU_TYPE[k]);
 }
@@ -582,7 +599,7 @@ function reset(keep){
   else if(cfg.mode==='quote'){const byTag=QUOTES.filter(q=>cfg.qtag==='all'||q[3]===cfg.qtag),byLen=byTag.filter(q=>cfg.qlen==='all'||(q[0].length>=80)===(cfg.qlen==='long')),pool=byLen.length?byLen:byTag;do{quote=pool[Math.random()*pool.length|0]}while(pool.length>1&&S&&S.quote===quote);words=quote[0].split(' ')}
   else if(cfg.mode==='europe')words=euWords();
   else words=gen(cfg.mode==='time'?90:cfg.count);
-  S={words,quote,initial:words.length,typed:words.map(()=>''),wi:0,committed:0,started:false,finished:false,t0:0,sec:0,timer:null,
+  S={wt:[],we:{},words,quote,initial:words.length,typed:words.map(()=>''),wi:0,committed:0,started:false,finished:false,t0:0,sec:0,timer:null,
      ok:0,bad:0,secChars:0,secErr:0,history:[],prev:'',miss:{},pace:0};
   wordEls.forEach(e=>e.remove());wordEls=[];addWordEls(0);
   inp.value='';$('#results').hidden=true;$('#test').hidden=false;
@@ -651,7 +668,7 @@ function markTyping(){
 }
 function account(pos,added){
   for(const ch of added){S.secChars++;if(ch===' ')continue;
-    const exp=S.words[S.wi][pos];if(ch===exp)S.ok++;else{S.bad++;S.secErr++;flashErr();if(exp)S.miss[exp]=(S.miss[exp]||0)+1}pos++}
+    const exp=S.words[S.wi][pos];if(ch===exp)S.ok++;else{S.bad++;S.secErr++;flashErr();S.we[S.wi]=(S.we[S.wi]||0)+1;if(exp)S.miss[exp]=(S.miss[exp]||0)+1}pos++}
 }
 function start(){S.started=true;S.t0=performance.now();S.timer=setInterval(tick,1000);body.classList.add('started');if(cfg.mode==='time')setProg(1/cfg.time);paceStart()}
 /* Ghost pacer: a faint second caret that advances at the typist's usual speed. */
@@ -688,7 +705,7 @@ function live(){
   $('#live-wpm').textContent=(S.sec?Math.round(correctChars()/5/(S.sec/60)):0)+' ppm';
 }
 function commit(){
-  const i=S.wi,good=S.typed[i]===S.words[i];
+  const i=S.wi,good=S.typed[i]===S.words[i];if(cfg.mode==='europe')S.wt[i]=performance.now();
   if(good)S.ok++;else{S.bad++;S.secErr++;flashErr()}
   paint(i);wordEls[i].classList.toggle('bad',!good);
   S.committed++;S.prev='';
@@ -753,6 +770,25 @@ $('#copy').onclick=async e=>{
 };
 
 /* ---------- results ---------- */
+// Europa: speed of every country in this run, the historic average, and a way to drill the slowest ones
+function euReport(){
+  const box=$('#r-eu');box.hidden=cfg.mode!=='europe';if(box.hidden)return;
+  const n=S.words.length;if(S.wt[n-1]==null)S.wt[n-1]=performance.now();
+  const st=euStats(),rows=[];
+  for(let i=0;i<n;i++){const w=S.words[i],dt=(S.wt[i]-(i?S.wt[i-1]:S.t0))/1000;if(!(dt>0))continue;
+    const ok=S.typed[i]===w,wpm=(w.length+(i?1:0))/5/(dt/60);
+    if(ok){(st[w]=st[w]||[]).push(Math.round(wpm));if(st[w].length>10)st[w].shift()}
+    rows.push({w,wpm,ok,err:S.we[i]||0,dt})}
+  store.set('tecleo.eu.words',st);
+  const seen=new Set(),uniq=rows.filter(r=>!seen.has(r.w)&&seen.add(r.w)).sort((a,b)=>a.wpm-b.wpm);
+  const avg=w=>{const v=st[w];return v&&v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null};
+  const max=Math.max(...uniq.map(r=>r.wpm),1);
+  box.innerHTML=`<div class="eu-h"><span class="stat-l">ppm por país · de más lento a más rápido</span>
+      <button class="btn alt sm" id="eu-drill" type="button">Practicar mis 10 más lentos</button></div>
+    <div class="eu-list">${uniq.map(r=>`<div class="eu-row${r.ok?'':' bad'}"><span class="eu-w">${r.w}</span><span class="eu-bar"><i style="width:${(100*r.wpm/max).toFixed(1)}%"></i></span>
+      <b>${Math.round(r.wpm)}</b><span class="eu-x">${[r.err?r.err+(r.err===1?' error':' errores'):'',avg(r.w)!=null?'media '+avg(r.w):''].filter(Boolean).join(' · ')}</span></div>`).join('')}</div>`;
+  $('#eu-drill').onclick=()=>{cfg.eorder='slow';save();syncUI();reset();focusInput()};
+}
 function finish(){
   S.finished=true;clearInterval(S.timer);clearTimeout(idleT);
   const dur=cfg.mode==='time'?cfg.time:Math.max(.2,(performance.now()-S.t0)/1000);
@@ -781,15 +817,17 @@ function finish(){
   S.summary=`Tecleo · ${Math.round(wpm)} ppm · ${Math.round(acc)}% de precisión · `+(S.quote?'cita de '+S.quote[1]:cfg.mode==='europe'?'47 países de Europa en '+dur.toFixed(2)+' s':cfg.mode==='time'?cfg.time+' s':cfg.count+' palabras');
   setProg(1);countUp($('#r-wpm'),Math.round(wpm));$('#r-acc').textContent=Math.round(acc)+'%';
   $('#r-raw').textContent=Math.round(raw);$('#r-cons').textContent=Math.round(cons)+'%';
-  $('#r-chars').textContent=`${cor}/${inc}/${ext}/${mis}`;if(cfg.mode==='europe'){const bk='tecleo.eubest.'+cfg.eorder,b=store.get(bk,null),best=b==null?dur:Math.min(b,dur);store.set(bk,+best.toFixed(2));$('#r-time').innerHTML=`${dur.toFixed(2)} s<small>${b!=null&&dur<b?'¡mejor tiempo!':'mejor '+best.toFixed(2)+' s'}</small>`}
+  $('#r-chars').textContent=`${cor}/${inc}/${ext}/${mis}`;if(cfg.mode==='europe'&&cfg.eorder==='slow')$('#r-time').textContent=dur.toFixed(2)+' s';
+  else if(cfg.mode==='europe'){const bk='tecleo.eubest.'+cfg.eorder,b=store.get(bk,null),best=b==null?dur:Math.min(b,dur);store.set(bk,+best.toFixed(2));$('#r-time').innerHTML=`${dur.toFixed(2)} s<small>${b!=null&&dur<b?'¡mejor tiempo!':'mejor '+best.toFixed(2)+' s'}</small>`}
   else $('#r-time').textContent=(Math.round(dur*10)/10)+' s';
-  $('#r-mode').textContent=cfg.mode==='europe'?'europa · '+(cfg.eorder==='route'?'mi ruta':'al azar'):cfg.mode==='quote'?'cita':(cfg.mode==='time'?`tiempo ${cfg.time}`:`palabras ${cfg.count}`)+' · '+cfg.lang;
+  $('#r-mode').textContent=cfg.mode==='europe'?'europa · '+({route:'mi ruta',random:'al azar',slow:'mis lentos'}[cfg.eorder]):cfg.mode==='quote'?'cita':(cfg.mode==='time'?`tiempo ${cfg.time}`:`palabras ${cfg.count}`)+' · '+cfg.lang;
   const rq=$('#r-quote');rq.hidden=!S.quote;if(S.quote){rq.textContent=S.quote[0];const c=document.createElement('cite');c.textContent=S.quote[1]+(S.quote[2]?' · '+S.quote[2]:'');rq.append(c)}
   const key=pbKey(),pb=store.get(key,0);
   const el=$('#r-pb');el.innerHTML='';
   if(wpm>pb&&acc>=50){store.set(key,Math.round(wpm*10)/10);if(pb){const s=document.createElement('span');s.className='pb';s.textContent='Nueva mejor marca';el.append(s)}}
   else if(pb){const s=document.createElement('span');s.className='stat-l';s.textContent='mejor marca '+Math.round(pb);el.append(s)}
   body.classList.remove('typing','started');inp.blur();
+  euReport();
   $('#test').hidden=true;$('#results').hidden=false;drawChart();S.doneAt=performance.now();
 }
 function countUp(el,to){
