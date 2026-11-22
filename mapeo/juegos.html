@@ -282,6 +282,25 @@ input.shake{animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}
 .sr-tips{margin-top:16px;color:var(--sub);font-size:13.5px}.sr-tips summary{cursor:pointer;color:var(--text)}
 .sr-alts{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 14px;margin:10px 0}.sr-alts label{display:flex;align-items:center;gap:6px;cursor:pointer}.sr-tips code{color:var(--text);background:var(--alt);padding:1px 5px;border-radius:5px}
 .gmap .land.next,.gmap .mk.next{fill:color-mix(in srgb,var(--accent) 35%,var(--land));stroke:var(--accent);stroke-width:2}
+/* afina el año */
+.ay{margin-top:14px}
+.ay-tl{position:relative;height:46px;cursor:pointer;margin:0 9px}
+.ay-bar{position:absolute;left:0;right:0;top:12px;height:10px;border-radius:5px;background:color-mix(in srgb,var(--sub) 18%,var(--bg))}
+.ay-in{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--accent) 45%,var(--alt));border-radius:5px;transition:left .4s,width .4s}
+.ay-tk{position:absolute;top:28px;transform:translateX(-50%);font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.ay-dot{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid var(--bg)}
+.ay-cur{position:absolute;top:-6px;bottom:-6px;width:3px;margin-left:-1.5px;border-radius:2px;background:var(--text)}
+.ay-ans{position:absolute;top:-7px;bottom:-7px;width:3px;margin-left:-1.5px;background:var(--accent)}.ay-ans span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:12px;color:var(--accent)}
+.b0{--c:var(--accent)}.b1{--c:#e5483b}.b2{--c:#ee7b31}.b3{--c:#e0b03c}.b4{--c:#6f8fb0}
+.ay-dot{background:var(--c)}
+#ay-r{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
+.ay-st{min-width:52px}
+.ay-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;justify-content:center}
+.ay-ctl input{width:110px;text-align:center;font-family:var(--display);font-size:30px;padding:4px 6px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)}
+.ay-ctl input::-webkit-inner-spin-button{display:none}
+.ay-h{list-style:none;padding:0;margin:14px auto 0;max-width:420px;display:flex;flex-direction:column;gap:4px}
+.ay-h li{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:10px;padding:6px 12px;border-radius:10px;background:color-mix(in srgb,var(--c) 26%,var(--alt));box-shadow:inset 3px 0 0 var(--c);font-variant-numeric:tabular-nums}
+.ay-h li b{font-weight:400;font-size:18px}.ay-h li em{font-style:normal;color:var(--sub);font-size:13px}
 </style>
 </head>
 <body>
@@ -803,6 +822,80 @@ game({id:'que-ano',group:'Historia',title:'¿Qué año es?',desc:'Un mapa de Eur
       round++;score();setTimeout(()=>{if(here()!=='que-ano')return;if(round<8)deal();else{const r=saveScore('que-ano',total);score();endCard($('#qa-end'),{big:`${total} de 8`,sub:'mapas fechados',rec:recLine(r,' de 8'),again:reset})}},ok?1500:2600)};
     function reset(){round=0;total=0;bag=[];$('#qa-end').hidden=true;deal()}
     try{await loadScript('data.js')}catch(e){$('#qa-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>';return}
+    reset();
+  }});
+
+/* Afina el año: one map, a year picker and five tries; each try says how far and which way */
+const AY_MIN=1450,AY_MAX=2020;
+const ayBand=d=>d<=3?['¡Clavado!','b0']:d<=10?['Muy cerca','b1']:d<=30?['Cerca','b2']:d<=80?['Templado','b3']:['Lejos','b4'];
+game({id:'afina-ano',group:'Historia',title:'Afina el año',desc:'Un mapa de Europa de un año cualquiera: elige el año en una línea del tiempo y afina con las pistas. Cinco intentos por mapa.',
+  rec:()=>{const b=REC['afina-ano']?.best;return b!=null?`mejor: ${b} de 25`:''},
+  async start(main){
+    const ROUNDS=5,TRIES=5;let round,total,ans,tries,lo,hi,done,bag;
+    main.innerHTML=`<div class="game"><div class="hl-top"><span class="crumb" id="ay-n"></span><span class="lives" id="ay-l"></span></div>
+      <p class="q">¿De qué año es este mapa? Acierta con 3 años de margen.</p>
+      <div class="panel mappanel" id="ay-map"><p class="msg">Cargando…</p></div>
+      <div class="ay">
+        <div class="ay-tl" id="ay-tl" aria-hidden="true"></div>
+        <input type="range" id="ay-r" min="${AY_MIN}" max="${AY_MAX}" step="1" aria-label="Año">
+        <div class="ay-ctl">
+          <button type="button" class="btn soft ay-st" data-d="-10">−10</button><button type="button" class="btn soft ay-st" data-d="-1">−1</button>
+          <input id="ay-y" type="number" min="${AY_MIN}" max="${AY_MAX}" inputmode="numeric" aria-label="Año">
+          <button type="button" class="btn soft ay-st" data-d="1">+1</button><button type="button" class="btn soft ay-st" data-d="10">+10</button>
+          <button type="button" class="btn" id="ay-go">Probar</button>
+        </div>
+        <ol class="ay-h" id="ay-h"></ol>
+      </div>
+      <div class="msg" id="ay-msg"></div><div class="end" id="ay-end" hidden></div></div>`;
+    const yIn=$('#ay-y'),rg=$('#ay-r');
+    const score=()=>{setScore(`<span><b>${total}</b>puntos</span><span><b>${REC['afina-ano']?.best??0}</b>récord</span>`);$('#ay-n').textContent=round<ROUNDS?`mapa ${round+1} de ${ROUNDS}`:'';
+      $('#ay-l').innerHTML='<i class="on"></i>'.repeat(TRIES-tries.length)+'<i></i>'.repeat(tries.length)};
+    const setY=y=>{y=Math.max(AY_MIN,Math.min(AY_MAX,Math.round(y)));yIn.value=y;rg.value=y;tl()};
+    const pct=y=>(100*(y-AY_MIN)/(AY_MAX-AY_MIN)).toFixed(2)+'%';
+    // the timeline: ruled-out years shaded, every try a dot coloured by how close it was, the current pick as a line
+    function tl(){
+      const ticks=[1500,1600,1700,1800,1900,2000].map(t=>`<span class="ay-tk" style="left:${pct(t)}">${t}</span>`).join('');
+      const shade=`<i class="ay-in" style="left:${pct(lo)};width:calc(${pct(hi)} - ${pct(lo)})"></i>`;
+      const dots=tries.map(t=>`<b class="ay-dot ${ayBand(Math.abs(t-ans))[1]}" style="left:${pct(t)}" title="${t}"></b>`).join('');
+      const cur=done?`<b class="ay-ans" style="left:${pct(ans)}"><span>${ans}</span></b>`:`<b class="ay-cur" style="left:${pct(+yIn.value||AY_MIN)}"></b>`;
+      $('#ay-tl').innerHTML=`<div class="ay-bar">${shade}${dots}${cur}</div>${ticks}`;
+    }
+    async function deal(){
+      done=false;tries=[];lo=AY_MIN;hi=AY_MAX;if(!bag.length)bag=shuffle([...HYEARS]);ans=bag.pop();
+      $('#ay-h').innerHTML='';$('#ay-msg').textContent='';$('#ay-msg').className='msg';
+      $$('.ay-ctl button,#ay-y,#ay-r').forEach(x=>x.disabled=false);setY(1735);score();
+      const M=await loadYear(ans);if(here()!=='afina-ano')return;
+      mapView($('#ay-map'),M,{onClick(){},tint:1});yIn.focus({preventScroll:true});
+    }
+    function guess(){
+      if(done)return;const y=Math.max(AY_MIN,Math.min(AY_MAX,Math.round(+yIn.value)));if(!y)return;
+      if(tries.includes(y)){$('#ay-msg').textContent='Ese año ya lo has probado.';$('#ay-msg').className='msg';return}
+      tries.push(y);const d=Math.abs(y-ans),[lab,cls]=ayBand(d),win=d<=3;
+      if(!win){if(y<ans)lo=Math.max(lo,y+1);else hi=Math.min(hi,y-1)}
+      $('#ay-h').insertAdjacentHTML('beforeend',`<li class="${cls}"><b>${y}</b><span>${lab}</span><em>${win?'':y<ans?'↑ más tarde':'↓ antes'}</em></li>`);
+      score();
+      if(win||tries.length>=TRIES)finish(win);else{$('#ay-msg').textContent=`${lab}: ${y<ans?'es más tarde':'es antes'}.`;$('#ay-msg').className='msg';tl()}
+    }
+    function finish(win){
+      done=true;const pts=win?TRIES+1-tries.length:0;total+=pts;round++;
+      $$('.ay-ctl button,#ay-y,#ay-r').forEach(x=>x.disabled=true);tl();
+      const M=MAPS['e'+ans];
+      $('#ay-msg').innerHTML=`${win?`¡Sí! +${pts}.`:'Se acabaron los intentos.'} Es <b>${ans}</b>. ${esc(M.note||HNOTES[ans]||'')}`;$('#ay-msg').className='msg '+(win?'ok':'bad');
+      const svg=$('#ay-map svg');if(svg)for(const it of M.items){if(it.m)continue;const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',it.c[0]);t.setAttribute('y',it.c[1]);t.setAttribute('class','hlbl');t.textContent=hName(it.id);svg.append(t)}
+      score();
+      setTimeout(()=>{if(here()!=='afina-ano')return;if(round<ROUNDS)deal();else{const r=saveScore('afina-ano',total);score();
+        endCard($('#ay-end'),{big:`${total} de ${ROUNDS*5}`,sub:'5 puntos si aciertas al primer intento, 1 si es al quinto',rec:recLine(r,` de ${ROUNDS*5}`),again:reset})}},win?2200:3200);
+    }
+    rg.oninput=()=>setY(+rg.value);
+    yIn.oninput=()=>{if(+yIn.value>=AY_MIN&&+yIn.value<=AY_MAX){rg.value=yIn.value;tl()}};
+    yIn.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();guess()}};
+    rg.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();guess()}};
+    $$('.ay-ctl [data-d]').forEach(b=>b.onclick=()=>setY((+yIn.value||1735)+ +b.dataset.d));
+    $('#ay-go').onclick=guess;
+    // clicking the timeline picks that year
+    $('#ay-tl').onclick=e=>{if(done)return;const r=$('#ay-tl .ay-bar').getBoundingClientRect();setY(AY_MIN+(e.clientX-r.left)/r.width*(AY_MAX-AY_MIN))};
+    function reset(){round=0;total=0;bag=[];$('#ay-end').hidden=true;deal()}
+    try{await loadScript('data.js')}catch(e){$('#ay-map').innerHTML='<p class="msg bad">No se pudo cargar el mapa.</p>';return}
     reset();
   }});
 
@@ -1823,6 +1916,7 @@ const ARTS={};
     'de-cerca':()=>sil('GR',60,60,60,'a-s')+`<defs><clipPath id="dcclip"><circle cx="124" cy="54" r="38"/></clipPath></defs><g clip-path="url(#dcclip)"><rect class="pill solid" x="80" y="10" width="90" height="90"/>${sil('GR',150,40,240,'a-t')}</g><circle class="ring thick" cx="124" cy="54" r="38"/><path class="ln thick" d="M152 82L178 108"/>`,
     '_def':()=>{const W=ART.world;let o=`<path class="a-ctx" d="${W.ctx}"/>`;for(const id in W.items)o+=`<path class="a-l" d="${W.items[id]}"/>`;return o},
     'speedrun-europa':()=>{const done=new Set('IS IE GB PT ES AD FR MC BE NL LU DE DK NO SE FI EE LV LT PL CZ SK HU AT CH IT'.split(' '));return mp(E(),{...EU,hl:id=>done.has(id)?'a-a':'a-l'})+pill(150,70,84,36,'pill solid')+tx(192,96,'0:46',24)},
+    'afina-ano':()=>{const tr=[[1610,'b4'],[1840,'b2'],[1905,'b1']];return mp(H(),{x:20,y:-6,s:.82,hl:id=>'h'+(Object.keys(H().items).indexOf(id)%4)})+`<rect class="pill solid" x="20" y="92" width="200" height="8" rx="4"/>`+tr.map(([y,c])=>`<circle class="${c}" style="fill:var(--c)" cx="${20+200*(y-1450)/570}" cy="96" r="5"/>`).join('')+`<rect class="a-t" x="${20+200*(1912-1450)/570}" y="86" width="2.5" height="20" rx="1"/>`+pill(176,6,58,26,'pill solid')+tx(205,25,'¿1914?',13)},
     'maraton':()=>fl('mx',50,52,58,-5)+sil('IT',120,56,64,'a-a')+tx(190,74,'?',54,'sub')+heart(96,98,1)+heart(120,98,1)+heart(144,98,1,'a-l'),
   });
 }
