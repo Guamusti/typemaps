@@ -141,6 +141,41 @@ def catalog_entry(m, s, years, pending, legend, bounds_, views, license_, extra_
                 tags=s.get('tags', []), summary=s['summary'], limits=s['limits'] + extra_limits, sources=s['sources'],
                 license=license_, legend=legend, preview=None)
 
+# ---- stages and maps derived from historical-basemaps (tasks 2.3, 2.5, 2.6) ----
+# The ported v1 generators (build/hb) run here without simplification; their only inputs are the frozen
+# originals and the hash-verified HB layers of source-data/BASES.csv. Their output is the "original" of
+# these geometries: validar.py regenerates it and compares canonical hashes.
+import os, sys
+os.environ['ATLAS_TOLERANCE'] = 'none'
+sys.path.insert(0, str(ATLAS / 'build' / 'hb'))
+import comun, v1_datos, v1_extension  # noqa: E402
+_datos = v1_datos.export()
+V1 = {s['id']: s for s in json.loads(json.dumps(_datos + v1_extension.export(), ensure_ascii=False))}
+DATOS_IDS = {s['id'] for s in _datos}
+HB_COMMIT = '4b5039e'
+HB_NOTE = f'Geometrías calculadas desde historical-basemaps (commit {HB_COMMIT}, source-data/BASES.csv) con el generador del visor anterior, sin su simplificación'
+def hb_script(sid): return 'atlas-escenarios/scripts/' + ('build_data.py' if sid in DATOS_IDS else 'build_extension.py')
+def hb_origin(sid, path): return f'{hb_script(sid)}:{sid}#{path}'
+# Labels and overlay colours of the v1 viewer (atlas-escenarios/dist/app.js), the original presentation of these maps.
+V1_ROLES = [('sovereign', 'Gobierno o soberanía'), ('federal', 'Componente de la federación'), ('dependent', 'Dependencia política'),
+            ('occupation', 'Ocupación / administración'), ('influence', 'Vínculo o influencia'), ('claim', 'Proyecto / reclamación')]
+def v1_port_color(cat): return '#f8fafc' if cat in ('trade', 'concession') else '#2dd4bf' if cat == 'port' else '#f472b6'
+def v1_route_color(cat): return '#2dd4bf' if cat == 'port' else '#f472b6'
+
+def v1_entity(m, sid, k, i, f, eid, category):
+    p, g = f['properties'], f['geometry']
+    marker = g['type'] in ('Point', 'MultiPoint')
+    return dict(entityId=eid, gid=m.gid(g, hb_origin(sid, f'frames[{k}].features[{i}]'), eid), name=p['name'], category=category,
+                color=p['color'], role=p['role'], historicalBasis=p.get('historicalBasis', False),
+                precision='approximate' if marker else 'generalized', representation='location-marker' if marker else 'area',
+                note=p.get('note') or None, sourceUrls=p.get('sourceUrls') or None,
+                start=p.get('start'), end=p.get('end'), period=p.get('period'), lost=p.get('lost'))
+
+def hb_reference(m, sid, k, key):
+    """Entities of the HB reference layer that v1 uses as the first stage of centrales and eje."""
+    return [v1_entity(m, sid, k, i, f, f'{key}-{i:02d}', key) for i, f in enumerate(V1[sid]['frames'][k]['features'])
+            if f['properties']['note'].startswith('Capa histórica de referencia')]
+
 # ======================= gran-alemania =======================
 rel = 'mapas/gran-alemania/europa_1848.html'
 html = read(rel)
@@ -195,11 +230,15 @@ for i, f in enumerate(src['features']):
                        'approximate' if p.get('approx') else 'generalized'))
 def mono_filter(year):
     return [e for e in ents if not (year == 1556 and any(t in e['name'] for t in ['Portugal', 'portugu', 'Brasil', 'Filipinas', 'Río de la Plata']))]
-frames = [frame(y, s['frames'][y], mono_filter(y)) for y in sorted(s['frames'])]
-# Legend: Europe-view entries plus the colonial entries of the world view. 'imperial' and 'frontier' have
-# no features yet (Sacro Imperio comes from HB 1600, frontier overlays are computed in generar.py).
+# Sacro Imperio: v1 layer computed from HB 1600 minus the scenario territories, first (underneath) in every stage.
+imp = V1['carlos']['frames'][0]['features'][0]
+assert imp['properties']['name'].startswith('Sacro Imperio') and all(canon(fr['features'][0]['geometry']) == canon(imp['geometry']) for fr in V1['carlos']['frames'])
+imperial = v1_entity(m, 'carlos', 0, 0, imp, 'hb-sacro-imperio', 'imperial')
+frames = [frame(y, s['frames'][y], [imperial] + mono_filter(y)) for y in sorted(s['frames'])]
+# Legend: Europe-view entries plus the colonial entries of the world view. 'frontier' has no features
+# (its overlays are computed in generar.py and are not in escenario.geojson).
 covers = {'aust': ['aust', 'bohem', 'royal']}
-legend = [dict(key=k, label=l, color=COL[k], categories=covers.get(k, [k])) for k, l in leg_eu if k != 'imperial'] + \
+legend = [dict(key=k, label=l, color=COL[k], categories=covers.get(k, [k])) for k, l in leg_eu] + \
          [dict(key=k, label=l, color=COL[k], categories=[k]) for k, l in leg_world if k in ('escolon', 'ptcolon')]
 pr_rel = 'mapas/monarquia-universal/datos/puertos_y_rutas.json'
 pr = load(pr_rel)
@@ -217,10 +256,9 @@ for i, r in enumerate(pr['routes']):
                        note='Itinerario esquemático, no dominio del océano', start=start))
 eu = [f['geometry'] for f in src['features'] if f['properties']['cat'] in ('hisp', 'port', 'burg', 'aust', 'bohem', 'royal')]
 emit(m, dict(legend=legend, patterns={}, sources=s['sources'], frames=frames, ports=ports, routes=routes,
-             meta=dict(extraOrigins=[pr_rel], omitted='Sacro Imperio · estados con gobierno propio (deriva de HB 1600: tarea 2.5)')),
+             meta=dict(extraOrigins=[pr_rel, hb_script('carlos')], derived='La capa del Sacro Imperio: ' + HB_NOTE + '.')),
      catalog_entry(m, s, sorted(s['frames']), None, legend, bounds(eu),
-                   {'Europa': bounds(eu), 'Mundo': bounds([f['geometry'] for f in src['features']])}, [HB_LICENSE],
-                   ' Falta por ahora la capa del Sacro Imperio, que se regenerará desde historical-basemaps.'))
+                   {'Europa': bounds(eu), 'Mundo': bounds([f['geometry'] for f in src['features']])}, [HB_LICENSE]))
 
 # ======================= centrales =======================
 rel = 'mapas/potencias-centrales/datos/escenario.geojson'
@@ -245,10 +283,17 @@ for col, txt in leg:
     legend.append(dict(key=k, label=txt, color=None if col.startswith('url') else col, pattern='hatch' if col.startswith('url') else None, categories=cats))
 assert {e['category'] for e in ents} <= {c for l in legend for c in l['categories']}
 legend = [{k: v for k, v in l.items() if v is not None} for l in legend]
-years = [y for y in sorted(s['frames']) if y in (1920, 1925)]
-emit(m, dict(legend=legend, patterns=svg_patterns(gen, ['hatch']), sources=s['sources'], frames=[frame(y, s['frames'][y], ents) for y in years], ports=[], routes=[]),
-     catalog_entry(m, s, years, {1914: 'Necesita la capa de historical-basemaps de 1914 (tarea 2.5)', 1918: 'Combina la capa de 1914 con el escenario (tarea 2.5)'},
-                   legend, [[29, -13], [72, 60]], {'Europa': [[29, -13], [72, 60]]}, [HB_LICENSE]))
+# 1914 and 1918 come from v1: the HB 1914 layer clipped to Europe, plus in 1918 the five eastern states of the scenario.
+ref14 = hb_reference(m, 'centrales', 0, 'ref1914')
+assert len(ref14) == len(V1['centrales']['frames'][0]['features'])
+EAST18 = ['Finlandia', 'Ducado Báltico', 'Lituania', 'Polonia', 'Ucrania']
+east18 = [e for e in ents if e['name'] in EAST18]
+assert [f['properties']['name'] for f in V1['centrales']['frames'][1]['features'][len(ref14):]] == [e['name'] for e in east18]
+legend.append(dict(key='ref1914', label='Capa de referencia de 1914 (historical-basemaps, colores del visor anterior)', categories=['ref1914'], original=False))
+fr_c = {1914: ref14, 1918: ref14 + east18, 1920: ents, 1925: ents}
+emit(m, dict(legend=legend, patterns=svg_patterns(gen, ['hatch']), sources=s['sources'], frames=[frame(y, s['frames'][y], fr_c[y]) for y in sorted(fr_c)], ports=[], routes=[],
+             meta=dict(extraOrigins=[hb_script('centrales')], derived='Las etapas 1914 y 1918: ' + HB_NOTE + '.')),
+     catalog_entry(m, s, sorted(fr_c), None, legend, [[29, -13], [72, 60]], {'Europa': [[29, -13], [72, 60]]}, [HB_LICENSE]))
 
 # ======================= eje =======================
 rel = 'mapas/victoria-eje/datos/escenario.geojson'
@@ -275,10 +320,13 @@ for c, l in leg:
 for k, l in [('neutral', 'Otros Estados de referencia'), ('britain', 'Reino Unido'), ('russia', 'Espacio soviético o sucesor residual')]:
     legend.append(dict(key=k, label=l + ' (sin entrada en la leyenda original)', color=C[k], categories=[k], original=False))
 assert {e['category'] for e in ents} <= {c for l in legend for c in l['categories']}
-years = [y for y in sorted(s['frames']) if y != 1938]
-fr_e = {1942: [e for e in ents if e['role'] != 'claim'], 1944: ents, 1948: ents}
-emit(m, dict(legend=legend, patterns=svg_patterns(gen, ['project']), sources=s['sources'], frames=[frame(y, s['frames'][y], fr_e[y]) for y in years], ports=[], routes=[]),
-     catalog_entry(m, s, years, {1938: 'Necesita la capa de historical-basemaps de 1938 (tarea 2.5)'}, legend, [[29, -13], [72, 61]], {'Europa': [[29, -13], [72, 61]]}, [HB_LICENSE]))
+ref38 = hb_reference(m, 'eje', 0, 'ref1938')
+assert len(ref38) == len(V1['eje']['frames'][0]['features'])
+legend.append(dict(key='ref1938', label='Capa de referencia de 1938 (historical-basemaps, colores del visor anterior)', categories=['ref1938'], original=False))
+fr_e = {1938: ref38, 1942: [e for e in ents if e['role'] != 'claim'], 1944: ents, 1948: ents}
+emit(m, dict(legend=legend, patterns=svg_patterns(gen, ['project']), sources=s['sources'], frames=[frame(y, s['frames'][y], fr_e[y]) for y in sorted(fr_e)], ports=[], routes=[],
+             meta=dict(extraOrigins=[hb_script('eje')], derived='La etapa 1938: ' + HB_NOTE + '.')),
+     catalog_entry(m, s, sorted(fr_e), None, legend, [[29, -13], [72, 61]], {'Europa': [[29, -13], [72, 61]]}, [HB_LICENSE]))
 
 # ======================= fronteras-2101 =======================
 rel = 'mapas/fronteras-2100/escenario.json'
@@ -306,6 +354,49 @@ emit(m, dict(legend=legend, patterns={}, sources=e['sources'], frames=frames, po
              meta=dict(extraOrigins=[gj_rel, md_rel], asOf=fm.get('asOf'),
                        warning=read('mapas/fronteras-2100/LEEME.md').split('\n\n')[1].strip())),
      catalog_entry(m, s, [fr['year'] for fr in e['frames']], None, legend, [[-60, -180], [83, 180]], {'Mundo': [[-60, -180], [83, 180]]}, [NE_LICENSE]))
+
+# ======================= maps generated from historical-basemaps =======================
+# Six counterfactuals (build_data.py and build_extension.py) and the eight cumulative-extent maps.
+# Their original legend is the v1 viewer's: roles for the counterfactuals, periods or crowns for extension.
+HB_MAPS = [('japon', 'counterfactual'), ('gran-colombia', 'counterfactual'), ('kalmar', 'counterfactual'),
+           ('mexico-norte', 'counterfactual'), ('centroamerica', 'counterfactual'), ('tres-naciones', 'counterfactual'),
+           ('max-espana', 'extension'), ('max-portugal', 'extension'), ('max-iberia', 'extension'), ('max-britanico', 'extension'),
+           ('max-frances', 'extension'), ('max-roma', 'extension'), ('max-mongol', 'extension'), ('max-otomano', 'extension')]
+for sid, kind in HB_MAPS:
+    sc = V1[sid]
+    m = Map(sid, kind, hb_script(sid))
+    if kind == 'extension':
+        keys = {l['label']: f'p{i}' for i, l in enumerate(sc['legend'])}
+        legend = [dict(key=f'p{i}', label=l['label'], color=l['color'], categories=[f'p{i}']) for i, l in enumerate(sc['legend'])]
+        cat_of = lambda p: keys[p['period']]
+    else:
+        present = {f['properties']['role'] for fr in sc['frames'] for f in fr['features']}
+        legend = [dict(key=r, label=l, categories=[r]) for r, l in V1_ROLES if r in present]
+        cat_of = lambda p: p['role']
+    frames = []
+    for k, fr in enumerate(sc['frames']):
+        feats = []
+        for i, f in enumerate(fr['features']):
+            p = f['properties']
+            # extension entries can share a name (Ottoman pieces of one country), so their v1 id is the identity
+            e = v1_entity(m, sid, k, i, f, p['id'] if kind == 'extension' else p['entityId'], cat_of(p))
+            e['certainty'] = p['certainty']
+            feats.append(e)
+        assert len({e['entityId'] for e in feats}) == len(feats), (sid, fr['year'])
+        frames.append(frame(fr['year'], fr, feats, basis='cumulative-extent' if kind == 'extension' else None))
+    ports = [dict(name=p['name'], category=p['cat'], color=v1_port_color(p['cat']), note=p.get('note'), start=p.get('start'),
+                  gid=m.gid(dict(type='Point', coordinates=[p['lon'], p['lat']]), hb_origin(sid, f'ports[{i}]'), f'port{i:02d}'))
+             for i, p in enumerate(sc.get('ports', []))]
+    routes = [dict(name=r['name'], category=r['cat'], color=v1_route_color(r['cat']), note='Itinerario esquemático', start=r.get('start'),
+                   gid=m.gid(dict(type='LineString', coordinates=r['coordinates']), hb_origin(sid, f'routes[{i}]'), f'route{i:02d}'))
+              for i, r in enumerate(sc.get('routes', []))]
+    ports = [{k: v for k, v in o.items() if v is not None} for o in ports]
+    routes = [{k: v for k, v in o.items() if v is not None} for o in routes]
+    extra = dict(roleNames=sc['roleNames']) if kind == 'extension' else {}
+    b = sc.get('bounds') or bounds(list(m.geometries.values()))
+    emit(m, dict(legend=legend, patterns={}, sources=sc['sources'], frames=frames, ports=ports, routes=routes, **extra,
+                 meta=dict(derived=HB_NOTE + '.', v1=dict(center=sc.get('center'), zoom=sc.get('zoom'), color=sc.get('color')))),
+         catalog_entry(m, sc, [fr['year'] for fr in sc['frames']], None, legend, b, None, [HB_LICENSE]))
 
 # ======================= land (neutral background) =======================
 base = fm['base']

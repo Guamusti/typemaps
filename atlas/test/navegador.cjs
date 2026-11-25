@@ -14,7 +14,7 @@ global.ATLAS_CATALOG = null;
 const catalog = (() => { const s = fs.readFileSync(path.join(ATLAS, 'data', 'catalog.js'), 'utf8'); const window = {}; eval(s); return window.ATLAS_CATALOG; })();
 
 async function main() {
-  setTimeout(() => { console.error('tiempo agotado'); process.exit(2); }, 240000).unref();
+  setTimeout(() => { console.error('tiempo agotado'); process.exit(2); }, 900000).unref();
   fs.mkdirSync(SHOTS, { recursive: true });
   const br = spawn(exe, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${PROFILE}`, '--no-first-run', '--disable-extensions', '--allow-file-access-from-files', 'about:blank'], { stdio: 'ignore' });
   let target;
@@ -81,6 +81,13 @@ async function main() {
   await shot('gran-alemania-clara-ficha');
   await send('Page.navigate', { url: url('#/centrales/1920') });
   await waitFor(`(typeof cur!='undefined'&&cur)&&cur.year===1920&&${drawnOk}`, 30000); await sleep(300); await shot('centrales-clara');
+  // cumulative extent: BC stages and the possession years in the card
+  await send('Page.navigate', { url: url('#/max-roma/-133') });
+  await waitFor(`(typeof cur!='undefined'&&cur)&&cur.year===-133&&${drawnOk}`, 30000); await sleep(300);
+  check(await evalJs(`document.querySelector('#timeline button[aria-current=true]').textContent==='133 a. C.'`), 'años antes de Cristo en la línea del tiempo');
+  await evalJs(`select(frameOf().features[0].entityId,false),1`); await sleep(200);
+  check(await evalJs(`/Posesión/.test(document.querySelector('#card').textContent)`), 'ficha de extensión con años de posesión');
+  await shot('max-roma-clara-ficha');
   await evalJs(`localStorage.removeItem('mapeo.cfg'),1`);
   // mobile
   await size(390, 844, true);

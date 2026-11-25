@@ -204,8 +204,8 @@ addEventListener('storage',e=>{if(e.key==='mapeo.cfg')applyLook()});
 const KIND={history:'Historia',counterfactual:'Ucronía',extension:'Extensión acumulada',prospective:'Prospectiva'};
 const SECTIONS=[
   ['history','Historia','Mapas de historia real.','Todavía no hay ninguno. El atlas de historia real 1783–1945 del despliegue anterior está pendiente de decisión (P8).'],
-  ['counterfactual','Ucronías','Escenarios contrafactuales: lo que no ocurrió. Las etapas marcadas como «referencia real» describen la situación de partida.','Faltan seis ucronías que se regenerarán sin simplificar desde historical-basemaps (tarea 2.5): Japón en Asia-Pacífico, Gran Colombia, Unión de Kalmar, México conserva su norte, Centroamérica unida y Tres Naciones.'],
-  ['extension','Extensión acumulada','Todo el territorio que estuvo bajo un mismo poder en algún momento, no a la vez.','Los ocho mapas («Todo lo que fue español», portugués, ibérico, británico, francés, romano, mongol y otomano) se regenerarán sin simplificar desde historical-basemaps (tarea 2.6).'],
+  ['counterfactual','Ucronías','Escenarios contrafactuales: lo que no ocurrió. Las etapas marcadas como «referencia real» describen la situación de partida.',''],
+  ['extension','Extensión acumulada','Todo el territorio que estuvo bajo un mismo poder en algún momento, no a la vez.',''],
   ['prospective','Prospectiva','Casos territoriales abiertos hacia 2101. Las áreas localizan casos: no son fronteras futuras.',''],
 ];
 const KIND_NOTE={counterfactual:'Escenario contrafactual: lo que no ocurrió.',extension:'Acumulado, no simultáneo: territorio que estuvo bajo este poder en algún momento.',history:''};
@@ -214,6 +214,8 @@ const CERT={documented:'Documentado',scenario:'Escenario'};
 const PREC={source:'Fuente cartográfica sin cambios',generalized:'Derivada de una fuente',approximate:'Aproximada',schematic:'Esquemática'};
 const ATTR={bund:'Bund',lenguas:'Lenguas',dinastia:'Dinastía',viabilidad:'Viabilidad',obstaculos:'Obstáculos',nota:'Nota',unified:'Unificado',project:'Proyecto no realizado',region:'Región',kind:'Tipo',current:'Situación de referencia',outlook:'Horizonte',conditions:'Condiciones',central:'Selección central',number:'Número',levelLabel:'Nivel'};
 const HIDDEN_ATTR=new Set(['approx']);
+// negative years are BC (CONTRATO §5)
+const yl=y=>y<0?`${-y} a. C.`:String(y);
 
 const DEV=/[?&]ejemplo\b/.test(location.search);
 let CATALOG=(window.ATLAS_CATALOG||[]).slice();
@@ -247,7 +249,7 @@ function renderHome(){
       <span><span class="tag k-${k}">${KIND[k]}</span></span>
       <h3 class="serif">${esc(c.title)}</h3>
       <span class="sub">${esc(c.subtitle||'')}</span>
-      <span class="meta">${esc(c.era)} · ${esc(c.region)} · ${c.years.join(', ')}${c.pendingYears?' · etapas pendientes: '+Object.keys(c.pendingYears).join(', '):''}</span>
+      <span class="meta">${esc(c.era)} · ${esc(c.region)} · ${c.years.map(yl).join(', ')}${c.pendingYears?' · etapas pendientes: '+Object.keys(c.pendingYears).join(', '):''}</span>
       ${swatches(c.legend)}
     </a>`).join('');
     return `<section class="kind" aria-labelledby="s-${k}"><h2 id="s-${k}" class="serif">${title}</h2><p>${desc}</p>
@@ -286,7 +288,8 @@ const patUrl=(d,name)=>`url(#pat-${d.id}-${name})`;
 function legendSwatch(d,l){
   const fill=l.color?`<rect width="22" height="14" fill="${esc(l.color)}"/>`:'';
   const pat=l.pattern&&d.patterns[l.pattern]?`<rect width="22" height="14" fill="${patUrl(d,l.pattern)}"/>`:'';
-  return `<svg viewBox="0 0 22 14" aria-hidden="true">${fill}${pat}</svg>`;
+  const empty=!fill&&!pat?'<rect x=".5" y=".5" width="21" height="13" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-dasharray="2 2"/>':'';
+  return `<svg viewBox="0 0 22 14" aria-hidden="true">${fill}${pat}${empty}</svg>`;
 }
 function legendFor(d,cat){return d.legend.find(l=>(l.categories||[l.key]).includes(cat))}
 
@@ -319,11 +322,13 @@ function drawFrame(){
   layer=L.featureGroup();byEntity={};
   const visible=fr.features.filter(f=>!hiddenCats.has(f.category));
   const areas=visible.filter(f=>f.representation==='area'),marks=visible.filter(f=>f.representation!=='area');
-  const lost=f=>f.lost?.35:1;
+  const ext=cur.c.kind==='extension';
+  const weak=f=>ext&&(f.role==='influence'||f.role==='claim')?.45:1;
+  const lost=f=>(f.lost?.35:1)*weak(f);
   for(const f of areas){
     const g={type:'Feature',geometry:d.geometries[f.gid],properties:f};
     // stray Point parts inside an original GeometryCollection are kept, drawn as tiny dots (never as icons)
-    const base=L.geoJSON(g,{className:'ent',pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:1.5,className:'ent'}),style:{fill:true,fillColor:f.color||'#000',fillOpacity:f.color?lost(f):0,opacity:1}});
+    const base=L.geoJSON(g,{className:'ent',pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:1.5,className:'ent'}),style:{fill:true,fillColor:f.color||'#000',fillOpacity:f.color?lost(f):0,opacity:1,dashArray:ext&&f.role==='claim'?'4 3':null}});
     base.on('click',()=>select(f.entityId,false));
     base.bindTooltip(f.name,{sticky:true,direction:'top'});
     layer.addLayer(base);byEntity[f.entityId]=base;
@@ -364,7 +369,7 @@ function renderTimeline(){
   const all=[...c.years.map(y=>[y,null]),...Object.entries(c.pendingYears||{}).map(([y,r])=>[+y,r])].sort((a,b)=>a[0]-b[0]);
   $('#timeline').innerHTML='<span class="lbl">Etapas</span>'+all.map(([y,r])=>r
     ?`<button disabled title="${esc('Pendiente: '+r)}">${y}<span aria-hidden="true">*</span><span class="sr"> (pendiente: ${esc(r)})</span></button>`
-    :`<button data-y="${y}" aria-current="${y===cur.year}">${y}</button>`).join('')+
+    :`<button data-y="${y}" aria-current="${y===cur.year}">${yl(y)}</button>`).join('')+
     '<span class="hint">←/→ etapa · Inicio/Fin · Esc cierra la ficha</span>';
   $('#timeline').querySelectorAll('button[data-y]').forEach(b=>b.onclick=()=>go(+b.dataset.y));
 }
@@ -383,10 +388,10 @@ function renderPanel(){
     <div class="nav"><a href="#/">← Todos los mapas</a><a href="plan.html">Plan y tareas</a></div>
     <p style="margin-top:14px"><span class="tag k-${c.kind}">${KIND[c.kind]}</span></p>
     <h2 class="serif">${esc(c.title)}</h2>
-    <p class="muted">${esc(c.subtitle||'')}${c.subtitle?' · ':''}${esc(c.era)} · ${esc(c.region)}${c.divergence!=null?' · divergencia '+c.divergence:''}</p>
+    <p class="muted">${esc(c.subtitle||'')}${c.subtitle?' · ':''}${esc(c.era)} · ${esc(c.region)}${c.divergence!=null&&c.kind!=='extension'?' · divergencia '+yl(c.divergence):''}</p>
     ${warn?`<p class="notice k-${c.kind}">${esc(warn)}</p>`:''}
     <div class="frame">
-      <h3>Etapa ${fr.year}${fr.historical?' · <span class="tag real">Referencia real</span>':''}</h3>
+      <h3>Etapa ${yl(fr.year)}${fr.historical&&c.kind!=='extension'?' · <span class="tag real">Referencia real</span>':''}</h3>
       <h4 class="serif">${esc(fr.title)}</h4>
       <p class="muted">${esc(fr.text)}</p>
     </div>
@@ -401,6 +406,7 @@ function renderPanel(){
       const on=!cats.every(k=>hiddenCats.has(k));
       return `<li><button data-cats="${esc(JSON.stringify(cats))}" aria-pressed="${on}">${legendSwatch(d,l)}${label}</button></li>`;
     }).join('')}</ul>
+    ${c.kind==='extension'?`<h3>Intensidad del dominio</h3><ul class="legend">${Object.entries(d.roleNames||{}).filter(([r])=>fr.features.some(f=>f.role===r)).map(([r,lab])=>`<li class="static"><svg viewBox="0 0 22 14" aria-hidden="true"><rect x=".5" y=".5" width="21" height="13" fill="currentColor" fill-opacity="${r==='influence'||r==='claim'?.2:.45}" stroke="currentColor" ${r==='claim'?'stroke-dasharray="3 2"':''}/></svg><span>${esc(lab)} <span class="muted">(${fr.features.filter(f=>f.role===r).length})</span></span></li>`).join('')}</ul>${fr.features.some(f=>f.lost)?'<p class="muted">Atenuado: territorio ya perdido en esta etapa.</p>':''}`:''}
     <h3><label for="entsel">Entidades de esta etapa (${fr.features.length})</label></h3>
     <select id="entsel"><option value="">Elige una entidad…</option>${ents.map(f=>`<option value="${esc(f.entityId)}">${esc(f.name)}${f.representation!=='area'?' · marcador':''}</option>`).join('')}</select>
     <div id="cardbox"></div>
@@ -411,7 +417,7 @@ function renderPanel(){
     <details><summary>Fuentes (${d.sources.length})</summary><ul>${d.sources.map(s=>`<li><a href="${esc(s.url)}" rel="noopener" target="_blank">${esc(s.title)}</a>${s.note?' · '+esc(s.note):''}</li>`).join('')}</ul></details>
     <details><summary>Licencias</summary><ul>${c.license.map(l=>`<li>${l.url?`<a href="${esc(l.url)}" rel="noopener" target="_blank">${esc(l.name)}</a>`:esc(l.name)} · ${esc(l.scope)}</li>`).join('')}</ul></details>
     <p style="margin-top:14px"><a class="tool" href="data/${esc(c.id)}.geojson" download>Descargar GeoJSON</a></p>
-    <p class="muted" style="margin-top:10px">Geometrías del original sin simplificar · ${esc(d.meta.origin)}</p>`;
+    <p class="muted" style="margin-top:10px">${d.meta.derived&&!d.meta.extraOrigins?esc(d.meta.derived):'Geometrías del original sin simplificar'+(d.meta.derived?'. '+esc(d.meta.derived):'')} · ${esc(d.meta.origin)}</p>`;
   $('#panel').querySelectorAll('.views button').forEach(b=>b.onclick=()=>map.fitBounds(c.views[b.dataset.v],{animate:!reduced.matches}));
   $('#panel').querySelectorAll('.legend button').forEach(b=>b.onclick=()=>{
     const cats=JSON.parse(b.dataset.cats),on=b.getAttribute('aria-pressed')==='true';
@@ -439,7 +445,7 @@ function renderCard(){
       <dt>Relación</dt><dd>${ROLE[f.role]||esc(f.role)}${cur.c.kind!=='prospective'?' <span class="muted">(provisional)</span>':''}</dd>
       <dt>Certeza</dt><dd>${CERT[f.certainty]||esc(f.certainty)}</dd>
       <dt>Precisión</dt><dd>${PREC[f.precision]||esc(f.precision)}${f.representation!=='area'?' · marcador de posición, no superficie':''}</dd>
-      ${f.start!=null?`<dt>Periodo</dt><dd>${esc(f.period||(f.start+'–'+(f.end??'')))}${f.lost?' · ya perdido':''}</dd>`:''}
+      ${f.start!=null?`<dt>Posesión</dt><dd>${yl(f.start)}–${f.end!=null?yl(f.end):'hoy'}${f.period?' · '+esc(f.period):''}${f.lost?' · ya perdido en esta etapa':''}</dd>`:''}
       ${attrs.map(([k,v])=>`<dt>${esc(ATTR[k]||k)}</dt><dd>${attrValue(v)}</dd>`).join('')}
     </dl>
     ${showNote?`<p class="muted">${esc(f.note)}</p>`:''}

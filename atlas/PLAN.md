@@ -1,6 +1,6 @@
 # Atlas — fase 0: inventario y plan
 
-Fecha: 25-11-2026 · Autor: orquestador (Opus) · Estado: **fase 0 aprobada por Marcos (commit 1b624ce); fase 1 hecha** (§11). Las decisiones P1–P9 están adoptadas como **provisionales** (§9).
+Fecha: 25-11-2026 · Autor: orquestador (Opus) · Estado: **fase 0 aprobada por Marcos (commit 1b624ce); fase 1 hecha** (§11); primera y segunda entrega visibles: 19 mapas (§12 y `TAREAS.md`). Las decisiones P1–P9 están adoptadas como **provisionales** (§9).
 
 En esta fase solo se ha leído. No se ha modificado ningún original, no hay commits ni push, y no se ha arrancado ningún servidor (en el puerto 4173 no escuchaba nada y la revisión no lo necesitaba). Se han escrito únicamente `atlas/PLAN.md`, `atlas/INVENTARIO.csv`, `atlas/TAREAS.md` y los auxiliares de `atlas/_tmp/` (§10).
 

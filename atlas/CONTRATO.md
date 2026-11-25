@@ -3,6 +3,8 @@
 Fecha: 25-11-2026 · Dueño: orquestador (Opus) · Estado: **cerrado para las fases 2 y 3** (las decisiones P1–P9 son provisionales, ver `PLAN.md` §9).
 
 > **v2, revisión del 25-11-2026 (primera entrega).** Con los datos reales se han hecho cambios compatibles: `patterns` lleva el marcado literal (`content`); la leyenda tiene `categories` y `original`; `color` es opcional cuando el original solo pinta una trama; se añaden `pendingYears`, `geoSha256` y `color` en los overlays; `land.js` es una `FeatureCollection`; y la descarga GeoJSON agrupa por entidad.
+>
+> **Segunda revisión del 25-11-2026 (mapas de historical-basemaps).** Sin cambios incompatibles. En las geometrías calculadas, `_geometrias-origen.json` usa el origen `atlas-escenarios/scripts/<generador>.py:<id>#frames[k].features[i]`: el validador ejecuta de nuevo el generador portado (`build/hb`) sin simplificar y compara el hash. Una entrada de `legend` puede ir sin `color` ni `pattern`, como las leyendas por role de las ucronías HB. `meta.derived` describe las geometrías calculadas. Los mapas `extension` llevan `roleNames`, `start`/`end`/`period` y `lost`.
 
 Este documento fija el formato de los ficheros que produce el rol de **datos** (`atlas/data/`) y que consume el rol de **front** (`atlas/index.html`). Desarrolla el borrador de `PLAN.md` §5.2. Si algún rol necesita cambiarlo, lo pide en `TAREAS.md` («Peticiones entre roles»); solo lo modifica el orquestador, que sube `schema` si el cambio no es compatible.
 
