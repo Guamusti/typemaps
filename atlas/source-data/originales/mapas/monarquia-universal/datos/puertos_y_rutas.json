@@ -1,0 +1,574 @@
+{
+  "ports": [
+    {
+      "name": "Sevilla",
+      "lon": -5.99,
+      "lat": 37.39,
+      "cat": "hisp",
+      "note": "Centro de la Carrera de Indias; el sistema portuario no se reduce a una sola ciudad."
+    },
+    {
+      "name": "Lisboa",
+      "lon": -9.14,
+      "lat": 38.72,
+      "cat": "port",
+      "note": "Articulación atlántica y del Estado da Índia."
+    },
+    {
+      "name": "Amberes",
+      "lon": 4.4,
+      "lat": 51.22,
+      "cat": "burg",
+      "note": "En este escenario conserva su papel dentro de unos Países Bajos políticamente reunificados."
+    },
+    {
+      "name": "Viena",
+      "lon": 16.37,
+      "lat": 48.21,
+      "cat": "aust",
+      "note": "Centro dinástico y de la frontera danubiana."
+    },
+    {
+      "name": "Praga",
+      "lon": 14.42,
+      "lat": 50.08,
+      "cat": "bohem",
+      "note": "Centro de la Corona de Bohemia."
+    },
+    {
+      "name": "Milán",
+      "lon": 9.19,
+      "lat": 45.46,
+      "cat": "hisp",
+      "note": "Posesión italiana de la monarquía y articulación terrestre."
+    },
+    {
+      "name": "Génova",
+      "lon": 8.94,
+      "lat": 44.4,
+      "cat": "trade",
+      "note": "República independiente: colaboración financiera y logística; no dominio habsbúrgico."
+    },
+    {
+      "name": "Ceuta",
+      "lon": -5.32,
+      "lat": 35.89,
+      "cat": "port",
+      "note": "Plaza portuguesa dentro de la monarquía común."
+    },
+    {
+      "name": "Tánger",
+      "lon": -5.81,
+      "lat": 35.78,
+      "cat": "port",
+      "note": "Plaza portuguesa hacia 1600."
+    },
+    {
+      "name": "Mazagán",
+      "lon": -8.5,
+      "lat": 33.25,
+      "cat": "port",
+      "note": "Enclave portugués, sin atribuir el interior de Marruecos."
+    },
+    {
+      "name": "Orán",
+      "lon": -0.64,
+      "lat": 35.7,
+      "cat": "hisp",
+      "note": "Plaza hispánica norteafricana, sin dominio general de Argelia."
+    },
+    {
+      "name": "Melilla",
+      "lon": -2.94,
+      "lat": 35.29,
+      "cat": "hisp",
+      "note": "Plaza hispánica; el símbolo no implica control de su hinterland."
+    },
+    {
+      "name": "Azores",
+      "lon": -25.7,
+      "lat": 37.8,
+      "cat": "port",
+      "note": "Archipiélago portugués; marcador de localización."
+    },
+    {
+      "name": "Madeira",
+      "lon": -16.9,
+      "lat": 32.7,
+      "cat": "port",
+      "note": "Archipiélago portugués."
+    },
+    {
+      "name": "Canarias",
+      "lon": -15.5,
+      "lat": 28.1,
+      "cat": "hisp",
+      "note": "Archipiélago de la Corona de Castilla."
+    },
+    {
+      "name": "Cabo Verde",
+      "lon": -23.5,
+      "lat": 15,
+      "cat": "port",
+      "note": "Archipiélago y escala portuguesa."
+    },
+    {
+      "name": "São Tomé",
+      "lon": 6.7,
+      "lat": 0.3,
+      "cat": "port",
+      "note": "Isla colonial portuguesa."
+    },
+    {
+      "name": "Elmina",
+      "lon": -1.35,
+      "lat": 5.08,
+      "cat": "port",
+      "note": "Fortaleza y factoría portuguesa; no control de la actual Ghana."
+    },
+    {
+      "name": "Luanda",
+      "lon": 13.23,
+      "lat": -8.84,
+      "cat": "port",
+      "note": "Núcleo fundado en 1576; control local, no la Angola moderna."
+    },
+    {
+      "name": "Mozambique",
+      "lon": 40.73,
+      "lat": -15.03,
+      "cat": "port",
+      "note": "Isla y fortaleza: articulación marítima, no control de todo Mozambique."
+    },
+    {
+      "name": "Sofala",
+      "lon": 34.73,
+      "lat": -20.18,
+      "cat": "port",
+      "note": "Factoría y fortificación portuguesa; dominio costero limitado."
+    },
+    {
+      "name": "Ormuz",
+      "lon": 56.45,
+      "lat": 27.06,
+      "cat": "port",
+      "note": "Enclave estratégico portugués; no soberanía sobre Persia."
+    },
+    {
+      "name": "Mascate",
+      "lon": 58.4,
+      "lat": 23.6,
+      "cat": "port",
+      "note": "Posición portuguesa en una red de puertos, sin control general de Arabia."
+    },
+    {
+      "name": "Goa",
+      "lon": 73.83,
+      "lat": 15.5,
+      "cat": "port",
+      "note": "Centro administrativo del Estado da Índia."
+    },
+    {
+      "name": "Diu",
+      "lon": 70.98,
+      "lat": 20.71,
+      "cat": "port",
+      "note": "Plaza fortificada portuguesa."
+    },
+    {
+      "name": "Cochín",
+      "lon": 76.27,
+      "lat": 9.97,
+      "cat": "port",
+      "note": "Presencia portuguesa condicionada por relaciones con poderes locales."
+    },
+    {
+      "name": "Colombo",
+      "lon": 79.86,
+      "lat": 6.93,
+      "cat": "port",
+      "note": "Implantación portuguesa en parte de la costa de Ceilán; el reino de Kandy sigue fuera."
+    },
+    {
+      "name": "Malaca",
+      "lon": 102.25,
+      "lat": 2.2,
+      "cat": "port",
+      "note": "Puerto bajo control portugués desde 1511; no la península malaya completa."
+    },
+    {
+      "name": "Macao",
+      "lon": 113.55,
+      "lat": 22.2,
+      "cat": "concession",
+      "note": "Asentamiento portugués autorizado bajo soberanía china, no anexión de China."
+    },
+    {
+      "name": "Nagasaki",
+      "lon": 129.87,
+      "lat": 32.75,
+      "cat": "trade",
+      "note": "Relación comercial portuguesa hacia 1600. Puerto japonés; no posesión territorial."
+    },
+    {
+      "name": "Ternate / Tidore",
+      "lon": 127.38,
+      "lat": 0.75,
+      "cat": "trade",
+      "note": "Área de rivalidad, alianzas y comercio de especias; no control ibérico uniforme de las Molucas."
+    },
+    {
+      "name": "Manila",
+      "lon": 120.98,
+      "lat": 14.6,
+      "cat": "hisp",
+      "note": "Centro de la implantación española en Filipinas."
+    },
+    {
+      "name": "Cebú",
+      "lon": 123.89,
+      "lat": 10.32,
+      "cat": "hisp",
+      "note": "Núcleo español del archipiélago filipino."
+    },
+    {
+      "name": "Acapulco",
+      "lon": -99.9,
+      "lat": 16.86,
+      "cat": "hisp",
+      "note": "Extremo americano del galeón de Manila."
+    },
+    {
+      "name": "Veracruz",
+      "lon": -96.14,
+      "lat": 19.18,
+      "cat": "hisp",
+      "note": "Puerto atlántico novohispano."
+    },
+    {
+      "name": "La Habana",
+      "lon": -82.37,
+      "lat": 23.11,
+      "cat": "hisp",
+      "note": "Articulación de las flotas del Caribe."
+    },
+    {
+      "name": "Cartagena",
+      "lon": -75.48,
+      "lat": 10.39,
+      "cat": "hisp",
+      "note": "Puerto fortificado del Caribe."
+    },
+    {
+      "name": "Portobelo",
+      "lon": -79.65,
+      "lat": 9.55,
+      "cat": "hisp",
+      "note": "Puerto de enlace con el istmo desde 1597."
+    },
+    {
+      "name": "Callao / Lima",
+      "lon": -77.15,
+      "lat": -12.06,
+      "cat": "hisp",
+      "note": "Núcleo del virreinato peruano y de sus conexiones del Pacífico."
+    },
+    {
+      "name": "Potosí",
+      "lon": -65.75,
+      "lat": -19.57,
+      "cat": "hisp",
+      "note": "Centro minero interior; no puerto."
+    },
+    {
+      "name": "Salvador",
+      "lon": -38.5,
+      "lat": -12.97,
+      "cat": "port",
+      "note": "Centro colonial portugués en Brasil."
+    },
+    {
+      "name": "Recife / Olinda",
+      "lon": -34.87,
+      "lat": -8.05,
+      "cat": "port",
+      "note": "Núcleo azucarero de la costa brasileña."
+    },
+    {
+      "name": "Río de Janeiro",
+      "lon": -43.2,
+      "lat": -22.9,
+      "cat": "port",
+      "note": "Asentamiento portugués atlántico."
+    },
+    {
+      "name": "Buenos Aires",
+      "lon": -58.38,
+      "lat": -34.6,
+      "cat": "hisp",
+      "note": "Asentamiento refundado en 1580; control regional limitado."
+    }
+  ],
+  "routes": [
+    {
+      "name": "Carrera de Indias",
+      "coordinates": [
+        [
+          -6,
+          36
+        ],
+        [
+          -18,
+          27
+        ],
+        [
+          -40,
+          18
+        ],
+        [
+          -61,
+          15
+        ],
+        [
+          -75,
+          20
+        ],
+        [
+          -82,
+          23
+        ]
+      ],
+      "cat": "hisp"
+    },
+    {
+      "name": "Brasil atlántico",
+      "coordinates": [
+        [
+          -9,
+          38
+        ],
+        [
+          -22,
+          20
+        ],
+        [
+          -30,
+          0
+        ],
+        [
+          -38,
+          -13
+        ]
+      ],
+      "cat": "port"
+    },
+    {
+      "name": "Ruta del Cabo",
+      "coordinates": [
+        [
+          -9,
+          38
+        ],
+        [
+          -25,
+          15
+        ],
+        [
+          -29,
+          -8
+        ],
+        [
+          -15,
+          -28
+        ],
+        [
+          8,
+          -36
+        ],
+        [
+          24,
+          -37
+        ],
+        [
+          40,
+          -20
+        ],
+        [
+          48,
+          -2
+        ],
+        [
+          64,
+          8
+        ],
+        [
+          74,
+          15
+        ]
+      ],
+      "cat": "port"
+    },
+    {
+      "name": "Estado da Índia",
+      "coordinates": [
+        [
+          74,
+          15
+        ],
+        [
+          79,
+          5
+        ],
+        [
+          90,
+          3
+        ],
+        [
+          102,
+          2
+        ],
+        [
+          110,
+          10
+        ],
+        [
+          114,
+          22
+        ]
+      ],
+      "cat": "port"
+    },
+    {
+      "name": "Comercio con Japón",
+      "coordinates": [
+        [
+          114,
+          22
+        ],
+        [
+          123,
+          27
+        ],
+        [
+          130,
+          33
+        ]
+      ],
+      "cat": "port"
+    },
+    {
+      "name": "Acapulco → Manila",
+      "coordinates": [
+        [
+          -100,
+          17
+        ],
+        [
+          -125,
+          13
+        ],
+        [
+          -155,
+          12
+        ],
+        [
+          -180,
+          12
+        ]
+      ],
+      "cat": "hisp"
+    },
+    {
+      "name": "Acapulco → Manila · continuación",
+      "coordinates": [
+        [
+          180,
+          12
+        ],
+        [
+          155,
+          12
+        ],
+        [
+          135,
+          12
+        ],
+        [
+          121,
+          15
+        ]
+      ],
+      "cat": "hisp"
+    },
+    {
+      "name": "Manila → Acapulco",
+      "coordinates": [
+        [
+          121,
+          15
+        ],
+        [
+          136,
+          30
+        ],
+        [
+          157,
+          37
+        ],
+        [
+          180,
+          39
+        ]
+      ],
+      "cat": "hisp"
+    },
+    {
+      "name": "Manila → Acapulco · continuación",
+      "coordinates": [
+        [
+          -180,
+          39
+        ],
+        [
+          -155,
+          38
+        ],
+        [
+          -130,
+          33
+        ],
+        [
+          -115,
+          25
+        ],
+        [
+          -100,
+          17
+        ]
+      ],
+      "cat": "hisp"
+    },
+    {
+      "name": "Pacífico americano",
+      "coordinates": [
+        [
+          -79,
+          9
+        ],
+        [
+          -82,
+          -3
+        ],
+        [
+          -77,
+          -12
+        ],
+        [
+          -73,
+          -25
+        ]
+      ],
+      "cat": "hisp"
+    }
+  ]
+}

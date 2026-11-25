@@ -3,106 +3,473 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>atlas · en construcción</title>
+<title>atlas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<!-- Provisional page: shows the atlas plan while the real viewer is built (task 3.1 replaces this file). -->
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
-:root{--bg:#14161f;--alt:#1c1f2b;--text:#e4e6f0;--sub:#5a607a;--accent:#8fb4ff;--line:color-mix(in srgb,var(--sub) 30%,transparent);color-scheme:dark}
+:root{
+  --bg:#14161f;--alt:#1c1f2b;--text:#e4e6f0;--sub:#5a607a;--accent:#8fb4ff;--err:#ff6b81;
+  --line:color-mix(in srgb,var(--sub) 30%,transparent);
+  --land:color-mix(in srgb,var(--sub) 30%,var(--bg));
+  --soft:color-mix(in srgb,var(--text) 62%,var(--bg));
+  color-scheme:dark
+}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{margin:0;background:var(--bg);color:var(--text);font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:14px;line-height:1.6;padding:28px}
-.wrap{max-width:980px;margin:0 auto}
-header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:22px}
-h1{margin:0;font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;font-size:64px;line-height:1}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:14px;line-height:1.55}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+button{font:inherit;color:inherit}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.tag{display:inline-block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 16%,var(--alt));color:var(--text)}
+.tag.k-prospective{background:color-mix(in srgb,#398d7c 35%,var(--alt))}
+.tag.k-extension{background:color-mix(in srgb,#c7944e 35%,var(--alt))}
+.tag.k-history{background:color-mix(in srgb,var(--sub) 45%,var(--alt))}
+.tag.real{background:color-mix(in srgb,var(--text) 18%,var(--alt))}
+
+/* ---------- home ---------- */
+#home{max-width:1080px;margin:0 auto;padding:28px 20px 12px}
+#home header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:8px}
+h1{margin:0;font-size:64px;line-height:1}
 h1 b{font-weight:400;color:var(--accent)}
 .back{color:var(--sub);text-decoration:none}.back:hover{color:var(--accent)}
-.note{background:var(--alt);border-radius:16px;padding:16px 20px;color:var(--sub);margin-bottom:18px}
-.note strong{color:var(--text)}
-nav.tabs{display:flex;gap:8px;margin:0 0 18px}
-nav.tabs button{font:inherit;background:var(--alt);color:var(--sub);border:0;border-radius:999px;padding:8px 16px;cursor:pointer}
-nav.tabs button[aria-selected=true]{background:color-mix(in srgb,var(--accent) 18%,var(--alt));color:var(--text)}
-nav.tabs button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-article{background:var(--alt);border-radius:20px;padding:8px 28px 28px}
-article h1{font-size:42px;margin:24px 0 8px}
-article h2{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;font-size:32px;margin:32px 0 8px}
-article h3{font-size:15px;color:var(--accent);margin:22px 0 6px}
-article p,article li{color:var(--text)}
-article a{color:var(--accent)}
-code{background:color-mix(in srgb,var(--sub) 22%,transparent);padding:1px 5px;border-radius:5px;font-size:.92em}
-hr{border:0;border-top:1px solid var(--line);margin:24px 0}
-.tw{overflow-x:auto;margin:12px 0}
-table{border-collapse:collapse;font-size:12.5px;min-width:100%}
-th,td{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
-th{color:var(--sub);font-weight:500}
-.err{color:#ff8f8f}
+.lead{color:var(--soft);max-width:70ch;margin:6px 0 22px}
+section.kind{margin:28px 0}
+section.kind h2{margin:0;font-size:36px;line-height:1.1}
+section.kind>p{margin:4px 0 14px;color:var(--soft);max-width:75ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{display:grid;gap:8px;align-content:start;padding:20px 22px;border-radius:18px;background:var(--alt);color:inherit;text-decoration:none;border:1px solid transparent}
+.card:hover{border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.card h3{margin:0;font-size:28px;line-height:1.05}
+.card .sub{color:var(--soft);font-size:12.5px}
+.card .meta{color:var(--sub);font-size:12px}
+.sw{display:flex;flex-wrap:wrap;gap:4px}
+.sw i{width:16px;height:10px;border-radius:2px;display:inline-block;border:1px solid var(--line)}
+.pending{color:var(--sub);font-size:12.5px;border:1px dashed var(--line);border-radius:14px;padding:12px 16px}
+footer{max-width:1080px;margin:0 auto;padding:18px 20px 28px;color:var(--sub);font-size:12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+footer a{color:var(--sub)}footer a:hover{color:var(--accent)}
+
+/* ---------- viewer ---------- */
+#viewer{display:grid;grid-template-columns:minmax(0,1fr) 380px;grid-template-rows:minmax(0,1fr) auto;height:100vh;height:100dvh}
+#viewer[hidden],#home[hidden]{display:none}
+#mapwrap{position:relative;grid-row:1;grid-column:1;min-height:0}
+#map{position:absolute;inset:0;background:var(--bg)}
+#timeline{grid-row:2;grid-column:1;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 14px;background:var(--alt);border-top:1px solid var(--line)}
+#timeline .lbl{color:var(--sub);font-size:12px;margin-right:6px}
+#timeline button{background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 13px;cursor:pointer}
+#timeline button[aria-current=true]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+#timeline button:disabled{cursor:not-allowed;color:var(--sub);border-style:dashed}
+#timeline .hint{margin-left:auto;color:var(--sub);font-size:11px}
+#panel{grid-row:1/3;grid-column:2;overflow-y:auto;background:var(--alt);padding:18px 20px 24px;border-left:1px solid var(--line)}
+#panel h2{margin:6px 0 2px;font-size:38px;line-height:1.02}
+#panel h3{margin:20px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);font-weight:500}
+#panel p{margin:6px 0}
+.nav{display:flex;justify-content:space-between;gap:10px;font-size:12.5px}
+.nav a{color:var(--sub);text-decoration:none}.nav a:hover{color:var(--accent)}
+.notice{border-left:3px solid var(--accent);padding:6px 10px;margin:10px 0;background:color-mix(in srgb,var(--accent) 8%,transparent);font-size:12.5px}
+.notice.k-prospective{border-color:#398d7c}.notice.k-extension{border-color:#c7944e}
+.frame h4{margin:4px 0;font-size:24px}
+.muted{color:var(--soft);font-size:12.5px}
+.legend{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.legend button{display:grid;grid-template-columns:22px 1fr;gap:9px;align-items:start;width:100%;text-align:left;background:transparent;border:0;padding:5px 6px;border-radius:8px;cursor:pointer;font-size:12.5px}
+.legend button:hover{background:color-mix(in srgb,var(--text) 6%,transparent)}
+.legend button[aria-pressed=false]{opacity:.38}
+.legend button[aria-pressed=false] .lt{text-decoration:line-through}
+.legend .static{display:grid;grid-template-columns:22px 1fr;gap:9px;padding:5px 6px;font-size:12.5px}
+.legend svg{width:22px;height:14px;border-radius:2px;margin-top:3px}
+.views{display:flex;flex-wrap:wrap;gap:6px}
+.views button,.tool{background:transparent;border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:12.5px;color:var(--text);text-decoration:none;display:inline-block}
+.views button:hover,.tool:hover{border-color:var(--accent)}
+select{font:inherit;font-size:12.5px;width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+#card{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px}
+#card h4{margin:0 0 4px;font-size:22px}
+#card dl{margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:12.5px}
+#card dt{color:var(--sub)}#card dd{margin:0}
+#card .close{float:right;background:transparent;border:0;color:var(--sub);cursor:pointer;font-size:18px;line-height:1}
+details{margin-top:12px;font-size:12.5px}
+summary{cursor:pointer;color:var(--soft)}
+details ul{padding-left:18px;margin:6px 0}
+#status{position:absolute;left:12px;top:12px;z-index:500;background:var(--alt);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font-size:12.5px}
+#status[hidden]{display:none}
+#status.err{color:var(--err)}
+
+/* Leaflet inside the shared palette (className is set per GeoJSON layer, not in style, so Leaflet puts it on each path): only sea, neutral land, outlines and selection follow it. */
+.leaflet-container{background:var(--bg);font:inherit}
+.leaflet-control-zoom a,.leaflet-bar a{background:var(--alt);color:var(--text);border-color:var(--line)}
+.leaflet-control-zoom a:hover{background:color-mix(in srgb,var(--accent) 18%,var(--alt))}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--alt) 85%,transparent)!important;color:var(--sub)}
+.leaflet-control-attribution a{color:var(--soft)}
+.leaflet-tooltip{background:var(--alt);color:var(--text);border:1px solid var(--line);box-shadow:none;font:inherit;font-size:12px}
+.leaflet-tooltip:before{display:none}
+path.land{fill:var(--land);stroke:none}
+path.ent{stroke:color-mix(in srgb,var(--bg) 55%,var(--sub));stroke-width:.7}
+path.ent.sel{stroke:var(--accent);stroke-width:2.6}
+path.mk{stroke-width:2}
+path.mk.sel{stroke:var(--accent)}
+path.route{fill:none}
+
+@media (max-width:860px){
+  #viewer{grid-template-columns:1fr;grid-template-rows:58vh auto auto;height:auto}
+  #mapwrap{grid-row:1;grid-column:1}
+  #timeline{grid-row:2}
+  #panel{grid-row:3;grid-column:1;border-left:0;overflow:visible}
+  #timeline .hint{display:none}
+  h1{font-size:52px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-  <h1>atlas<b>.</b></h1>
-  <a class="back" href="../">← typemaps</a>
-</header>
-<p class="note"><strong>En construcción.</strong> Aquí irá el atlas histórico: ucronías, extensión acumulada de imperios y prospectiva, migrados sin perder geometría. Mientras tanto, esta página muestra el plan y el estado de las tareas.</p>
-<nav class="tabs" role="tablist">
-  <button role="tab" data-f="PLAN.md" aria-selected="true">Plan</button>
-  <button role="tab" data-f="TAREAS.md" aria-selected="false">Tareas</button>
-</nav>
-<article id="doc" aria-live="polite">Cargando…</article>
+<div id="home">
+  <header>
+    <h1 class="serif">atlas<b>.</b></h1>
+    <a class="back" href="../">← typemaps</a>
+  </header>
+  <p class="lead">Cartografía histórica, ucronías y prospectiva, con las geometrías originales sin simplificar. Cada mapa dice qué es: historia real, escenario contrafactual, extensión acumulada o caso prospectivo.</p>
+  <div id="sections"></div>
 </div>
+
+<div id="viewer" hidden>
+  <div id="mapwrap">
+    <div id="map" role="application" aria-label="Mapa"></div>
+    <div id="status" role="status" hidden></div>
+  </div>
+  <div id="timeline" aria-label="Línea del tiempo"></div>
+  <aside id="panel" aria-live="polite"></aside>
+</div>
+
+<footer id="foot">
+  <a href="../">typemaps</a>
+  <a href="plan.html">Plan</a>
+  <a href="plan.html#tareas">Tareas</a>
+  <a href="plan.html#contrato">Contrato de datos</a>
+  <a href="plan.html#creditos">Créditos y licencias</a>
+  <span>Leaflet 1.9.4 (BSD-2) · historical-basemaps (GPL-3.0) · HistoGIS · Natural Earth</span>
+</footer>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="data/catalog.js"></script>
 <script>
-// Minimal Markdown renderer for the project's own docs (headings, lists, tables, inline code, bold, links).
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-function inl(s){
-  var parts=s.split(/(`[^`]*`)/);
-  return parts.map(function(p){
-    if(/^`[^`]*`$/.test(p))return '<code>'+esc(p.slice(1,-1))+'</code>';
-    return esc(p).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>')
-      .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" rel="noopener">$1</a>');
+const $=s=>document.querySelector(s);
+const NS='http://www.w3.org/2000/svg';
+const reduced=matchMedia('(prefers-reduced-motion:reduce)');
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- shared palette: literal copy of mapeo/index.html (test/paleta.cjs checks they match) ---------- */
+// [fondo, paneles, texto, secundario, acento, error]
+const PALETTES=[
+  {id:'medianoche',name:'Medianoche',c:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81']},
+  {id:'ambar',name:'Ámbar',c:['#1d1a17','#27231e','#ede4d3','#7a6f5f','#f2b24a','#e5604d']},
+  {id:'mar',name:'Mar',c:['#0d2530','#123240','#d6ecef','#4f7785','#4fd6c4','#ff7a6b']},
+  {id:'lavanda',name:'Lavanda',c:['#221d2e','#2c2640','#ece6f7','#74698f','#c6a0ff','#ff7096']},
+  {id:'bosque',name:'Bosque',c:['#141c17','#1b2620','#dbe6d6','#5c7364','#9bd67a','#f07a5a']},
+  {id:'atardecer',name:'Atardecer',c:['#2a1a24','#38222f','#fbe9dc','#8c6474','#ff8a5c','#ff4d7a']},
+  {id:'nordico',name:'Nórdico',c:['#2b303b','#343b48','#e5e9f0','#6f7a8f','#88c0d0','#d9727b']},
+  {id:'carbon',name:'Carbón',c:['#111111','#1b1b1b','#f2f2f2','#5c5c5c','#ffffff','#ff5c5c']},
+  {id:'papel',name:'Papel',c:['#f2f0ea','#e6e3da','#26262b','#a3a097','#2f55d4','#d43d2f']},
+  {id:'sakura',name:'Sakura',c:['#f7eef0','#efdfe3','#4a3540','#b99aa5','#d6457a','#8a2be2']},
+  {id:'menta',name:'Menta',c:['#e9f3ee','#d9e9e1','#1f3a30','#8fb0a2','#0f9d76','#d1493f']},
+  {id:'oceano',name:'Océano',c:['#0b1a2a','#10263b','#dbe8f5','#4e6a85','#5ec2ff','#ff7a85']},
+  {id:'solar',name:'Solarizado',c:['#002b36','#073642','#eee8d5','#5d7a83','#e0b326','#e5534b']},
+  {id:'vampiro',name:'Vampiro',c:['#282a36','#343746','#f8f8f2','#6a76a8','#bd93f9','#ff6e6e']},
+  {id:'gruvbox',name:'Gruvbox',c:['#282828','#32302f','#ebdbb2','#7c6f64','#b8bb26','#fb4934']},
+  {id:'neon',name:'Neón',c:['#0d0b1a','#17142b','#f1eeff','#5d5885','#39ffb6','#ff4fa3']},
+  {id:'cafe',name:'Café',c:['#1f1813','#2a211a','#eadbc8','#7d6a58','#d7b085','#e8715c']},
+  {id:'pizarra',name:'Pizarra',c:['#22272e','#2d333b','#cdd9e5','#66717e','#6cb6ff','#f47067']},
+  {id:'ciruela',name:'Ciruela',c:['#1d1420','#2a1c2e','#f1e4f3','#84698a','#e0a3ff','#ff8a65']},
+  {id:'oliva',name:'Oliva',c:['#1b1c14','#25271c','#e6e6cf','#74775c','#c5cf6a','#e8784f']},
+  {id:'contraste',name:'Contraste',c:['#000000','#111111','#ffffff','#6a6a6a','#ffd400','#ff4040']},
+  {id:'arena',name:'Arena',c:['#f4ede1','#e9dfcf','#3a3128','#958676','#b85f22','#b8323a']},
+  {id:'cielo',name:'Cielo',c:['#eef4fb','#dde8f5','#1f2d3d','#7d91a8','#2672d6','#d6455d']},
+  {id:'lino',name:'Lino',c:['#f3f1e7','#e6e3d4','#2f3327','#8f8e78','#4f7d32','#c0503a']},
+  {id:'tiza',name:'Tiza',c:['#ffffff','#f0f0f0','#111111','#8a8a8a','#1a1a1a','#e0352b']},
+];
+function lum(hex){const n=parseInt(hex.slice(1),16);return (.299*(n>>16&255)+.587*(n>>8&255)+.114*(n&255))/255}
+function applyLook(){
+  // read-only: the palette is chosen in mapeo and stored under mapeo.cfg
+  const cfg=store.get('mapeo.cfg',{});
+  const c=cfg.palette==='custom'&&Array.isArray(cfg.custom)?cfg.custom:(PALETTES.find(p=>p.id===cfg.palette)||PALETTES[0]).c;
+  const root=document.documentElement;
+  ['--bg','--alt','--text','--sub','--accent','--err'].forEach((k,i)=>root.style.setProperty(k,c[i]));
+  root.style.colorScheme=lum(c[0])<.5?'dark':'light';
+}
+applyLook();
+addEventListener('storage',e=>{if(e.key==='mapeo.cfg')applyLook()});
+
+/* ---------- vocabularies (CONTRATO §8) ---------- */
+const KIND={history:'Historia',counterfactual:'Ucronía',extension:'Extensión acumulada',prospective:'Prospectiva'};
+const SECTIONS=[
+  ['history','Historia','Mapas de historia real.','Todavía no hay ninguno. El atlas de historia real 1783–1945 del despliegue anterior está pendiente de decisión (P8).'],
+  ['counterfactual','Ucronías','Escenarios contrafactuales: lo que no ocurrió. Las etapas marcadas como «referencia real» describen la situación de partida.','Faltan seis ucronías que se regenerarán sin simplificar desde historical-basemaps (tarea 2.5): Japón en Asia-Pacífico, Gran Colombia, Unión de Kalmar, México conserva su norte, Centroamérica unida y Tres Naciones.'],
+  ['extension','Extensión acumulada','Todo el territorio que estuvo bajo un mismo poder en algún momento, no a la vez.','Los ocho mapas («Todo lo que fue español», portugués, ibérico, británico, francés, romano, mongol y otomano) se regenerarán sin simplificar desde historical-basemaps (tarea 2.6).'],
+  ['prospective','Prospectiva','Casos territoriales abiertos hacia 2101. Las áreas localizan casos: no son fronteras futuras.',''],
+];
+const KIND_NOTE={counterfactual:'Escenario contrafactual: lo que no ocurrió.',extension:'Acumulado, no simultáneo: territorio que estuvo bajo este poder en algún momento.',history:''};
+const ROLE={sovereign:'Soberanía',control:'Control efectivo',occupation:'Ocupación',dependent:'Estado dependiente',federal:'Miembro federal',influence:'Esfera de influencia',claim:'Reclamación o vínculo',project:'Proyecto no realizado',case:'Caso prospectivo'};
+const CERT={documented:'Documentado',scenario:'Escenario'};
+const PREC={source:'Fuente cartográfica sin cambios',generalized:'Derivada de una fuente',approximate:'Aproximada',schematic:'Esquemática'};
+const ATTR={bund:'Bund',lenguas:'Lenguas',dinastia:'Dinastía',viabilidad:'Viabilidad',obstaculos:'Obstáculos',nota:'Nota',unified:'Unificado',project:'Proyecto no realizado',region:'Región',kind:'Tipo',current:'Situación de referencia',outlook:'Horizonte',conditions:'Condiciones',central:'Selección central',number:'Número',levelLabel:'Nivel'};
+const HIDDEN_ATTR=new Set(['approx']);
+
+const DEV=/[?&]ejemplo\b/.test(location.search);
+let CATALOG=(window.ATLAS_CATALOG||[]).slice();
+
+/* ---------- loading (CONTRATO §9) ---------- */
+const loaded={},geoLoaded={},scripts={};
+window.ATLAS_REGISTER=d=>{loaded[d.id]=d};
+window.ATLAS_REGISTER_GEO=d=>{geoLoaded[d.id]=d.geometries};
+function script(src){
+  return scripts[src]||(scripts[src]=new Promise((ok,ko)=>{
+    const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>{delete scripts[src];ko(new Error(src))};document.head.append(s);
+  }));
+}
+async function loadMap(c){
+  if(!loaded[c.id])await script('data/'+c.file);
+  if(c.geoFile&&!geoLoaded[c.id])await script('data/'+c.geoFile);
+  const d=loaded[c.id];
+  if(!d)throw new Error(c.file);
+  if(!d.geometries)d.geometries=geoLoaded[c.id];
+  return d;
+}
+
+/* ---------- home ---------- */
+function swatches(legend){
+  return '<span class="sw" aria-hidden="true">'+legend.filter(l=>l.color).slice(0,9).map(l=>`<i style="background:${esc(l.color)}"></i>`).join('')+'</span>';
+}
+function renderHome(){
+  $('#sections').innerHTML=SECTIONS.map(([k,title,desc,pend])=>{
+    const maps=CATALOG.filter(c=>c.kind===k);
+    const cards=maps.map(c=>`<a class="card" href="#/${esc(c.id)}">
+      <span><span class="tag k-${k}">${KIND[k]}</span></span>
+      <h3 class="serif">${esc(c.title)}</h3>
+      <span class="sub">${esc(c.subtitle||'')}</span>
+      <span class="meta">${esc(c.era)} · ${esc(c.region)} · ${c.years.join(', ')}${c.pendingYears?' · etapas pendientes: '+Object.keys(c.pendingYears).join(', '):''}</span>
+      ${swatches(c.legend)}
+    </a>`).join('');
+    return `<section class="kind" aria-labelledby="s-${k}"><h2 id="s-${k}" class="serif">${title}</h2><p>${desc}</p>
+      ${maps.length?`<div class="cards">${cards}</div>`:''}${pend?`<p class="pending">${pend}</p>`:''}</section>`;
   }).join('');
 }
-function md(t){
-  var L=t.replace(/\r/g,'').replace(/<!--[\s\S]*?-->/g,'').split('\n'),o=[],i=0;
-  while(i<L.length){
-    var l=L[i];
-    if(!l.trim()){i++;continue}
-    var h=l.match(/^(#{1,4})\s+(.*)/);
-    if(h){o.push('<h'+h[1].length+'>'+inl(h[2])+'</h'+h[1].length+'>');i++;continue}
-    if(/^---+\s*$/.test(l)){o.push('<hr>');i++;continue}
-    if(/^\|/.test(l)){
-      var rows=[];while(i<L.length&&/^\|/.test(L[i])){rows.push(L[i]);i++}
-      var cells=function(r){return r.trim().replace(/^\||\|$/g,'').split('|').map(function(c){return c.trim()})};
-      var hd=cells(rows[0]),body=rows.slice(/^\|[\s:|-]+\|?$/.test(rows[1]||'')?2:1);
-      o.push('<div class="tw"><table><thead><tr>'+hd.map(function(c){return '<th>'+inl(c)+'</th>'}).join('')+'</tr></thead><tbody>'+
-        body.map(function(r){return '<tr>'+cells(r).map(function(c){return '<td>'+inl(c)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>');
-      continue}
-    if(/^\s*([-*]|\d+\.)\s/.test(l)){
-      var ord=/^\s*\d+\./.test(l),items=[];
-      while(i<L.length&&(/^\s*([-*]|\d+\.)\s/.test(L[i])||(/^\s{2,}\S/.test(L[i])&&items.length))){
-        if(/^\s*([-*]|\d+\.)\s/.test(L[i])&&!/^\s{2,}/.test(L[i]))items.push(L[i].replace(/^\s*([-*]|\d+\.)\s+/,''));
-        else items[items.length-1]+='<br>'+L[i].trim().replace(/^([-*]|\d+\.)\s+/,'· ');
-        i++}
-      var tg=ord?'ol':'ul';
-      o.push('<'+tg+'>'+items.map(function(x){return '<li>'+inl(x).replace(/&lt;br&gt;/g,'<br>')+'</li>'}).join('')+'</'+tg+'>');
-      continue}
-    var p=[];while(i<L.length&&L[i].trim()&&!/^(#|\||---|\s*([-*]|\d+\.)\s)/.test(L[i])){p.push(L[i]);i++}
-    o.push('<p>'+inl(p.join(' '))+'</p>');
+
+/* ---------- viewer ---------- */
+let map,landLayer,layer,overlayLayer,cur=null,sel=null,hiddenCats=new Set(),byEntity={};
+function ensureMap(){
+  if(map)return;
+  const anim=!reduced.matches;
+  map=L.map('map',{renderer:L.svg({padding:.5}),zoomSnap:.25,zoomDelta:.5,worldCopyJump:false,zoomAnimation:anim,fadeAnimation:anim,markerZoomAnimation:anim,inertia:anim,attributionControl:true});
+  map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+  map.setView([45,10],3);
+  // the neutral land is drawn as soon as land.js arrives; maps do not wait for it
+  script('data/land.js').then(()=>{
+    landLayer=L.geoJSON(window.ATLAS_LAND.collection,{interactive:false,className:'land',style:{stroke:false,fillOpacity:1}}).addTo(map);
+    landLayer.bringToBack();
+  }).catch(()=>{});
+}
+function svgRoot(){return map.getPane('overlayPane').querySelector('svg')}
+function installPatterns(d){
+  // copy of the original <pattern> elements; ids are scoped by map id
+  const root=svgRoot();if(!root)return;
+  let defs=root.querySelector('defs');
+  if(!defs){defs=document.createElementNS(NS,'defs');root.insertBefore(defs,root.firstChild)}
+  for(const [name,p] of Object.entries(d.patterns||{})){
+    const id=`pat-${d.id}-${name}`;
+    if(defs.querySelector('#'+CSS.escape(id)))continue;
+    const doc=new DOMParser().parseFromString(`<svg xmlns="${NS}"><pattern id="${id}" patternUnits="userSpaceOnUse" width="${p.width}" height="${p.height}" patternTransform="rotate(${p.rotate||0})">${p.content}</pattern></svg>`,'image/svg+xml');
+    defs.append(document.importNode(doc.documentElement.firstChild,true));
   }
-  return o.join('\n');
 }
-var doc=document.getElementById('doc'),tabs=document.querySelectorAll('nav.tabs button');
-function load(f){
-  tabs.forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.f===f))});
-  doc.textContent='Cargando…';
-  fetch(f,{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.text()})
-    .then(function(t){doc.innerHTML=md(t)})
-    .catch(function(){doc.innerHTML='<p class="err">No se ha podido cargar '+esc(f)+'.</p>'});
+const patUrl=(d,name)=>`url(#pat-${d.id}-${name})`;
+function legendSwatch(d,l){
+  const fill=l.color?`<rect width="22" height="14" fill="${esc(l.color)}"/>`:'';
+  const pat=l.pattern&&d.patterns[l.pattern]?`<rect width="22" height="14" fill="${patUrl(d,l.pattern)}"/>`:'';
+  return `<svg viewBox="0 0 22 14" aria-hidden="true">${fill}${pat}</svg>`;
 }
-tabs.forEach(function(b){b.addEventListener('click',function(){load(b.dataset.f);history.replaceState(null,'','#'+b.dataset.f.replace('.md','').toLowerCase())})});
-load(location.hash==='#tareas'?'TAREAS.md':'PLAN.md');
+function legendFor(d,cat){return d.legend.find(l=>(l.categories||[l.key]).includes(cat))}
+
+async function openMap(id,year){
+  const c=CATALOG.find(x=>x.id===id);
+  if(!c){location.replace('#/');return}
+  $('#home').hidden=true;$('#foot').hidden=true;$('#viewer').hidden=false;
+  ensureMap();map.invalidateSize();
+  const status=$('#status');
+  if(!cur||cur.c.id!==id){
+    status.hidden=false;status.className='';status.textContent='Cargando '+c.title+'…';
+    let d;
+    try{d=await loadMap(c)}catch(e){status.className='err';status.textContent='No se han podido cargar los datos de este mapa.';return}
+    status.hidden=true;
+    cur={c,d};sel=null;hiddenCats=new Set();
+    document.title=c.title+' · atlas';
+    map.fitBounds(c.bounds,{animate:false});
+  }
+  const years=c.years;
+  const y=years.includes(+year)?+year:years[0];
+  if(+year!==y)history.replaceState(null,'',`#/${id}/${y}`);
+  cur.year=y;
+  drawFrame();renderPanel();renderTimeline();
+}
+function frameOf(){return cur.d.frames.find(f=>f.year===cur.year)}
+function drawFrame(){
+  const {d}=cur,fr=frameOf();
+  if(layer)layer.remove();
+  if(overlayLayer)overlayLayer.remove();
+  layer=L.featureGroup();byEntity={};
+  const visible=fr.features.filter(f=>!hiddenCats.has(f.category));
+  const areas=visible.filter(f=>f.representation==='area'),marks=visible.filter(f=>f.representation!=='area');
+  const lost=f=>f.lost?.35:1;
+  for(const f of areas){
+    const g={type:'Feature',geometry:d.geometries[f.gid],properties:f};
+    // stray Point parts inside an original GeometryCollection are kept, drawn as tiny dots (never as icons)
+    const base=L.geoJSON(g,{className:'ent',pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:1.5,className:'ent'}),style:{fill:true,fillColor:f.color||'#000',fillOpacity:f.color?lost(f):0,opacity:1}});
+    base.on('click',()=>select(f.entityId,false));
+    base.bindTooltip(f.name,{sticky:true,direction:'top'});
+    layer.addLayer(base);byEntity[f.entityId]=base;
+    if(f.pattern&&d.patterns[f.pattern])layer.addLayer(L.geoJSON(g,{interactive:false,pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:0,stroke:false,fill:false}),style:{stroke:false,fill:true,fillColor:patUrl(d,f.pattern),fillOpacity:lost(f)}}));
+  }
+  for(const f of marks){
+    const g={type:'Feature',geometry:d.geometries[f.gid],properties:f};
+    const m=L.geoJSON(g,{pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:6,className:'mk',fillColor:f.color,fillOpacity:lost(f),color:(d.style&&d.style.markerStroke)||'#ffffff',weight:2})});
+    m.on('click',()=>select(f.entityId,false));m.bindTooltip(f.name+' · marcador',{direction:'top'});
+    layer.addLayer(m);byEntity[f.entityId]=m;
+  }
+  overlayLayer=L.featureGroup();
+  for(const o of (d.routes||[]))if(!o.start||o.start<=cur.year){
+    overlayLayer.addLayer(L.geoJSON({type:'Feature',geometry:d.geometries[o.gid]},{interactive:true,className:'route',style:{color:o.color,weight:1.8,dashArray:'6 5',opacity:.85}}).bindTooltip(o.name+' · itinerario esquemático',{sticky:true}));
+  }
+  for(const o of (d.ports||[]))if(!o.start||o.start<=cur.year){
+    overlayLayer.addLayer(L.geoJSON({type:'Feature',geometry:d.geometries[o.gid]},{pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:3.6,fillColor:o.color,fillOpacity:1,color:'#ffffff',weight:1.2})}).bindTooltip(o.name+(o.note?' · '+o.note:''),{direction:'top'}));
+  }
+  layer.addTo(map);overlayLayer.addTo(map);
+  installPatterns(d);
+  if(sel&&!byEntity[sel])sel=null;
+  highlight();
+}
+function highlight(){
+  for(const [id,l] of Object.entries(byEntity))l.eachLayer(p=>{const el=p.getElement&&p.getElement();if(el)el.classList.toggle('sel',id===sel)});
+  if(sel&&byEntity[sel])byEntity[sel].bringToFront();
+}
+function select(id,zoom){
+  sel=id;highlight();renderCard();
+  const s=$('#entsel');if(s)s.value=id||'';
+  if(zoom&&id&&byEntity[id]){
+    const b=byEntity[id].getBounds();
+    if(b.isValid())map.fitBounds(b,{maxZoom:7,padding:[40,40],animate:!reduced.matches});
+  }
+}
+function renderTimeline(){
+  const {c}=cur;
+  const all=[...c.years.map(y=>[y,null]),...Object.entries(c.pendingYears||{}).map(([y,r])=>[+y,r])].sort((a,b)=>a[0]-b[0]);
+  $('#timeline').innerHTML='<span class="lbl">Etapas</span>'+all.map(([y,r])=>r
+    ?`<button disabled title="${esc('Pendiente: '+r)}">${y}<span aria-hidden="true">*</span><span class="sr"> (pendiente: ${esc(r)})</span></button>`
+    :`<button data-y="${y}" aria-current="${y===cur.year}">${y}</button>`).join('')+
+    '<span class="hint">←/→ etapa · Inicio/Fin · Esc cierra la ficha</span>';
+  $('#timeline').querySelectorAll('button[data-y]').forEach(b=>b.onclick=()=>go(+b.dataset.y));
+}
+function go(y){
+  if(!cur||y===cur.year)return;
+  history.replaceState(null,'',`#/${cur.c.id}/${y}`);
+  cur.year=y;drawFrame();renderPanel();renderTimeline();
+  const b=$(`#timeline button[data-y="${y}"]`);if(b&&document.activeElement&&document.activeElement.closest('#timeline'))b.focus();
+}
+function renderPanel(){
+  const {c,d}=cur,fr=frameOf();
+  const warn=c.kind==='prospective'?(d.meta&&d.meta.warning)||'':KIND_NOTE[c.kind];
+  const ents=[...fr.features].sort((a,b)=>a.name.localeCompare(b.name,'es'));
+  const counts={};fr.features.forEach(f=>counts[f.category]=(counts[f.category]||0)+1);
+  $('#panel').innerHTML=`
+    <div class="nav"><a href="#/">← Todos los mapas</a><a href="plan.html">Plan y tareas</a></div>
+    <p style="margin-top:14px"><span class="tag k-${c.kind}">${KIND[c.kind]}</span></p>
+    <h2 class="serif">${esc(c.title)}</h2>
+    <p class="muted">${esc(c.subtitle||'')}${c.subtitle?' · ':''}${esc(c.era)} · ${esc(c.region)}${c.divergence!=null?' · divergencia '+c.divergence:''}</p>
+    ${warn?`<p class="notice k-${c.kind}">${esc(warn)}</p>`:''}
+    <div class="frame">
+      <h3>Etapa ${fr.year}${fr.historical?' · <span class="tag real">Referencia real</span>':''}</h3>
+      <h4 class="serif">${esc(fr.title)}</h4>
+      <p class="muted">${esc(fr.text)}</p>
+    </div>
+    ${c.views&&Object.keys(c.views).length>1?`<h3>Encuadres</h3><div class="views">${Object.keys(c.views).map(v=>`<button data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`:''}
+    <h3>Leyenda <span class="sr">(pulsa para mostrar u ocultar)</span></h3>
+    <ul class="legend">${d.legend.map(l=>{
+      const cats=l.categories||[l.key];
+      // pattern-only entries (e.g. projects) count the features carrying that pattern
+      const n=cats.length?cats.reduce((s,k)=>s+(counts[k]||0),0):fr.features.filter(f=>f.pattern===l.pattern).length;
+      const label=`<span><span class="lt">${esc(l.label)}</span> <span class="muted">(${n})</span></span>`;
+      if(!cats.length)return `<li class="static">${legendSwatch(d,l)}${label}</li>`;
+      const on=!cats.every(k=>hiddenCats.has(k));
+      return `<li><button data-cats="${esc(JSON.stringify(cats))}" aria-pressed="${on}">${legendSwatch(d,l)}${label}</button></li>`;
+    }).join('')}</ul>
+    <h3><label for="entsel">Entidades de esta etapa (${fr.features.length})</label></h3>
+    <select id="entsel"><option value="">Elige una entidad…</option>${ents.map(f=>`<option value="${esc(f.entityId)}">${esc(f.name)}${f.representation!=='area'?' · marcador':''}</option>`).join('')}</select>
+    <div id="cardbox"></div>
+    <h3>Límites del mapa</h3>
+    <p class="muted">${esc(c.limits)}</p>
+    <details><summary>Resumen</summary><p>${esc(c.summary)}</p></details>
+    ${c.pendingYears?`<details><summary>Etapas pendientes (${Object.keys(c.pendingYears).length})</summary><ul>${Object.entries(c.pendingYears).map(([y,r])=>`<li>${y}: ${esc(r)}</li>`).join('')}</ul></details>`:''}
+    <details><summary>Fuentes (${d.sources.length})</summary><ul>${d.sources.map(s=>`<li><a href="${esc(s.url)}" rel="noopener" target="_blank">${esc(s.title)}</a>${s.note?' · '+esc(s.note):''}</li>`).join('')}</ul></details>
+    <details><summary>Licencias</summary><ul>${c.license.map(l=>`<li>${l.url?`<a href="${esc(l.url)}" rel="noopener" target="_blank">${esc(l.name)}</a>`:esc(l.name)} · ${esc(l.scope)}</li>`).join('')}</ul></details>
+    <p style="margin-top:14px"><a class="tool" href="data/${esc(c.id)}.geojson" download>Descargar GeoJSON</a></p>
+    <p class="muted" style="margin-top:10px">Geometrías del original sin simplificar · ${esc(d.meta.origin)}</p>`;
+  $('#panel').querySelectorAll('.views button').forEach(b=>b.onclick=()=>map.fitBounds(c.views[b.dataset.v],{animate:!reduced.matches}));
+  $('#panel').querySelectorAll('.legend button').forEach(b=>b.onclick=()=>{
+    const cats=JSON.parse(b.dataset.cats),on=b.getAttribute('aria-pressed')==='true';
+    cats.forEach(k=>on?hiddenCats.add(k):hiddenCats.delete(k));
+    drawFrame();renderPanel();
+    const again=[...$('#panel').querySelectorAll('.legend button')].find(x=>x.dataset.cats===b.dataset.cats);if(again)again.focus();
+  });
+  $('#entsel').onchange=e=>select(e.target.value||null,true);
+  if(sel)$('#entsel').value=sel;
+  renderCard();
+}
+function attrValue(v){return typeof v==='boolean'?(v?'sí':'no'):esc(v)}
+function renderCard(){
+  const box=$('#cardbox');if(!box)return;
+  const f=sel&&frameOf().features.find(x=>x.entityId===sel);
+  if(!f){box.innerHTML='<p class="muted" style="margin-top:8px">Pulsa un territorio en el mapa o elígelo en la lista para ver su ficha.</p>';return}
+  const {d}=cur,l=legendFor(d,f.category);
+  const attrs=Object.entries(f.attrs||{}).filter(([k,v])=>!HIDDEN_ATTR.has(k)&&v!==''&&v!=null);
+  const showNote=f.note&&!(f.attrs&&(f.attrs.current||f.attrs.bund));
+  box.innerHTML=`<div id="card" tabindex="-1">
+    <button class="close" aria-label="Cerrar la ficha">×</button>
+    <h4 class="serif">${esc(f.name)}</h4>
+    <dl>
+      <dt>Leyenda</dt><dd>${l?esc(l.label):esc(f.category)}</dd>
+      <dt>Relación</dt><dd>${ROLE[f.role]||esc(f.role)}${cur.c.kind!=='prospective'?' <span class="muted">(provisional)</span>':''}</dd>
+      <dt>Certeza</dt><dd>${CERT[f.certainty]||esc(f.certainty)}</dd>
+      <dt>Precisión</dt><dd>${PREC[f.precision]||esc(f.precision)}${f.representation!=='area'?' · marcador de posición, no superficie':''}</dd>
+      ${f.start!=null?`<dt>Periodo</dt><dd>${esc(f.period||(f.start+'–'+(f.end??'')))}${f.lost?' · ya perdido':''}</dd>`:''}
+      ${attrs.map(([k,v])=>`<dt>${esc(ATTR[k]||k)}</dt><dd>${attrValue(v)}</dd>`).join('')}
+    </dl>
+    ${showNote?`<p class="muted">${esc(f.note)}</p>`:''}
+    ${(f.sourceUrls||[]).length?`<p class="muted">Fuentes: ${f.sourceUrls.map((u,i)=>`<a href="${esc(u)}" rel="noopener" target="_blank">${i+1}</a>`).join(' · ')}</p>`:''}
+  </div>`;
+  box.querySelector('.close').onclick=()=>select(null,false);
+}
+
+/* ---------- routing and keyboard ---------- */
+function route(){
+  const m=location.hash.match(/^#\/([\w-]+)(?:\/(-?\d+))?/);
+  if(m){openMap(m[1],m[2]);return}
+  cur=null;document.title='atlas';
+  $('#viewer').hidden=true;$('#home').hidden=false;$('#foot').hidden=false;
+}
+addEventListener('hashchange',route);
+addEventListener('keydown',e=>{
+  if(!cur||$('#viewer').hidden||e.altKey||e.ctrlKey||e.metaKey)return;
+  const t=e.target;
+  if(t.closest&&(t.closest('#map')||/^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)))return;
+  const ys=cur.c.years,i=ys.indexOf(cur.year);
+  if(e.key==='ArrowRight'&&i<ys.length-1){go(ys[i+1]);e.preventDefault()}
+  else if(e.key==='ArrowLeft'&&i>0){go(ys[i-1]);e.preventDefault()}
+  else if(e.key==='Home'){go(ys[0]);e.preventDefault()}
+  else if(e.key==='End'){go(ys[ys.length-1]);e.preventDefault()}
+  else if(e.key==='Escape'&&sel){select(null,false)}
+});
+
+(DEV?script('data/_catalogo-ejemplo.js').then(()=>{CATALOG=CATALOG.concat(window.ATLAS_CATALOG.filter(c=>c.sample))}).catch(()=>{}):Promise.resolve())
+  .then(()=>{renderHome();route()});
 </script>
 </body>
 </html>

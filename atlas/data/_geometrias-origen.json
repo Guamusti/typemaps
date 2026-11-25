@@ -1,0 +1,2644 @@
+{
+"gran-alemania": {
+"g-9aaf5dc0c0f7eeae": {
+"sha256": "9aaf5dc0c0f7eeae4fbd26a2d6d6f5bfb9b2ff7f327654bd72c9bd1944076de5",
+"origin": "mapas/gran-alemania/europa_1848.html#features[0]",
+"entityIds": [
+"9977"
+]
+},
+"g-c0e0514bb8e793c2": {
+"sha256": "c0e0514bb8e793c24ea312c9d0215068c896bb5c27fa411d7d46182f544d02be",
+"origin": "mapas/gran-alemania/europa_1848.html#features[1]",
+"entityIds": [
+"9980"
+]
+},
+"g-66421f95a752191b": {
+"sha256": "66421f95a752191b371d185368c556434c9e48183001723a5426487d8a515334",
+"origin": "mapas/gran-alemania/europa_1848.html#features[2]",
+"entityIds": [
+"9981"
+]
+},
+"g-6b81a912862234ed": {
+"sha256": "6b81a912862234ed4c11e1400a5fd72142ce80a5720b59ea290ba693dd952de1",
+"origin": "mapas/gran-alemania/europa_1848.html#features[3]",
+"entityIds": [
+"9983"
+]
+},
+"g-c74250209d99415f": {
+"sha256": "c74250209d99415f086ef9c5eacb93121edf7b51aa560368628858c1c56b0bfd",
+"origin": "mapas/gran-alemania/europa_1848.html#features[4]",
+"entityIds": [
+"9984"
+]
+},
+"g-0910bbb72b7edfc2": {
+"sha256": "0910bbb72b7edfc2d68c1741f384572de36e80621665f0074fde61f34b6051f0",
+"origin": "mapas/gran-alemania/europa_1848.html#features[5]",
+"entityIds": [
+"9986"
+]
+},
+"g-9c4d9007ecac7e49": {
+"sha256": "9c4d9007ecac7e49b8df792f327925081f7c9642e5323812c2ffdfc94f7fa3fb",
+"origin": "mapas/gran-alemania/europa_1848.html#features[6]",
+"entityIds": [
+"9987"
+]
+},
+"g-b5a3ff754b200a3e": {
+"sha256": "b5a3ff754b200a3eac6a29078d5109c4d3780ebf06ade4a0b9a153f2c449b27f",
+"origin": "mapas/gran-alemania/europa_1848.html#features[7]",
+"entityIds": [
+"9988"
+]
+},
+"g-54cbf92b082a7912": {
+"sha256": "54cbf92b082a7912f5316898fa8a227f5d40cefa9429c5e4919a740e53918f5b",
+"origin": "mapas/gran-alemania/europa_1848.html#features[8]",
+"entityIds": [
+"9989"
+]
+},
+"g-00d2c16a698d82cc": {
+"sha256": "00d2c16a698d82ccbf8a735695dbe6115f5227b80177fcfa1d62821627a1ed2a",
+"origin": "mapas/gran-alemania/europa_1848.html#features[9]",
+"entityIds": [
+"9990"
+]
+},
+"g-da8d7dc6f0ebd845": {
+"sha256": "da8d7dc6f0ebd84526d271cf5a712b762d9498236d38cbaddde3f4e8fb1dd496",
+"origin": "mapas/gran-alemania/europa_1848.html#features[10]",
+"entityIds": [
+"9991"
+]
+},
+"g-fc2c0fae4ffb0321": {
+"sha256": "fc2c0fae4ffb0321b513d50fd98d3111198b5999ed0c63ba4a56928fc8dd25dc",
+"origin": "mapas/gran-alemania/europa_1848.html#features[11]",
+"entityIds": [
+"9992"
+]
+},
+"g-c1749c7558ec0d25": {
+"sha256": "c1749c7558ec0d25fbfb75b822af04bcb73ffc86706290abc7465586558904d5",
+"origin": "mapas/gran-alemania/europa_1848.html#features[12]",
+"entityIds": [
+"9993"
+]
+},
+"g-98bcc03e087a8899": {
+"sha256": "98bcc03e087a88994c405653733d9e95e8dd4cbc9161251b097a92bcb55c3c81",
+"origin": "mapas/gran-alemania/europa_1848.html#features[13]",
+"entityIds": [
+"9994"
+]
+},
+"g-2cf8f2adbcf8a317": {
+"sha256": "2cf8f2adbcf8a317fc0109d5b95da62d9b5b0d96c7307f95e8ee3161f140784b",
+"origin": "mapas/gran-alemania/europa_1848.html#features[14]",
+"entityIds": [
+"9996"
+]
+},
+"g-2bf259806ebb7ed8": {
+"sha256": "2bf259806ebb7ed8ee49070e3845eb4ae550ef3b9ac9651f7ef5bfa213b53f1c",
+"origin": "mapas/gran-alemania/europa_1848.html#features[15]",
+"entityIds": [
+"9997"
+]
+},
+"g-86b824468f2ef0a5": {
+"sha256": "86b824468f2ef0a5753f6332dad374923d882c0503cfb493f4b60f6f1d3f9955",
+"origin": "mapas/gran-alemania/europa_1848.html#features[16]",
+"entityIds": [
+"9998"
+]
+},
+"g-42157aa8d46fc248": {
+"sha256": "42157aa8d46fc248c2c3184e42d05ad2f378fc39fdb9f7c14c60891acf2d0c72",
+"origin": "mapas/gran-alemania/europa_1848.html#features[17]",
+"entityIds": [
+"9999"
+]
+},
+"g-d02641b1fe1266b5": {
+"sha256": "d02641b1fe1266b510c06f35663be67f6a769ee5d2fc453fa4801244c235b049",
+"origin": "mapas/gran-alemania/europa_1848.html#features[18]",
+"entityIds": [
+"10001"
+]
+},
+"g-77016f13dfc4b8e6": {
+"sha256": "77016f13dfc4b8e66c99d161db5bcfd7f6cff7bfe3d85acf52470eab3d83a246",
+"origin": "mapas/gran-alemania/europa_1848.html#features[19]",
+"entityIds": [
+"10002"
+]
+},
+"g-7185c44f8e669e39": {
+"sha256": "7185c44f8e669e3956b151ddf951c0e3534daf76b35afe70c545003c76802a35",
+"origin": "mapas/gran-alemania/europa_1848.html#features[20]",
+"entityIds": [
+"10003"
+]
+},
+"g-e7bfa43d83a0d880": {
+"sha256": "e7bfa43d83a0d88058cd46f618900880fb0a74cfbb22104d4d662ddbe7b24c70",
+"origin": "mapas/gran-alemania/europa_1848.html#features[21]",
+"entityIds": [
+"10004"
+]
+},
+"g-3b8bf91573cf01ad": {
+"sha256": "3b8bf91573cf01ad54756b7ed82889cd42cd5b05be9b011828c846871bccc89f",
+"origin": "mapas/gran-alemania/europa_1848.html#features[22]",
+"entityIds": [
+"10005"
+]
+},
+"g-cdcb790b8d45bfa2": {
+"sha256": "cdcb790b8d45bfa2a2cd0816087d1d131278d298bf4d52164c8e7dfcfe6132a9",
+"origin": "mapas/gran-alemania/europa_1848.html#features[23]",
+"entityIds": [
+"10006"
+]
+},
+"g-53a50cf858e4ebee": {
+"sha256": "53a50cf858e4ebee191cb817a0eedfffc1e2e19cc5d02292430791348945dede",
+"origin": "mapas/gran-alemania/europa_1848.html#features[24]",
+"entityIds": [
+"10008"
+]
+},
+"g-915fa49955b7d0cc": {
+"sha256": "915fa49955b7d0cc81ecb9fc646fbcc41a8724676ddce2d77a490de404960852",
+"origin": "mapas/gran-alemania/europa_1848.html#features[25]",
+"entityIds": [
+"10009"
+]
+},
+"g-e67d224bb2942068": {
+"sha256": "e67d224bb2942068ded29e88e05619e8b34cec326688c019aa0eb3ed7d66b5a2",
+"origin": "mapas/gran-alemania/europa_1848.html#features[26]",
+"entityIds": [
+"10013"
+]
+},
+"g-e59f061fff499da3": {
+"sha256": "e59f061fff499da38357959249126b19230e5fb63b44bb156c27412e77d74990",
+"origin": "mapas/gran-alemania/europa_1848.html#features[27]",
+"entityIds": [
+"10035"
+]
+},
+"g-ded808a8d08ef707": {
+"sha256": "ded808a8d08ef7071511c9df3fb06106e792979496539f47d778a57eac63b01c",
+"origin": "mapas/gran-alemania/europa_1848.html#features[28]",
+"entityIds": [
+"10041"
+]
+},
+"g-b73cd67ce5f013c4": {
+"sha256": "b73cd67ce5f013c469eb91f704dd8eaef810fb8eee4656e4a67cda4f2eda7e7c",
+"origin": "mapas/gran-alemania/europa_1848.html#features[29]",
+"entityIds": [
+"10044"
+]
+},
+"g-c8bea186e895c5c5": {
+"sha256": "c8bea186e895c5c582e912bab472b28c0c19e21eb363e5c7e15d98fc3fdc52d4",
+"origin": "mapas/gran-alemania/europa_1848.html#features[30]",
+"entityIds": [
+"10047"
+]
+},
+"g-e44b40bfe90b10a6": {
+"sha256": "e44b40bfe90b10a61ffecac7eab625b9a5f912eb9355c6b83aa6ba825a08f3fc",
+"origin": "mapas/gran-alemania/europa_1848.html#features[31]",
+"entityIds": [
+"10048"
+]
+},
+"g-18abe32a80ef4efe": {
+"sha256": "18abe32a80ef4efe1b9709077d4213f14f922d319effb9d1daca2b9a98ca56fb",
+"origin": "mapas/gran-alemania/europa_1848.html#features[32]",
+"entityIds": [
+"10049"
+]
+},
+"g-af82ed4bf29d0b09": {
+"sha256": "af82ed4bf29d0b09a32933d8112e2d6185a433f7b736617a66bdc25306be221b",
+"origin": "mapas/gran-alemania/europa_1848.html#features[33]",
+"entityIds": [
+"10050"
+]
+},
+"g-fcdfbef892a2164e": {
+"sha256": "fcdfbef892a2164ebed9a84016154afcbacb3a33673d4261aa57104b8672adae",
+"origin": "mapas/gran-alemania/europa_1848.html#features[34]",
+"entityIds": [
+"10051"
+]
+},
+"g-f5e0b7d7dcc93df7": {
+"sha256": "f5e0b7d7dcc93df78c8498ecc677b3024348aa60da8782b96762cb677b841cdf",
+"origin": "mapas/gran-alemania/europa_1848.html#features[35]",
+"entityIds": [
+"10057"
+]
+},
+"g-85650c79c1b4d3ab": {
+"sha256": "85650c79c1b4d3abd611d088ed5a636f9740654b861ef394309a383e749924a7",
+"origin": "mapas/gran-alemania/europa_1848.html#features[36]",
+"entityIds": [
+"12455"
+]
+},
+"g-42299bf1170ba5c7": {
+"sha256": "42299bf1170ba5c79c892a882d547c792d83562cf1f3cce3f8fd62657d4107a6",
+"origin": "mapas/gran-alemania/europa_1848.html#features[37]",
+"entityIds": [
+"12454"
+]
+},
+"g-b30416ac96f4db01": {
+"sha256": "b30416ac96f4db016504915d26433f059293fa0e9b9293acf9cae1ef1a2eb48c",
+"origin": "mapas/gran-alemania/europa_1848.html#features[38]",
+"entityIds": [
+"12572"
+]
+},
+"g-bd23f604cab54076": {
+"sha256": "bd23f604cab54076785d305b9b2fab6955cfc113a1fbcf853b4b83c4303bde5f",
+"origin": "mapas/gran-alemania/europa_1848.html#features[39]",
+"entityIds": [
+"10030"
+]
+},
+"g-d6fc61f5167c8a80": {
+"sha256": "d6fc61f5167c8a80343212093ed123367333de5c5c26adb7a298ccd3d6fb78c6",
+"origin": "mapas/gran-alemania/europa_1848.html#features[40]",
+"entityIds": [
+"9982"
+]
+},
+"g-4f106ca3d2564be9": {
+"sha256": "4f106ca3d2564be9577370414b5fac64470993090ff3cb1ad21385a08a2a83e5",
+"origin": "mapas/gran-alemania/europa_1848.html#features[41]",
+"entityIds": [
+"10058"
+]
+},
+"g-1ed86484865c130c": {
+"sha256": "1ed86484865c130ce4bea34a8752c4e16b6eeb7bb9a95fbd30f952b483bbcde9",
+"origin": "mapas/gran-alemania/europa_1848.html#features[42]",
+"entityIds": [
+"9910"
+]
+},
+"g-9352da5e0756f1d9": {
+"sha256": "9352da5e0756f1d93b2bc32b15ad743fc453cde67cd7ad26909621274afe3c52",
+"origin": "mapas/gran-alemania/europa_1848.html#features[43]",
+"entityIds": [
+"9917"
+]
+},
+"g-3fc785c613befb14": {
+"sha256": "3fc785c613befb1438dd1e468bfadb587ba7cfc9dd244eb2bf57a470e4dc11eb",
+"origin": "mapas/gran-alemania/europa_1848.html#features[44]",
+"entityIds": [
+"9912"
+]
+},
+"g-c2ed3a5b2758b961": {
+"sha256": "c2ed3a5b2758b961f0c4481913a38bd9873bcd6c06b8e3a9a837fdd5c7a9e98a",
+"origin": "mapas/gran-alemania/europa_1848.html#features[45]",
+"entityIds": [
+"9913"
+]
+},
+"g-8b080710ce2aeac4": {
+"sha256": "8b080710ce2aeac4a18e4ebe69991f4e4e165ad14d372e92b312ddc6da402e44",
+"origin": "mapas/gran-alemania/europa_1848.html#features[46]",
+"entityIds": [
+"9919"
+]
+},
+"g-1005b48a8c4a3f9b": {
+"sha256": "1005b48a8c4a3f9bc5702de4fe9ce79ea23807fad30dbb2c38b73be78cc17f3c",
+"origin": "mapas/gran-alemania/europa_1848.html#features[47]",
+"entityIds": [
+"9920"
+]
+},
+"g-7d076342e843b090": {
+"sha256": "7d076342e843b090e52d882beb600fbfa65861112762d54cd025fdba802c3b15",
+"origin": "mapas/gran-alemania/europa_1848.html#features[48]",
+"entityIds": [
+"9921"
+]
+},
+"g-a7821116406e631b": {
+"sha256": "a7821116406e631ba7be081dbd312d3d5a67a10d767243deddb2e0dd0dfd5043",
+"origin": "mapas/gran-alemania/europa_1848.html#features[49]",
+"entityIds": [
+"9922"
+]
+},
+"g-cf68e0590545e43e": {
+"sha256": "cf68e0590545e43e3ee77d5dc73888a375717e8842cbfb396a54d1090f17eb20",
+"origin": "mapas/gran-alemania/europa_1848.html#features[50]",
+"entityIds": [
+"12263"
+]
+},
+"g-a4500a06c00a6db9": {
+"sha256": "a4500a06c00a6db944d6f38ba0a8d088669332b22e2c90a2e112c35b408127cb",
+"origin": "mapas/gran-alemania/europa_1848.html#features[51]",
+"entityIds": [
+"9926"
+]
+},
+"g-0952832e7e213fcb": {
+"sha256": "0952832e7e213fcbd9fc9a7bff01b2f5f2dab5253b9fa43b4f2e268c756a2a3e",
+"origin": "mapas/gran-alemania/europa_1848.html#features[52]",
+"entityIds": [
+"12272"
+]
+},
+"g-7ded8e500b60f9b7": {
+"sha256": "7ded8e500b60f9b7040632bd1581bc41391779df8be047ee8a1fede90df4d052",
+"origin": "mapas/gran-alemania/europa_1848.html#features[53]",
+"entityIds": [
+"12416"
+]
+},
+"g-e4ee2a675193ba67": {
+"sha256": "e4ee2a675193ba678929c1cd807c9a2a03361cf468dab2d2acbe55e16fc7115e",
+"origin": "mapas/gran-alemania/europa_1848.html#features[54]",
+"entityIds": [
+"9915"
+]
+},
+"g-fd5d16dbedc53d3f": {
+"sha256": "fd5d16dbedc53d3fbb3559fb3ac9a3c3bdd118992b74cbdc8d83f5988aa618d0",
+"origin": "mapas/gran-alemania/europa_1848.html#features[55]",
+"entityIds": [
+"9914"
+]
+},
+"g-a34fad2cc3b1a435": {
+"sha256": "a34fad2cc3b1a4358e78e7810a50060cee61d99ca333e7585c9db6066e58fc3a",
+"origin": "mapas/gran-alemania/europa_1848.html#features[56]",
+"entityIds": [
+"9923"
+]
+},
+"g-c4ad9ca854e932cc": {
+"sha256": "c4ad9ca854e932ccfb37d54b8cbcffbe5dd8292340bc249d08918027ef504188",
+"origin": "mapas/gran-alemania/europa_1848.html#features[57]",
+"entityIds": [
+"9911"
+]
+},
+"g-1afc840d5d1a7f7b": {
+"sha256": "1afc840d5d1a7f7bc6dbdea5c44e7b03e857f8ab89711433d29be21c15f15eb4",
+"origin": "mapas/gran-alemania/europa_1848.html#features[58]",
+"entityIds": [
+"9925"
+]
+},
+"g-41e847e3217933ef": {
+"sha256": "41e847e3217933ef0580ddc8a59ca8b7d66a411fdd35200abdac5f0adc63a1cb",
+"origin": "mapas/gran-alemania/europa_1848.html#features[59]",
+"entityIds": [
+"9924"
+]
+},
+"g-85296d4bc6a7fc0d": {
+"sha256": "85296d4bc6a7fc0d4743489c8ebbe121ba09ca23988b2ebc030012c08b7b714c",
+"origin": "mapas/gran-alemania/europa_1848.html#features[60]",
+"entityIds": [
+"9916"
+]
+},
+"g-ac95ae486a2fe348": {
+"sha256": "ac95ae486a2fe348cfd575b230e859278a3720bac78a746b96d33659016b32aa",
+"origin": "mapas/gran-alemania/europa_1848.html#features[61]",
+"entityIds": [
+"10059"
+]
+},
+"g-86f49cd007c126b2": {
+"sha256": "86f49cd007c126b207ea478ff51f040f35007d6c8a693d3afd55cba5688a3477",
+"origin": "mapas/gran-alemania/europa_1848.html#features[62]",
+"entityIds": [
+"10061"
+]
+},
+"g-626e6090f09f35b3": {
+"sha256": "626e6090f09f35b35aeee24474b3deec71abf27f5fc5fc68fef2907e3f5baa79",
+"origin": "mapas/gran-alemania/europa_1848.html#features[63]",
+"entityIds": [
+"10060"
+]
+},
+"g-df82ae8a2bc13b78": {
+"sha256": "df82ae8a2bc13b784f3adc944b1875e4fbbfe6279d12b75c42978ce066dac890",
+"origin": "mapas/gran-alemania/europa_1848.html#features[64]",
+"entityIds": [
+"10042"
+]
+},
+"g-a8205f6351c2a767": {
+"sha256": "a8205f6351c2a767beed3280d93ae89f12ecabb2f5c1e687066d724aa208c449",
+"origin": "mapas/gran-alemania/europa_1848.html#features[65]",
+"entityIds": [
+"10045"
+]
+},
+"g-90d82bd2d631a0f5": {
+"sha256": "90d82bd2d631a0f53cccf028221e81973843bb258bcc953da66c028fb333cf09",
+"origin": "mapas/gran-alemania/europa_1848.html#features[66]",
+"entityIds": [
+"10038"
+]
+},
+"g-3a831cc15e581f0d": {
+"sha256": "3a831cc15e581f0d4930d890c4f6fb90f77d7bfb835fc333fc8e3c2d20c8cb80",
+"origin": "mapas/gran-alemania/europa_1848.html#features[67]",
+"entityIds": [
+"10036"
+]
+},
+"g-6db9bf5c9a6779e3": {
+"sha256": "6db9bf5c9a6779e3d51acc3b3361d3ce9b06b5b38870d6e8d8263829e4b9cb06",
+"origin": "mapas/gran-alemania/europa_1848.html#features[68]",
+"entityIds": [
+"10034"
+]
+},
+"g-61651b11aa33efdc": {
+"sha256": "61651b11aa33efdceb5c7d8ea618d5d717c8fedb113deba897108182adc4080b",
+"origin": "mapas/gran-alemania/europa_1848.html#features[69]",
+"entityIds": [
+"10033"
+]
+},
+"g-f01b9a4d332d80de": {
+"sha256": "f01b9a4d332d80ded0a14df8915c396849238692f55678a24eb12b2e0aa49f30",
+"origin": "mapas/gran-alemania/europa_1848.html#features[70]",
+"entityIds": [
+"10054"
+]
+},
+"g-6c8993bc64261955": {
+"sha256": "6c8993bc64261955a9b1e7a6bca36a10ba38c9e659cb788cff3da494250f56c6",
+"origin": "mapas/gran-alemania/europa_1848.html#features[71]",
+"entityIds": [
+"10032"
+]
+},
+"g-2f79e2f0668a6e7a": {
+"sha256": "2f79e2f0668a6e7a77053958b54ce610ba7f9164c6710115cec96439f8b0f3a0",
+"origin": "mapas/gran-alemania/europa_1848.html#features[72]",
+"entityIds": [
+"10055"
+]
+},
+"g-f3cbecc9737ec7ff": {
+"sha256": "f3cbecc9737ec7ff53844afb1ddbab8e589ced80d1af68ee4a81e3e9c7cb9064",
+"origin": "mapas/gran-alemania/europa_1848.html#features[73]",
+"entityIds": [
+"10016"
+]
+},
+"g-9b6bc56d8489a79b": {
+"sha256": "9b6bc56d8489a79b282b6a1d3a09174903998a654cfcc9a06102c1998ded6890",
+"origin": "mapas/gran-alemania/europa_1848.html#features[74]",
+"entityIds": [
+"10011"
+]
+},
+"g-1241348f02d5cce7": {
+"sha256": "1241348f02d5cce71bcb169006d5fd1711f49747f627e90bb9525a25d75f1afc",
+"origin": "mapas/gran-alemania/europa_1848.html#features[75]",
+"entityIds": [
+"10012"
+]
+},
+"g-c2af7e62741bfad1": {
+"sha256": "c2af7e62741bfad1138f8ab0ff209274f8032c83fa10da1dd65b53e8c685ffe7",
+"origin": "mapas/gran-alemania/europa_1848.html#features[76]",
+"entityIds": [
+"10027"
+]
+},
+"g-20f11379fa8e1c2c": {
+"sha256": "20f11379fa8e1c2c93fbe070a07fde54974abe4cdd9678b3cfbe5d34484a1ca4",
+"origin": "mapas/gran-alemania/europa_1848.html#features[77]",
+"entityIds": [
+"10046"
+]
+},
+"g-5bdd5fff6efb8fd0": {
+"sha256": "5bdd5fff6efb8fd093c84907a76c05b31319937419d157879536677e5ff3e8e4",
+"origin": "mapas/gran-alemania/europa_1848.html#features[78]",
+"entityIds": [
+"10053"
+]
+},
+"g-2d7514c42ac52d31": {
+"sha256": "2d7514c42ac52d311e13cf13823fc4a77ab532fc1047aad040216711d7817559",
+"origin": "mapas/gran-alemania/europa_1848.html#features[79]",
+"entityIds": [
+"10062"
+]
+},
+"g-34ee61e20a9e3d76": {
+"sha256": "34ee61e20a9e3d769f33d9651a07970d52a42b7c9adfb9240e07ce7e3be2723b",
+"origin": "mapas/gran-alemania/europa_1848.html#features[80]",
+"entityIds": [
+"10014"
+]
+},
+"g-b9048bc92c161cfa": {
+"sha256": "b9048bc92c161cfa85f5ea660d866261101344cc1f837052f5a0f8adae12f4b8",
+"origin": "mapas/gran-alemania/europa_1848.html#features[81]",
+"entityIds": [
+"10015"
+]
+},
+"g-43ab78a38fec4c36": {
+"sha256": "43ab78a38fec4c3694535e3c3dcf96cb3133cfcb7fe2379a0dc79e4ef53446aa",
+"origin": "mapas/gran-alemania/europa_1848.html#features[82]",
+"entityIds": [
+"10026"
+]
+},
+"g-a4b476c66496ceca": {
+"sha256": "a4b476c66496ceca29a963cfbf4770d5c35f8662ab5be42fc1bf38da1e90373c",
+"origin": "mapas/gran-alemania/europa_1848.html#features[83]",
+"entityIds": [
+"10029"
+]
+},
+"g-c64afef93f403a19": {
+"sha256": "c64afef93f403a196712bcb166732a71bd9fce6e3c58b7b64e14768b82d97dbb",
+"origin": "mapas/gran-alemania/europa_1848.html#features[84]",
+"entityIds": [
+"10022"
+]
+},
+"g-65336536973f5b4a": {
+"sha256": "65336536973f5b4a1445b6c4bfd65d9e65658b1a26f3149d3aa1de867a0f9395",
+"origin": "mapas/gran-alemania/europa_1848.html#features[85]",
+"entityIds": [
+"schleswig"
+]
+},
+"g-0e66947d0c827326": {
+"sha256": "0e66947d0c827326ed983f37728f667df20c247c75b483d5df3da3b5234a255f",
+"origin": "mapas/gran-alemania/europa_1848.html#features[86]",
+"entityIds": [
+"limburg"
+]
+},
+"g-6d26fd2f609383d7": {
+"sha256": "6d26fd2f609383d7b76239e732d6a4a8560c356e008f977cab2dbb4cc6b5455c",
+"origin": "mapas/gran-alemania/europa_1848.html#features[87]",
+"entityIds": [
+"maastricht"
+]
+},
+"g-1261d066d0c0a7da": {
+"sha256": "1261d066d0c0a7da79fb882872937a28d036e3550a55b8d21d985461f07c2233",
+"origin": "mapas/gran-alemania/europa_1848.html#features[88]",
+"entityIds": [
+"venlo"
+]
+},
+"g-5510639127c54f3c": {
+"sha256": "5510639127c54f3ca9423ddc034a3147cd81fe2039c63202f7ae2e656bd649df",
+"origin": "mapas/gran-alemania/europa_1848.html#features[89]",
+"entityIds": [
+"neuchatel"
+]
+},
+"g-8faf4b74fe92738e": {
+"sha256": "8faf4b74fe92738ea6ac52053ee84a8818c13d8d1bce4fbfa84db0b1e224eff3",
+"origin": "mapas/gran-alemania/europa_1848.html#features[90]",
+"entityIds": [
+"alsace"
+]
+}
+},
+"carlos": {
+"g-cdb29f7519e97761": {
+"sha256": "cdb29f7519e977619a8158c431bba1ce1d9b179f3d14d50b39b0fc99219235a2",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[0]",
+"entityIds": [
+"f000"
+]
+},
+"g-465f51985a18b0d4": {
+"sha256": "465f51985a18b0d4e0ca7b14bea3c5d6d945f43dd6e09f603e22cbc86e4dc1e0",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[1]",
+"entityIds": [
+"f001"
+]
+},
+"g-47fabd0fef9bb523": {
+"sha256": "47fabd0fef9bb523b9e97faf2c20ff60f5875d017144a535bfe5991f9cbeb086",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[2]",
+"entityIds": [
+"f002"
+]
+},
+"g-b4f9c3eb28b96d7d": {
+"sha256": "b4f9c3eb28b96d7d28098dce38d365d0297683854af3e8fade886b2ed1b0549d",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[3]",
+"entityIds": [
+"f003"
+]
+},
+"g-7ec299c5515b0a9c": {
+"sha256": "7ec299c5515b0a9cb6c806ec10af081e9dea52959bafe330246131862069bb61",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[4]",
+"entityIds": [
+"f004"
+]
+},
+"g-40a0b2ef18759a07": {
+"sha256": "40a0b2ef18759a07230f731d639cb20c07fe9cff0bd273d96983a2d4bf5bb755",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[5]",
+"entityIds": [
+"f005"
+]
+},
+"g-d81aea7ceb30fe40": {
+"sha256": "d81aea7ceb30fe40590205d589fc835799a1bd6c54c75551d2d27efff360a483",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[6]",
+"entityIds": [
+"f006"
+]
+},
+"g-242d8561acae6988": {
+"sha256": "242d8561acae69884acd062821c4e9f6280bbf84d6ad59de95ba312e203b1aff",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[7]",
+"entityIds": [
+"f007"
+]
+},
+"g-ee9f7ed0ca8bb9c9": {
+"sha256": "ee9f7ed0ca8bb9c978440752c0ac03f593a0826ff7decbbf0f8a15091a0ef758",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[8]",
+"entityIds": [
+"f008"
+]
+},
+"g-63513f51028bcf65": {
+"sha256": "63513f51028bcf6524a622d747699a781a6be48b85194b9effd57607a2564f9e",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[9]",
+"entityIds": [
+"f009"
+]
+},
+"g-5c32e4a5f3fc771e": {
+"sha256": "5c32e4a5f3fc771e237c873be2c84e8520257c5f29fe681ac5c0fc333954c981",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[10]",
+"entityIds": [
+"f010"
+]
+},
+"g-7c8f5636358f19d7": {
+"sha256": "7c8f5636358f19d795cf80c1db8c260f8bc90c2dcf76c909c8860c9507fad76d",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[11]",
+"entityIds": [
+"f011"
+]
+},
+"g-d763f8bd1b7d4ea0": {
+"sha256": "d763f8bd1b7d4ea0f276e11dd437ed8875ee14b96537dbd3c88673b60d5cc0cd",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[12]",
+"entityIds": [
+"f012"
+]
+},
+"g-fbf6d57b8bffaf5b": {
+"sha256": "fbf6d57b8bffaf5bb8e952d0ee47986cadac47319b8a5371c4d80fb4cf492f98",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[13]",
+"entityIds": [
+"f013"
+]
+},
+"g-2f0ddee295bea5e9": {
+"sha256": "2f0ddee295bea5e95d63c98877be7589fdbde14432e04c4a7f0e6ad28d7a91b1",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[14]",
+"entityIds": [
+"f014"
+]
+},
+"g-1f8be17ef745ac92": {
+"sha256": "1f8be17ef745ac929da78e9073ca718e528b734a168b68bd86f9d4a69b49d2c6",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[15]",
+"entityIds": [
+"f015"
+]
+},
+"g-5d642fd6be802137": {
+"sha256": "5d642fd6be80213778a1b28600a2cf553c64c9ec2dfa5cae4eef8ba5ed2613a0",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[16]",
+"entityIds": [
+"f016"
+]
+},
+"g-f97d126a3f332d07": {
+"sha256": "f97d126a3f332d07bdc2829d1a22b02b3a1963c50adbfedf3b4d6ccfd653571e",
+"origin": "mapas/monarquia-universal/datos/escenario.geojson#features[17]",
+"entityIds": [
+"f017"
+]
+},
+"g-8f7a1f44ed385345": {
+"sha256": "8f7a1f44ed3853450e34c95a2c43940db0bff1c9fd9740e44f1f1807a5ce31be",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[0]",
+"entityIds": [
+"port00"
+]
+},
+"g-00639d8439d353f5": {
+"sha256": "00639d8439d353f5dfa41866c77f1f05ab9d8239c9ae96843be327b8900bfaad",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[1]",
+"entityIds": [
+"port01"
+]
+},
+"g-6f2418acbdc1a70e": {
+"sha256": "6f2418acbdc1a70e2ef1b049c39e65d96557815721982ed73d908a1f34d39e10",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[2]",
+"entityIds": [
+"port02"
+]
+},
+"g-23b69220a56d9d96": {
+"sha256": "23b69220a56d9d9639e43bb17045ec4b51787b5899d1f06b9b2eea4200ea132f",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[3]",
+"entityIds": [
+"port03"
+]
+},
+"g-e90142c881127b69": {
+"sha256": "e90142c881127b69b372369b201b0576f6c539e46b6f69231b9e86b4821c6cc2",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[4]",
+"entityIds": [
+"port04"
+]
+},
+"g-2bbe045b2baab065": {
+"sha256": "2bbe045b2baab065e7e30d135e819d6b7fcd712a41f5cc84a0dd9a9cdfd76dd1",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[5]",
+"entityIds": [
+"port05"
+]
+},
+"g-9392d7125091c6bf": {
+"sha256": "9392d7125091c6bfa4daf0f80cc54dc50dfb2c1422e3fb0e7fd6ffd6d5acf505",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[6]",
+"entityIds": [
+"port06"
+]
+},
+"g-3b56640467d331b2": {
+"sha256": "3b56640467d331b2e6b52b9955211d712f694ad1f3c8f388e4cffcf45434a9c6",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[7]",
+"entityIds": [
+"port07"
+]
+},
+"g-a4bb101b9b62d934": {
+"sha256": "a4bb101b9b62d934a8daa775a61069318a559d63b6c718403ea082e43a8f122d",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[8]",
+"entityIds": [
+"port08"
+]
+},
+"g-3b3539987aab488c": {
+"sha256": "3b3539987aab488c397a892de3e4a35867863a39d745f4c537389a7ede3a7646",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[9]",
+"entityIds": [
+"port09"
+]
+},
+"g-e0f386225ebeab3c": {
+"sha256": "e0f386225ebeab3c4bada91ab5831d1d605396789b9e20c2e764b3e75801b04e",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[10]",
+"entityIds": [
+"port10"
+]
+},
+"g-fc553be513230903": {
+"sha256": "fc553be5132309034f736fb73b91ee90f54870c55f05b78620f94bb5e90ca230",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[11]",
+"entityIds": [
+"port11"
+]
+},
+"g-92f7248aa254b15c": {
+"sha256": "92f7248aa254b15cb8a25bab4aae9eeff97f96c66b56dd1ac7f7ee58addab8a6",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[12]",
+"entityIds": [
+"port12"
+]
+},
+"g-c32e89752f23edb1": {
+"sha256": "c32e89752f23edb14237e8dd35e1424e889ddfbaedbfe00ada62d4399e96da5e",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[13]",
+"entityIds": [
+"port13"
+]
+},
+"g-b7ac948d57be81fe": {
+"sha256": "b7ac948d57be81fe57abe0b850cce63e135c95d816385ec93e2bb3cffaf5b7cc",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[14]",
+"entityIds": [
+"port14"
+]
+},
+"g-d2d101d3d123b373": {
+"sha256": "d2d101d3d123b373f00218faf2371168ce2bbeae9ef877cc1fa77706d00f2d57",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[15]",
+"entityIds": [
+"port15"
+]
+},
+"g-4ce76fc465024bad": {
+"sha256": "4ce76fc465024bad11cfb4656e48791736dcc4f5336161b963da2e57a3b9e1e6",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[16]",
+"entityIds": [
+"port16"
+]
+},
+"g-a917b92c16176e92": {
+"sha256": "a917b92c16176e92255b985c9fd1354f36cb624f587406d4bfc99c1f9a1e3815",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[17]",
+"entityIds": [
+"port17"
+]
+},
+"g-293b2c0cec78e0b5": {
+"sha256": "293b2c0cec78e0b58fd249cc857b12e1e6c13a24c0f66763c98cceaf00fea9c5",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[18]",
+"entityIds": [
+"port18"
+]
+},
+"g-3b3889429ecfd31d": {
+"sha256": "3b3889429ecfd31dbdd7d11836d5ad6e842b407f089c17a4769a83515f4d338f",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[19]",
+"entityIds": [
+"port19"
+]
+},
+"g-7d4d7c455427f53d": {
+"sha256": "7d4d7c455427f53d72ac806fa812064251b44ec2c0e09ee483f70c8f39e49aeb",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[20]",
+"entityIds": [
+"port20"
+]
+},
+"g-0f60aa958a4085e0": {
+"sha256": "0f60aa958a4085e0a98b6d12791bd3f9cd49f0b7e26fa769327a65d444e877fe",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[21]",
+"entityIds": [
+"port21"
+]
+},
+"g-925088bcd4e9b562": {
+"sha256": "925088bcd4e9b56223364e01aa542d1331a46796476d77ba6e53472466ead59d",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[22]",
+"entityIds": [
+"port22"
+]
+},
+"g-0932d3f96e35faee": {
+"sha256": "0932d3f96e35faee3153628303180713767b6708df2c6996273ee78f159d6977",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[23]",
+"entityIds": [
+"port23"
+]
+},
+"g-deac0e8538fbecdc": {
+"sha256": "deac0e8538fbecdcbe6ff70a4e20d3e47852ac6eb198916724b02ed8103fd369",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[24]",
+"entityIds": [
+"port24"
+]
+},
+"g-3f861ddb96aa57fe": {
+"sha256": "3f861ddb96aa57fea2188f9412d2765224747f8cb78e8afe028d1ef76ecb9bee",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[25]",
+"entityIds": [
+"port25"
+]
+},
+"g-70d7f14a993cac3b": {
+"sha256": "70d7f14a993cac3b863d1e15312e6bf4311272ec95b492290af53b04b91c0dc6",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[26]",
+"entityIds": [
+"port26"
+]
+},
+"g-9fec8ff8145dfa22": {
+"sha256": "9fec8ff8145dfa2207bcd46cf276737346d322c1e4b82aea350a04506d70891b",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[27]",
+"entityIds": [
+"port27"
+]
+},
+"g-0418c7b91823d8dc": {
+"sha256": "0418c7b91823d8dc460d11ee179c7591af14f0378e3a2367a6d6b441b93af134",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[28]",
+"entityIds": [
+"port28"
+]
+},
+"g-8404eda904f03dba": {
+"sha256": "8404eda904f03dba5ab9c9b1a83206ba631bc26106b2f6fba2635e5af4e26b80",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[29]",
+"entityIds": [
+"port29"
+]
+},
+"g-15302eb0b3f3ccfb": {
+"sha256": "15302eb0b3f3ccfb10e034df4e137d5540b63b790390a3b5f2bd5cac8007d02f",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[30]",
+"entityIds": [
+"port30"
+]
+},
+"g-610f9cc1c3336c8f": {
+"sha256": "610f9cc1c3336c8f4bb7cc331b3735c0cca4f0be6fd6cfe536dfd32c991ef4ae",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[31]",
+"entityIds": [
+"port31"
+]
+},
+"g-cbe1ff4a9ad3b267": {
+"sha256": "cbe1ff4a9ad3b2675eb554635d717ce046f880e7886acdeaefae65d250798e06",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[32]",
+"entityIds": [
+"port32"
+]
+},
+"g-218ca5427d0ae59e": {
+"sha256": "218ca5427d0ae59e9d2812fe1e5ab8b6e89a9f62688d8240d8a3b061e5efb072",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[33]",
+"entityIds": [
+"port33"
+]
+},
+"g-f66ff9dcfe6c66dd": {
+"sha256": "f66ff9dcfe6c66dd1ebc9660a9c48b72ed40ae120f88c3843b16b7ec0c5f10ac",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[34]",
+"entityIds": [
+"port34"
+]
+},
+"g-b5c0ee47caf4b4a6": {
+"sha256": "b5c0ee47caf4b4a6a043b2248a96d11fc5ff15976a9a67295cb86a02470f83dd",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[35]",
+"entityIds": [
+"port35"
+]
+},
+"g-ac0b29989cfdff18": {
+"sha256": "ac0b29989cfdff1832d0382ec5fb1f77f5271249010dd42577a449b50d2da73a",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[36]",
+"entityIds": [
+"port36"
+]
+},
+"g-a5857dc516f04243": {
+"sha256": "a5857dc516f04243226789940eec42a30a27b0c86bf7369fbb2307c2265ba735",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[37]",
+"entityIds": [
+"port37"
+]
+},
+"g-a462e4ec86355ee5": {
+"sha256": "a462e4ec86355ee57ba3032199650c3c449854125680c7103f353d1fe488db7b",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[38]",
+"entityIds": [
+"port38"
+]
+},
+"g-c9f71c75d9e43d87": {
+"sha256": "c9f71c75d9e43d87f78cd62b788480e5047cd4cb34e67fd06f09e169d8561024",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[39]",
+"entityIds": [
+"port39"
+]
+},
+"g-1daa1fed99649e25": {
+"sha256": "1daa1fed99649e255b7d02538e3e28e3f754e68b84b0f6b1736a00f8f7acd9dd",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[40]",
+"entityIds": [
+"port40"
+]
+},
+"g-0f0491dfe4eb16ed": {
+"sha256": "0f0491dfe4eb16ed51ade8715b97adb9abfc9dd92673550bca539a8c95c16fdd",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[41]",
+"entityIds": [
+"port41"
+]
+},
+"g-626d826a1206bdf0": {
+"sha256": "626d826a1206bdf0a0da388e2dc6a831fdf4fb58aab8502e1aa933ad27c32985",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[42]",
+"entityIds": [
+"port42"
+]
+},
+"g-e1ec90dab12585f2": {
+"sha256": "e1ec90dab12585f26c51d690ac4945d8051a22241e74abe85ec9003ea416c814",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#ports[43]",
+"entityIds": [
+"port43"
+]
+},
+"g-7e6ea6e8c3f1642a": {
+"sha256": "7e6ea6e8c3f1642a724928d528dd701f2c2c5972c6c15e97908a84aacac1be44",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[0]",
+"entityIds": [
+"route00"
+]
+},
+"g-c08858243bd8482f": {
+"sha256": "c08858243bd8482fba7aeddbc05ab02c66ee5746ffb91263c398d0f3fd173e5c",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[1]",
+"entityIds": [
+"route01"
+]
+},
+"g-b5ca8aff415410f0": {
+"sha256": "b5ca8aff415410f05e181929d23f0a51e71fac2a4ce9e7ddf6bc70dfd62196a0",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[2]",
+"entityIds": [
+"route02"
+]
+},
+"g-5486c43b38380900": {
+"sha256": "5486c43b38380900240e74950e16925d03a09f03704e35b0d03631a1e65d9f1b",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[3]",
+"entityIds": [
+"route03"
+]
+},
+"g-601128a293b1e424": {
+"sha256": "601128a293b1e424662dde815b45ee275b8c6b34814b91ae5ca4e3fe0460da03",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[4]",
+"entityIds": [
+"route04"
+]
+},
+"g-257df86fb0bd78e4": {
+"sha256": "257df86fb0bd78e49f65c51f86637e82c2570ab0d748b4fbb026c86346797172",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[5]",
+"entityIds": [
+"route05"
+]
+},
+"g-c8b8290e02a51580": {
+"sha256": "c8b8290e02a5158084e4797fb011b3a5bea7a4ddc757c771b46f689cffe26511",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[6]",
+"entityIds": [
+"route06"
+]
+},
+"g-cc630e5888b88a19": {
+"sha256": "cc630e5888b88a198d941691ff80ddc6666d7fbaf82e0c955262b023280276df",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[7]",
+"entityIds": [
+"route07"
+]
+},
+"g-68c8d944d2c8b168": {
+"sha256": "68c8d944d2c8b1687fe85f19fc3fcc4ce0b905f831745f286bda869a6649b27d",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[8]",
+"entityIds": [
+"route08"
+]
+},
+"g-8400360cebca7ac7": {
+"sha256": "8400360cebca7ac712c7f5252478b44a2635d98f9069e44948a4af894ce1dbd9",
+"origin": "mapas/monarquia-universal/datos/puertos_y_rutas.json#routes[9]",
+"entityIds": [
+"route09"
+]
+}
+},
+"centrales": {
+"g-38cfb2d600506e39": {
+"sha256": "38cfb2d600506e39bb02950dd096b4762fc4a86828d275f08d360103ca73ec08",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[0]",
+"entityIds": [
+"f000"
+]
+},
+"g-d68ca836430d62ac": {
+"sha256": "d68ca836430d62ac018240ca89812da1f1a7c11046b04c95d49528cc87142e33",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[1]",
+"entityIds": [
+"f001"
+]
+},
+"g-d6fefff989dafe8c": {
+"sha256": "d6fefff989dafe8c2e438d78b2a512e39c4e73e556521f1ef66294e7d7ecb553",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[2]",
+"entityIds": [
+"f002"
+]
+},
+"g-3976053ec0526120": {
+"sha256": "3976053ec0526120911b5a1b5da362a2d95754edbaa5381e78281c72e1f38982",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[3]",
+"entityIds": [
+"f003"
+]
+},
+"g-8c5aa5ac2a946b0e": {
+"sha256": "8c5aa5ac2a946b0ebaba1bc05b67769c9804e9140b89a7b605a59aa6e30e7101",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[4]",
+"entityIds": [
+"f004"
+]
+},
+"g-35abcf4ab053bce6": {
+"sha256": "35abcf4ab053bce65707461ca73930850a8d1152a25154a8e8461b4da0ea2c0b",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[5]",
+"entityIds": [
+"f005"
+]
+},
+"g-b5dad520a1e836c2": {
+"sha256": "b5dad520a1e836c2f8892cef128761d99ed1405957e690fab4cbd4fb4d7b17d9",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[6]",
+"entityIds": [
+"f006"
+]
+},
+"g-515ad50c27a4cc16": {
+"sha256": "515ad50c27a4cc163b06ec4ec5b5605687690356366991473ecdfcf7ad069fb6",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[7]",
+"entityIds": [
+"f007"
+]
+},
+"g-23d6494fbdc06224": {
+"sha256": "23d6494fbdc062243de95d58c51dd4552054e83308e3b47b4dc584ac36f8348d",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[8]",
+"entityIds": [
+"f008"
+]
+},
+"g-d3d4fa6e931d86a4": {
+"sha256": "d3d4fa6e931d86a48bd994fe5c65af52ba4507b6414389b4b379e26beffb6453",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[9]",
+"entityIds": [
+"f009"
+]
+},
+"g-41f93405d4d6a914": {
+"sha256": "41f93405d4d6a914c49b22d39691591be2796ac5c36155fd00f9d256abd6d481",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[10]",
+"entityIds": [
+"f010"
+]
+},
+"g-17f574616ef4be3c": {
+"sha256": "17f574616ef4be3ce81691c6fb5ef852a4d2ccfd02dd0fd6e5b78d0dfd55bafa",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[11]",
+"entityIds": [
+"f011"
+]
+},
+"g-7ed9bf113f3abee5": {
+"sha256": "7ed9bf113f3abee597cd5c082228216d57e0a89c809513a7ab743ddf02bda5d9",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[12]",
+"entityIds": [
+"f012"
+]
+},
+"g-34e59538b12b837b": {
+"sha256": "34e59538b12b837b66f4a31f71709842e2d25c66dcf4adb597daf10fc0859548",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[13]",
+"entityIds": [
+"f013"
+]
+},
+"g-86dbfc57497d2c48": {
+"sha256": "86dbfc57497d2c485fece0d1c0cb00c44b4f0d4c88ca4b3bf9505b0117e5ec6a",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[14]",
+"entityIds": [
+"f014"
+]
+},
+"g-de8c9283d81697f4": {
+"sha256": "de8c9283d81697f47a4fedfc80274e197bb67490da62ca1ec4af417f4d27b301",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[15]",
+"entityIds": [
+"f015"
+]
+},
+"g-80baf0559c1809f9": {
+"sha256": "80baf0559c1809f910e0102b90bc35ae78f2301f1ff98dd8e53779a53be2a936",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[16]",
+"entityIds": [
+"f016"
+]
+},
+"g-e87457a3e52b5e72": {
+"sha256": "e87457a3e52b5e72be123461d4f9c9dfe7addda7a857d0d8e1153e3aee9a7003",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[17]",
+"entityIds": [
+"f017"
+]
+},
+"g-eda32ef9cbb8e209": {
+"sha256": "eda32ef9cbb8e209707675228297d49d40534e96c3e3312997f9b0eaf666370d",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[18]",
+"entityIds": [
+"f018"
+]
+},
+"g-f33883eb1bc05cf1": {
+"sha256": "f33883eb1bc05cf1b89ff360308a9f02ea67fb8a649c658eb7d450b6290094bd",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[19]",
+"entityIds": [
+"f019"
+]
+},
+"g-eea8f23720986bbd": {
+"sha256": "eea8f23720986bbd8e7cf129179fe588207f0a7dfa3e4f28764b09aa4f269d43",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[20]",
+"entityIds": [
+"f020"
+]
+},
+"g-261935ddff5fb3da": {
+"sha256": "261935ddff5fb3daa91410b295cecffc768a79d2b1e5d24c6da34d962bd62963",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[21]",
+"entityIds": [
+"f021"
+]
+},
+"g-a0c8277d32cfc808": {
+"sha256": "a0c8277d32cfc80889aa1d41315e746d4bc7d2cb212104e976f17520d9f305d0",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[22]",
+"entityIds": [
+"f022"
+]
+},
+"g-c84e560cf8c70b16": {
+"sha256": "c84e560cf8c70b16b1f95d3f69941267e635418d12305ba7334bca09655af7b7",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[23]",
+"entityIds": [
+"f023"
+]
+},
+"g-5b93754a8c076f37": {
+"sha256": "5b93754a8c076f37c4c65939b7c5200bec68a6cf29b05d06a6d74b3c77b87ebb",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[24]",
+"entityIds": [
+"f024"
+]
+},
+"g-675e75ee04f00031": {
+"sha256": "675e75ee04f0003130258cf90ec35c14d25d30af66e2fc2ad638a2f66c1d8859",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[25]",
+"entityIds": [
+"f025"
+]
+},
+"g-260603421ebcef7e": {
+"sha256": "260603421ebcef7e182f8bbc4626bab264dec2f5cb8a705f682d1fb1945edef0",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[26]",
+"entityIds": [
+"f026"
+]
+},
+"g-0bc55545d258c4ab": {
+"sha256": "0bc55545d258c4ab78fc73d3b5c42c218c92efe00b39ae080cac8e0e314c698b",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[27]",
+"entityIds": [
+"f027"
+]
+},
+"g-66e11b4196492941": {
+"sha256": "66e11b4196492941c85c478b15822ff090de4c3ca84fd7b6bc1b65f5b856b21e",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[28]",
+"entityIds": [
+"f028"
+]
+},
+"g-ceb8fd429bf42748": {
+"sha256": "ceb8fd429bf427480c34b4f0e1112a61aa7697254d17ad0260caa93924419750",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[29]",
+"entityIds": [
+"f029"
+]
+},
+"g-451afb936dc52d57": {
+"sha256": "451afb936dc52d57362b6c620ff51cc4125c25e0e4de521b5b08e501a11d57e4",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[30]",
+"entityIds": [
+"f030"
+]
+},
+"g-b9475021e09b2f4e": {
+"sha256": "b9475021e09b2f4e2b714e0d13744f7507e8b3225f3d11a3070d872332796fc7",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[31]",
+"entityIds": [
+"f031"
+]
+},
+"g-2c9db2f1941d11e5": {
+"sha256": "2c9db2f1941d11e52f2d0f3d98e26377cd6478c1d4261a0047435d2f72d2280b",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[32]",
+"entityIds": [
+"f032"
+]
+},
+"g-e00e0f0956c89de7": {
+"sha256": "e00e0f0956c89de7934a6c17544ce420179a0892c4c25d6597a786684530a1bc",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[33]",
+"entityIds": [
+"f033"
+]
+},
+"g-30d8e50798d32115": {
+"sha256": "30d8e50798d32115a63b200c574572281d5ee91a1ec7e3fa748d723132e30cbf",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[34]",
+"entityIds": [
+"f034"
+]
+},
+"g-a767af8f4d393bc0": {
+"sha256": "a767af8f4d393bc044a70d64d939d2f0ab8ad8b231be3af24a85b8c75f761224",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[35]",
+"entityIds": [
+"f035"
+]
+},
+"g-283433931015b65c": {
+"sha256": "283433931015b65c11ae21cbeb3eb8be64f35a3a9b4ee913558166026de6b25d",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[36]",
+"entityIds": [
+"f036"
+]
+},
+"g-2dcbec058032c519": {
+"sha256": "2dcbec058032c51957ddbb3092106b5fc11222c4bbb464431103aa1acf963b56",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[37]",
+"entityIds": [
+"f037"
+]
+},
+"g-be0cad86cd2bd37a": {
+"sha256": "be0cad86cd2bd37a8fb87a90c79c98a180b82bc10d14fea0f27db1e77c838f31",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[38]",
+"entityIds": [
+"f038"
+]
+},
+"g-1b3e14f21f74a368": {
+"sha256": "1b3e14f21f74a36888b340e4464f1a2971ecb57c96e7fac42d2c3b473d0d9e46",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[39]",
+"entityIds": [
+"f039"
+]
+},
+"g-17fd6a0a03662deb": {
+"sha256": "17fd6a0a03662deb27f0a72bb35953d33b7d5f552f11c278f8c1ce450d2b16ec",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[40]",
+"entityIds": [
+"f040"
+]
+},
+"g-7d8caf06685eebcf": {
+"sha256": "7d8caf06685eebcf0e9a3bf4bd31a8e12a01040275d3eabb9d57fe76e2bd57da",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[41]",
+"entityIds": [
+"f041"
+]
+},
+"g-60b0d546ba2d30c6": {
+"sha256": "60b0d546ba2d30c6fff9250db19ccb2dfa4976936da6c80fbf2fd46cdeacbb65",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[42]",
+"entityIds": [
+"f042"
+]
+},
+"g-457a2f542064de61": {
+"sha256": "457a2f542064de61f3c188a35a4d8a84e29112c3a3b5bb61e4a9ab9fc89880ee",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[43]",
+"entityIds": [
+"f043"
+]
+},
+"g-e1a07e732131f783": {
+"sha256": "e1a07e732131f783d72685ff63a330c67c8b6f65d5b6bc413abb19c048451caf",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[44]",
+"entityIds": [
+"f044"
+]
+},
+"g-ddbce352bcf59acd": {
+"sha256": "ddbce352bcf59acd912110ffdacd35131e7230daa60183fb07351abe104f84c4",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[45]",
+"entityIds": [
+"f045"
+]
+},
+"g-5f0d6758c740215f": {
+"sha256": "5f0d6758c740215faa9718b1c83f0f6521bcb4b5eef547c19992dd62c8c48698",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[46]",
+"entityIds": [
+"f046"
+]
+},
+"g-2d56adeb71d73c8c": {
+"sha256": "2d56adeb71d73c8c302b39ec29bbe87e9bcd58e18e52e47cd1f0ef455c55241b",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[47]",
+"entityIds": [
+"f047"
+]
+},
+"g-05774fd2a50a1455": {
+"sha256": "05774fd2a50a1455846acb1896d99d0ae6fa01cc6822d0b17bc70a1377eae738",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[48]",
+"entityIds": [
+"f048"
+]
+},
+"g-75b7cf35f2cee2c2": {
+"sha256": "75b7cf35f2cee2c2c8a83c84e685ac3b4924ee694f313845d37db956ec810dfa",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[49]",
+"entityIds": [
+"f049"
+]
+},
+"g-b195d6591d63c999": {
+"sha256": "b195d6591d63c99993168e46bafe9e6818ea431d0eea80928d017f6f3a090b74",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[50]",
+"entityIds": [
+"f050"
+]
+},
+"g-11f9ba5a4d16c45a": {
+"sha256": "11f9ba5a4d16c45a4d3b7bd4b49144b6be93e21e85e5d7e7985d5a4617f00efe",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[51]",
+"entityIds": [
+"f051"
+]
+},
+"g-6378593004216597": {
+"sha256": "637859300421659723f1460e25866cf240389f618e723bf00064e6b96ac7d17d",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[52]",
+"entityIds": [
+"f052"
+]
+},
+"g-a0a5fb5aa75b64d8": {
+"sha256": "a0a5fb5aa75b64d84f4c53e33d6b14d34feadb2a1aca2cd84bde97f5e0b73154",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[53]",
+"entityIds": [
+"f053"
+]
+},
+"g-c239b1d314e1ce5d": {
+"sha256": "c239b1d314e1ce5d1002bbaebaa87c95ac07a2ea40301dd7c5b69f50ec7fcadd",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[54]",
+"entityIds": [
+"f054"
+]
+},
+"g-fc2f631f6ef191a8": {
+"sha256": "fc2f631f6ef191a82db0cb6e6feb4cf73cc55fa114a7e35d8dc4329ad6271383",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[55]",
+"entityIds": [
+"f055"
+]
+},
+"g-b629aaff7d09d7d7": {
+"sha256": "b629aaff7d09d7d70041dc6a4d940c5f119d9602d64082bb0173a2052e043371",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[56]",
+"entityIds": [
+"f056"
+]
+},
+"g-fd0d27f991751641": {
+"sha256": "fd0d27f991751641250e0169b7ad6e1f01e62538fbdfa6472c9651b5e286238e",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[57]",
+"entityIds": [
+"f057"
+]
+},
+"g-05bec1939154b172": {
+"sha256": "05bec1939154b1724d72e1d738e48d4127f37a6239825a719c66bcecf31b1cb7",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[58]",
+"entityIds": [
+"f058"
+]
+},
+"g-d4839cadede741a0": {
+"sha256": "d4839cadede741a04ab36c79ea2b12f4b013f5d9dfcf54609de304d792c8a8f5",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[59]",
+"entityIds": [
+"f059"
+]
+},
+"g-8ab39f025a23d31e": {
+"sha256": "8ab39f025a23d31e20f69a4742ab176aea505a534112c56ab102f35d3fe91fca",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[60]",
+"entityIds": [
+"f060"
+]
+},
+"g-055c3d584ad53fa3": {
+"sha256": "055c3d584ad53fa3c62b387c5edaf6ad5882ffbcb456fc248d7bb0a3aaa2f261",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[61]",
+"entityIds": [
+"f061"
+]
+},
+"g-f8d6adc69b07a893": {
+"sha256": "f8d6adc69b07a893f46b247ab1be959708e98b254c98ae76d53055cc35c4bbe8",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[62]",
+"entityIds": [
+"f062"
+]
+},
+"g-ae46b099752a28f8": {
+"sha256": "ae46b099752a28f8ef52bfbedf27d79488c6f3a1c5b50873f9a34772904afca6",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[63]",
+"entityIds": [
+"f063"
+]
+},
+"g-adc5524dbc042055": {
+"sha256": "adc5524dbc042055c5c49d94ad459b1f1cd486eec5dafc26cca988e0e3019bc6",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[64]",
+"entityIds": [
+"f064"
+]
+},
+"g-68b496194f083748": {
+"sha256": "68b496194f083748c342f8ac41599d5202115bed02319e6bd490dcfdd0279ffd",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[65]",
+"entityIds": [
+"f065"
+]
+},
+"g-5aeb2272b9a56b5a": {
+"sha256": "5aeb2272b9a56b5aef9634a4836af15c7dcaddbdf9a6b4c6014a6f551549bedb",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[66]",
+"entityIds": [
+"f066"
+]
+},
+"g-58c0a3c19b42aa77": {
+"sha256": "58c0a3c19b42aa776e225a7ce931bb7069765d402e5d680cff05cd72d4183009",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[67]",
+"entityIds": [
+"f067"
+]
+},
+"g-844e2dba5f207b69": {
+"sha256": "844e2dba5f207b69d055ca3fb477bccb56b36a2064695a6c74b80bbc135d6792",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[68]",
+"entityIds": [
+"f068"
+]
+},
+"g-644478a38980bc58": {
+"sha256": "644478a38980bc58d97ff9fd0ad91dd24cf95b4c50d60f763139c50b6a5f0d4a",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[69]",
+"entityIds": [
+"f069"
+]
+},
+"g-d35560f2eef400c1": {
+"sha256": "d35560f2eef400c16f1a2d42af70d58a83bf0ccf3585bb57e9f968a17e9be2c7",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[70]",
+"entityIds": [
+"f070"
+]
+},
+"g-e1f06553bfa6b53e": {
+"sha256": "e1f06553bfa6b53ea3d9549ee1f8fb192ef275f6e527f2d9377b841ee8c76980",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[71]",
+"entityIds": [
+"f071"
+]
+},
+"g-2d0c8bd232a42cc5": {
+"sha256": "2d0c8bd232a42cc507b10981e32d5f6914b6e5071e4804227699228ba380912e",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[72]",
+"entityIds": [
+"f072"
+]
+},
+"g-e4dab7a080a86fc5": {
+"sha256": "e4dab7a080a86fc532b463b61d0d18981bfc12b357e064ee6f8b5cf0d7ba26d9",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[73]",
+"entityIds": [
+"f073"
+]
+},
+"g-99c41afdb5123266": {
+"sha256": "99c41afdb5123266054bae6f700b0816331df5abad3a97280970c1ee0ffec4b2",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[74]",
+"entityIds": [
+"f074"
+]
+},
+"g-046aca3ed218fc16": {
+"sha256": "046aca3ed218fc167869783e1dc1badd0b855f569cabf970cc030a05dbac0edf",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[75]",
+"entityIds": [
+"f075"
+]
+},
+"g-7feb5c0c705c4a9d": {
+"sha256": "7feb5c0c705c4a9d5b4936d62b7d3e2190302492bbc3c77a8c857e6b4f840599",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[76]",
+"entityIds": [
+"f076"
+]
+},
+"g-363352bb5d74ffbe": {
+"sha256": "363352bb5d74ffbecca9b9243d2e8d277a2992e5834d72a7542154c3b168c234",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[77]",
+"entityIds": [
+"f077"
+]
+},
+"g-d2daa27fdb4f6237": {
+"sha256": "d2daa27fdb4f6237dffc06efba457be01e8c8a09611193bd34945c87afd122d3",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[78]",
+"entityIds": [
+"f078"
+]
+},
+"g-e3552f75d7272ace": {
+"sha256": "e3552f75d7272acea096caeb1acc102589ff4c845d4a9cffabded8d8042dfda7",
+"origin": "mapas/potencias-centrales/datos/escenario.geojson#features[79]",
+"entityIds": [
+"f079"
+]
+}
+},
+"eje": {
+"g-675b84c6dc6f0748": {
+"sha256": "675b84c6dc6f0748dd5d4abe7098a193c226844ea1f71ae6964d4df5589b4936",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[0]",
+"entityIds": [
+"f000"
+]
+},
+"g-4f035acc40f3c485": {
+"sha256": "4f035acc40f3c4857dea845470075b156c942a2895a8ddb60938d98ff9d9b6d5",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[1]",
+"entityIds": [
+"f001"
+]
+},
+"g-8b08a40fbc4c6c07": {
+"sha256": "8b08a40fbc4c6c078830705e29c634d75d06e8bee19e785ce06ce92513362dd5",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[2]",
+"entityIds": [
+"f002"
+]
+},
+"g-66d372c6b052e05f": {
+"sha256": "66d372c6b052e05f557ba628de744840b57050dd9275ece75e5c09eb1c06e014",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[3]",
+"entityIds": [
+"f003"
+]
+},
+"g-d3505a771e46e33a": {
+"sha256": "d3505a771e46e33afcb150d6801fb63961ebc1af61b788377dc4ce5a4f87dd95",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[4]",
+"entityIds": [
+"f004"
+]
+},
+"g-6410ae49974d3ef0": {
+"sha256": "6410ae49974d3ef0bc097b7fa7e71f1d6dc3c0e0cd27c39ea3e802dcc8fd0e15",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[5]",
+"entityIds": [
+"f005"
+]
+},
+"g-69996ed3d20d629a": {
+"sha256": "69996ed3d20d629aa177a1dcf293789451903d25f3c53bfcf22a7b2ea9d807d1",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[6]",
+"entityIds": [
+"f006"
+]
+},
+"g-7f2c360495ce3597": {
+"sha256": "7f2c360495ce3597d40e28150db463400df4aa375fcaa9252114481605489969",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[7]",
+"entityIds": [
+"f007"
+]
+},
+"g-0f1a97c98692b75a": {
+"sha256": "0f1a97c98692b75a47d28cc97e9cf4ed34dedf1a9646b32a00892b2fe136a420",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[8]",
+"entityIds": [
+"f008"
+]
+},
+"g-0eca2ae8440792a0": {
+"sha256": "0eca2ae8440792a0bdebff74edd694f573929e25880249848f77c08b8c8601d2",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[9]",
+"entityIds": [
+"f009"
+]
+},
+"g-5a5359c15c8343e1": {
+"sha256": "5a5359c15c8343e12465f5ae8ae957f448ca4852e92d59b03b7d56952f4ceefa",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[10]",
+"entityIds": [
+"f010"
+]
+},
+"g-8088b948f99a5f4d": {
+"sha256": "8088b948f99a5f4d3f01138c2fcce1a9666f6b54aac4a44df0614e37070579c7",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[11]",
+"entityIds": [
+"f011"
+]
+},
+"g-ad30309910db9ef1": {
+"sha256": "ad30309910db9ef1f374661524a68c654b8a1268537422ffbc23f48678cc7458",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[12]",
+"entityIds": [
+"f012"
+]
+},
+"g-555a3c622170f9f3": {
+"sha256": "555a3c622170f9f32c70ba52ab44e7a0a07c47237b75db392e783d3bf0ed2499",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[13]",
+"entityIds": [
+"f013"
+]
+},
+"g-09e56ac425e0c5fe": {
+"sha256": "09e56ac425e0c5fecaaf28e1a915c15de2d8b2a0f37ae4abe01adcb28277dc67",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[14]",
+"entityIds": [
+"f014"
+]
+},
+"g-0b67bec6bcf2567a": {
+"sha256": "0b67bec6bcf2567a6ff0b63bc8a81b2032eea26e4ed19ac656681b04139250ab",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[15]",
+"entityIds": [
+"f015"
+]
+},
+"g-340b9a602980a352": {
+"sha256": "340b9a602980a352cb33e4dde0e907a28eea963c608173c67bd26b2686bf1acf",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[16]",
+"entityIds": [
+"f016"
+]
+},
+"g-57ddbd39a81f9498": {
+"sha256": "57ddbd39a81f9498e9431ad83a85c6a0dc4bd1f744ccb622652d2c9871ec9c01",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[17]",
+"entityIds": [
+"f017"
+]
+},
+"g-b83be5bf8633919c": {
+"sha256": "b83be5bf8633919c66b263ab7842b67803a7829d4f6b19f1745f23b683c165f7",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[18]",
+"entityIds": [
+"f018"
+]
+},
+"g-a4c4dbb6c3c85bf2": {
+"sha256": "a4c4dbb6c3c85bf216f5a4cfa4b48ad1f85e65152c6d8bf17c0c420da8fb0b8b",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[19]",
+"entityIds": [
+"f019"
+]
+},
+"g-c04fc220c74c13a0": {
+"sha256": "c04fc220c74c13a0360a6f58f15c808c523145b6493b4724e75dcfad540dbe5b",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[20]",
+"entityIds": [
+"f020"
+]
+},
+"g-6a7950d7ecce1796": {
+"sha256": "6a7950d7ecce17964d687cec5c2066d90d56b404104269fe2fc23c5ebbaa26de",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[21]",
+"entityIds": [
+"f021"
+]
+},
+"g-2e54012fe898492e": {
+"sha256": "2e54012fe898492e86dd09a711e35da86a5168e5acbc255ae42a60898cfe0311",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[22]",
+"entityIds": [
+"f022"
+]
+},
+"g-b0911af0e97119fa": {
+"sha256": "b0911af0e97119fa1ed7b38d11b8855af2fb48acf11a544d250a31caf7f55725",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[23]",
+"entityIds": [
+"f023"
+]
+},
+"g-40cc1fe16ffb2cd8": {
+"sha256": "40cc1fe16ffb2cd8a5c82db8a4f085fc87c007a704f120dec1451319c85aae54",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[24]",
+"entityIds": [
+"f024"
+]
+},
+"g-cab943b89e6c848b": {
+"sha256": "cab943b89e6c848bd3730b59f46465b45ce4b333ab4126645dcf3e31641804b8",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[25]",
+"entityIds": [
+"f025"
+]
+},
+"g-215bc53af42aa8e5": {
+"sha256": "215bc53af42aa8e58d855797bce04f1df1475dfd1efb531c74a0d642e5ae4101",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[26]",
+"entityIds": [
+"f026"
+]
+},
+"g-43615a62a7b513e5": {
+"sha256": "43615a62a7b513e5abb1d34cf233f3e348ae12e24ed5b90d876d5ff0ea965e1b",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[27]",
+"entityIds": [
+"f027"
+]
+},
+"g-e3843b847efc8d06": {
+"sha256": "e3843b847efc8d06c6a5413e4a58610d65e0cda7fa598625ebc86c25e6db315c",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[28]",
+"entityIds": [
+"f028"
+]
+},
+"g-89bada534f88d9fe": {
+"sha256": "89bada534f88d9fec2907e0f7c439ed83f68cbc2e71ada8c1d1d3907dbc99078",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[29]",
+"entityIds": [
+"f029"
+]
+},
+"g-3d18e7943e0aff42": {
+"sha256": "3d18e7943e0aff42ead90eb5f26665755dbfce8bed6c9d4ea0dd7b8f94fc379f",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[30]",
+"entityIds": [
+"f030"
+]
+},
+"g-11c21e6b357714fe": {
+"sha256": "11c21e6b357714fe48c5b273c3ed2575c093268c5f9e8f76c5b81d45772f082e",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[31]",
+"entityIds": [
+"f031"
+]
+},
+"g-f44a5a83931b6e50": {
+"sha256": "f44a5a83931b6e5009a6c2625693b8603de9c69fc485ea5db455a6d086856b3d",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[32]",
+"entityIds": [
+"f032"
+]
+},
+"g-82a2f9073bddd59b": {
+"sha256": "82a2f9073bddd59b2b00f35c2c4588273bbe87628998f579b8c5a9d565b56bdd",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[33]",
+"entityIds": [
+"f033"
+]
+},
+"g-825f5a0a9b2fc5db": {
+"sha256": "825f5a0a9b2fc5db02d2d60955724cf376cf4b34e5b725b666b4e68b7be99ccb",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[34]",
+"entityIds": [
+"f034"
+]
+},
+"g-214c175ef5c1db48": {
+"sha256": "214c175ef5c1db4838a981c53cbe8b1fee429a93f6b566ae4e546b1dd67e455f",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[35]",
+"entityIds": [
+"f035"
+]
+},
+"g-9441f943d8cb8601": {
+"sha256": "9441f943d8cb86011948a85b6722aa5b0d9ca9941a049a211f37b74a788420ca",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[36]",
+"entityIds": [
+"f036"
+]
+},
+"g-3b08210c002d7322": {
+"sha256": "3b08210c002d732227f90e342cad55c5969c59b3bbd2222421450c875815ecaf",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[37]",
+"entityIds": [
+"f037"
+]
+},
+"g-e969a24ba73f4562": {
+"sha256": "e969a24ba73f4562dff7301be4fd63138fde3eead6843576687ceedd4188b90d",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[38]",
+"entityIds": [
+"f038"
+]
+},
+"g-7457479c776f1c38": {
+"sha256": "7457479c776f1c38088ec5ebc14a059d9b93dd9ec5281f58f197e17c475c608a",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[39]",
+"entityIds": [
+"f039"
+]
+},
+"g-e3570a26e9ee89ff": {
+"sha256": "e3570a26e9ee89ff2bee11e1e572d4ad8627a89dde90196d553b67f7e6f2a60a",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[40]",
+"entityIds": [
+"f040"
+]
+},
+"g-ad4d7ef89a80d470": {
+"sha256": "ad4d7ef89a80d470a78e8f51d511031e965f34118fa3b6d27ad60637320fb02e",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[41]",
+"entityIds": [
+"f041"
+]
+},
+"g-216d8be7fe6c6e91": {
+"sha256": "216d8be7fe6c6e91f977d4ac91748c32200e78125b635b60022865998a8e9264",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[42]",
+"entityIds": [
+"f042"
+]
+},
+"g-713e7b3af985a2b8": {
+"sha256": "713e7b3af985a2b80502f63903198b68510d8f6ab2a237c42876fd966af43f2f",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[43]",
+"entityIds": [
+"f043"
+]
+},
+"g-9064eb1e5fb6b001": {
+"sha256": "9064eb1e5fb6b00164526c0d6a723347a30d5b657071933e564ee744508cc0a2",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[44]",
+"entityIds": [
+"f044"
+]
+},
+"g-c54b6bfae475e423": {
+"sha256": "c54b6bfae475e42310212d78ef33c4ea5cba2e290d94ed1043756c4c29f43940",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[45]",
+"entityIds": [
+"f045"
+]
+},
+"g-7f3e0738fac0ccbd": {
+"sha256": "7f3e0738fac0ccbdfabdb0d1420671b653bd79d1e35791eb13880d32080fae1c",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[46]",
+"entityIds": [
+"f046"
+]
+},
+"g-4048f56ec8ab24c7": {
+"sha256": "4048f56ec8ab24c7efbd854ec31894191b5e1dcffb93233415918bb5b00e2502",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[47]",
+"entityIds": [
+"f047"
+]
+},
+"g-5648da8dc3e786b6": {
+"sha256": "5648da8dc3e786b61d48c4ab02cc69eb8dce5d604fb339213689c7ffd2c1f508",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[48]",
+"entityIds": [
+"f048"
+]
+},
+"g-105e4f8b3c967c65": {
+"sha256": "105e4f8b3c967c65aa52f83143bff198cb4534ff99b89a718a68a3cb0209e704",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[49]",
+"entityIds": [
+"f049"
+]
+},
+"g-59ab3b7b252e46ea": {
+"sha256": "59ab3b7b252e46ea265c65e3005d25c5a98b38c8261a625d955e54ed32200a9a",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[50]",
+"entityIds": [
+"f050"
+]
+},
+"g-6264c1a7a06d2c65": {
+"sha256": "6264c1a7a06d2c65de51b53659fac49f38e2d9b00066f60577d7921aad21165a",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[51]",
+"entityIds": [
+"f051"
+]
+},
+"g-b6f43d052dec2915": {
+"sha256": "b6f43d052dec291566cadf5244283b9f31cc204935690f97f33afbcef4579d24",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[52]",
+"entityIds": [
+"f052"
+]
+},
+"g-7a6118b2eb894c9a": {
+"sha256": "7a6118b2eb894c9a2d1f6086be229bb9a90e15439c150c8a1d70ac61a59104d4",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[53]",
+"entityIds": [
+"f053"
+]
+},
+"g-2bc0f6cd7a41ca23": {
+"sha256": "2bc0f6cd7a41ca23b34c52f236eb1891d90674ff16e2aad600640b21579c2eaf",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[54]",
+"entityIds": [
+"f054"
+]
+},
+"g-57bd5759d747d396": {
+"sha256": "57bd5759d747d39602845c9b622f3c647f3d796a762cb550e874cb48196e5c02",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[55]",
+"entityIds": [
+"f055"
+]
+},
+"g-7acbe346fc1fcacd": {
+"sha256": "7acbe346fc1fcacd48c4c9d2ab0813d774041a3c78210b2954a3a9d2eb4dadd6",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[56]",
+"entityIds": [
+"f056"
+]
+},
+"g-38c086b1d1ab2cad": {
+"sha256": "38c086b1d1ab2cadc8a601622e62a2a9e1d0a5e59a26d42b5e1e990b3676be22",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[57]",
+"entityIds": [
+"f057"
+]
+},
+"g-bcc5d1322e254391": {
+"sha256": "bcc5d1322e2543912619e7100dfe394007cf786931be165fd83050903108f87f",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[58]",
+"entityIds": [
+"f058"
+]
+},
+"g-707d02f7d2fd79b3": {
+"sha256": "707d02f7d2fd79b3541adbd5748ac705ad5a0baefb72c9c867199c4462d5de97",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[59]",
+"entityIds": [
+"f059"
+]
+},
+"g-8c9dc8c876883c4e": {
+"sha256": "8c9dc8c876883c4e96588d465671325dba6e2a7021f98a2871cb270eb7411225",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[60]",
+"entityIds": [
+"f060"
+]
+},
+"g-93d17c313e935bd7": {
+"sha256": "93d17c313e935bd7d253b24f37c0e6bbbd4fa149c5b728cf2b11e31e29fe5e0d",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[61]",
+"entityIds": [
+"f061"
+]
+},
+"g-d0766c10a72edf41": {
+"sha256": "d0766c10a72edf419e98a27eaa613a5a20b09f3489284d83e8fd4e1dd5cc74e0",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[62]",
+"entityIds": [
+"f062"
+]
+},
+"g-23218a638c47f696": {
+"sha256": "23218a638c47f696260e00c99bb9bb03bace2176d4be6faaf23d3b8c91308739",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[63]",
+"entityIds": [
+"f063"
+]
+},
+"g-8a014425cd767b38": {
+"sha256": "8a014425cd767b38083e353ce0b287ee28d55965c707eb70c550f7672d02685d",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[64]",
+"entityIds": [
+"f064"
+]
+},
+"g-b21d408fdcadc5f5": {
+"sha256": "b21d408fdcadc5f580d07ff55012c2ab62d2416763194afbc992e33724ea2e47",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[65]",
+"entityIds": [
+"f065"
+]
+},
+"g-9cf4ef8edc90c42a": {
+"sha256": "9cf4ef8edc90c42af684e945406a151633d303d2f5944e375f32f1ba6f0df744",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[66]",
+"entityIds": [
+"f066"
+]
+},
+"g-58365ac15b32b35f": {
+"sha256": "58365ac15b32b35f088cc55ba3a719e1a3867bddb7722bde34db2d5540a12faf",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[67]",
+"entityIds": [
+"f067"
+]
+},
+"g-f3a91b5ee5f3f951": {
+"sha256": "f3a91b5ee5f3f9511e80723d8b2e03f76bda970edb223115394c48d16ce74cb9",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[68]",
+"entityIds": [
+"f068"
+]
+},
+"g-83db552db12103da": {
+"sha256": "83db552db12103daa0e0a7c8176fc63ad4aa94d0be17c078e8a461ce57c3fbf4",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[69]",
+"entityIds": [
+"f069"
+]
+},
+"g-0953abfc82877238": {
+"sha256": "0953abfc828772385f25ac0e8ccec617f2f37ce0e3b9cdb1ff2eb959821572cf",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[70]",
+"entityIds": [
+"f070"
+]
+},
+"g-d149206945f79718": {
+"sha256": "d149206945f79718a5acf62bd86433f75e6faa9338fd7808ae234a1047da5a70",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[71]",
+"entityIds": [
+"f071"
+]
+},
+"g-18e7ba2cd7dd2b37": {
+"sha256": "18e7ba2cd7dd2b37962278ba921e98263a61a7f75665511261a25e8c9605a628",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[72]",
+"entityIds": [
+"f072"
+]
+},
+"g-8617cb540da4a0d2": {
+"sha256": "8617cb540da4a0d26a0af0c37b10936f4d2bab2e100e9084bdf619166b90c6ba",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[73]",
+"entityIds": [
+"f073"
+]
+},
+"g-456e8e20d021aeb3": {
+"sha256": "456e8e20d021aeb36c824066c981e3accf817b4e7ee1e2c64e5dcdedb6375569",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[74]",
+"entityIds": [
+"f074"
+]
+},
+"g-bd48b51a23e0714c": {
+"sha256": "bd48b51a23e0714c7d4e4f993fe2c5bcdff06afe216393b48c6077c86da1245a",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[75]",
+"entityIds": [
+"f075"
+]
+},
+"g-081eb80470ea1f99": {
+"sha256": "081eb80470ea1f99a4b8d4c2e0de48b0cdde48948d52b17ad397bb91d71bb9ed",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[76]",
+"entityIds": [
+"f076"
+]
+},
+"g-0374075f6b5fc90b": {
+"sha256": "0374075f6b5fc90baee0c513406f8d75a9676ab6ebebec90a1b94bf0a74d1586",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[77]",
+"entityIds": [
+"f077"
+]
+},
+"g-5f0073432f299ed5": {
+"sha256": "5f0073432f299ed5b7d0e0885fd29670e202331ca63d53b487a8ab501aa38eb4",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[78]",
+"entityIds": [
+"f078"
+]
+},
+"g-473afd71c1562aa1": {
+"sha256": "473afd71c1562aa1f264e914d3548bbb30cc0048451b78508f97850c3d731e43",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[79]",
+"entityIds": [
+"f079"
+]
+},
+"g-027a85a33f74514f": {
+"sha256": "027a85a33f74514f30127fff32ca329e4a0c165da0bcd409e94445d55f0b020a",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[80]",
+"entityIds": [
+"f080"
+]
+},
+"g-f9c2671227f1d37b": {
+"sha256": "f9c2671227f1d37b9371906a0fc405fc1c10a84e5dda0b3054068b427b9aa126",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[81]",
+"entityIds": [
+"f081"
+]
+},
+"g-4d521a82ebbcaa73": {
+"sha256": "4d521a82ebbcaa73e043ac75753ccd9a821613bcd43eb096502a2df884dc52f1",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[82]",
+"entityIds": [
+"f082"
+]
+},
+"g-7073a03bc9ca08f9": {
+"sha256": "7073a03bc9ca08f97c82be1b7b9e834f1294d88cea24bd968cdae55f3d8fc2db",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[83]",
+"entityIds": [
+"f083"
+]
+},
+"g-2cedb4c5e4681a28": {
+"sha256": "2cedb4c5e4681a282631b953a0d786cd0d175523a8740e7169621ed1e49948a8",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[84]",
+"entityIds": [
+"f084"
+]
+},
+"g-c35ee9e20ddb955e": {
+"sha256": "c35ee9e20ddb955e4fd9a799e456eebd63631a978441fb697a7ea781299651d1",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[85]",
+"entityIds": [
+"f085"
+]
+},
+"g-f1377b8a30559b5e": {
+"sha256": "f1377b8a30559b5e6d1f68949428e3f98c5a69713b941075aac47dc3be025fca",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[86]",
+"entityIds": [
+"f086"
+]
+},
+"g-dfa8ea4506ce9302": {
+"sha256": "dfa8ea4506ce9302992ab51849ed86ab355cbea1c03b32166cce2a22fcd8837a",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[87]",
+"entityIds": [
+"f087"
+]
+},
+"g-5912465a9b565d87": {
+"sha256": "5912465a9b565d871693a21fec41ae2fd30f0d51ed0c8d81f6149e21882c3af5",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[88]",
+"entityIds": [
+"f088"
+]
+},
+"g-b5ae9e48221cceab": {
+"sha256": "b5ae9e48221cceabf083bb35f7383ba25217ca0224a385c81bdf20b104cd2454",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[89]",
+"entityIds": [
+"f089"
+]
+},
+"g-db5e3c3d23fc7084": {
+"sha256": "db5e3c3d23fc70847a8fb5916b759db52624750dd7119688c1a603148dc5bff5",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[90]",
+"entityIds": [
+"f090"
+]
+},
+"g-cabcc0a84535db1c": {
+"sha256": "cabcc0a84535db1c1bfdffcd758d1e80d5b94b9f896b746ce5b0c65f79c03106",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[91]",
+"entityIds": [
+"f091"
+]
+},
+"g-c6248b0369c967b0": {
+"sha256": "c6248b0369c967b04ad41d1c7fc1b83bff706de70d28f8efbc39e1dad2f6adaa",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[92]",
+"entityIds": [
+"f092"
+]
+},
+"g-f292f1cfbf19ddf1": {
+"sha256": "f292f1cfbf19ddf1f3189c2d137e3997236b76a6bfe4e3f438d0fb4c9ffc5e2b",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[93]",
+"entityIds": [
+"f093"
+]
+},
+"g-02580fc2eb577fa9": {
+"sha256": "02580fc2eb577fa94a0bf73e6acdd6e27879613ee5931d6c14e06ef274c7ccbc",
+"origin": "mapas/victoria-eje/datos/escenario.geojson#features[94]",
+"entityIds": [
+"f094"
+]
+}
+},
+"fronteras-2101": {
+"g-7fef4833e33f3c8e": {
+"sha256": "7fef4833e33f3c8e4dca19cd68a3b1a7631b1a74f33d737dd0e1db937e5ae358",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[0]",
+"entityIds": [
+"bougainville"
+]
+},
+"g-b5a267a0811b62e7": {
+"sha256": "b5a267a0811b62e755f75f3567a768ee32b5b37b160d949247824262136ed910",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[1]",
+"entityIds": [
+"somaliland"
+]
+},
+"g-51027837d8ac7354": {
+"sha256": "51027837d8ac7354559d879ffbb5b477aa18413909f788a2fad5305cc9106634",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[2]",
+"entityIds": [
+"kosovo"
+]
+},
+"g-e7cd2338a3928e4f": {
+"sha256": "e7cd2338a3928e4fb3ee7d84a6f00790af323a129b14d950c132054d87a4e21a",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[3]",
+"entityIds": [
+"greenland"
+]
+},
+"g-571d5244c0b326dd": {
+"sha256": "571d5244c0b326dd24478d095543268e1e9f1f9408fda1a8dc29a4990fc1310e",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[4]",
+"entityIds": [
+"faroe"
+]
+},
+"g-2cae91144dd230f6": {
+"sha256": "2cae91144dd230f63fa46ad66a7c787c8a3aed1ff4304300383c82418ea36e40",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[5]",
+"entityIds": [
+"caledonia"
+]
+},
+"g-378ed29d21f81fde": {
+"sha256": "378ed29d21f81fde81dc897498bb34bf36ddf6d33e379e92ba9feac87efe6072",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[6]",
+"entityIds": [
+"chagos"
+]
+},
+"g-5209454334efe425": {
+"sha256": "5209454334efe425e597fa45be5cd3beb462449e87d17afd4891599fcb08b9af",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[7]",
+"entityIds": [
+"scotland"
+]
+},
+"g-b0345d54b9419ffc": {
+"sha256": "b0345d54b9419ffc6f80f6f6c271419a4f62608cfc546f1da3092696ef404320",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[8]",
+"entityIds": [
+"ireland"
+]
+},
+"g-774a7a3496ddf0b4": {
+"sha256": "774a7a3496ddf0b4cf97883ebddba184fbcc227e54ee793c5474f9a43f110130",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[9]",
+"entityIds": [
+"eu-enlargement"
+]
+},
+"g-700aecdd7f96629c": {
+"sha256": "700aecdd7f96629cfa521eee3904e506a4dc03c30d3d0ffd18c3f5678996c887",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[10]",
+"entityIds": [
+"eu-federal"
+]
+},
+"g-755c970837f2a0ec": {
+"sha256": "755c970837f2a0ec58b169540876b5fc0fa4f45e23fb57d779856e4ed0f50e2b",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[11]",
+"entityIds": [
+"moldova-romania"
+]
+},
+"g-89fb68d322da9230": {
+"sha256": "89fb68d322da9230d6870b4554870496f2e00385f46c075a47d8a4d03c5d9b20",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[12]",
+"entityIds": [
+"transnistria"
+]
+},
+"g-b84c9400f24ad4b1": {
+"sha256": "b84c9400f24ad4b1a2f355a161037879573739cfbd25bc71590eafe5ae2a6e95",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[13]",
+"entityIds": [
+"gagauzia"
+]
+},
+"g-d03e33de3e090ec8": {
+"sha256": "d03e33de3e090ec8d1f4c9d305b2ebe6228f76bb6d45b13e34bba2532e563d81",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[14]",
+"entityIds": [
+"abkhazia"
+]
+},
+"g-1743a7f94d92c439": {
+"sha256": "1743a7f94d92c439ad928dbaee3eac2d65bec405bd4bb23e1fe21b728fadddc9",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[15]",
+"entityIds": [
+"south-ossetia"
+]
+},
+"g-d4d436985438df74": {
+"sha256": "d4d436985438df74355c2b443bfe40761967ebb36e63589a4036a3d174be2b05",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[16]",
+"entityIds": [
+"adjara"
+]
+},
+"g-7fcce7f109524695": {
+"sha256": "7fcce7f109524695649ac970e85452b9826d1f4bdfb5ad0e4801fb35dfeec605",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[17]",
+"entityIds": [
+"karabakh"
+]
+},
+"g-695bb0f68d5d7e5c": {
+"sha256": "695bb0f68d5d7e5c69017ec52162e735e6c518039070e5bc7bc89bbb97561e4f",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[18]",
+"entityIds": [
+"srpska"
+]
+},
+"g-8a15323810812b76": {
+"sha256": "8a15323810812b7609645436326306c52a513f1cec93c1573de521d3a1dbf51c",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[19]",
+"entityIds": [
+"vojvodina"
+]
+},
+"g-93dd8473d7a0ab25": {
+"sha256": "93dd8473d7a0ab25431266033c818f1c67bf47b6a548db50f20770c061092698",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[20]",
+"entityIds": [
+"sandzak"
+]
+},
+"g-1ac03b6c9a8d15d6": {
+"sha256": "1ac03b6c9a8d15d6d2f33f5e6417228d18383f32c949fbd1c7086cea72fa95eb",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[21]",
+"entityIds": [
+"north-cyprus"
+]
+},
+"g-65edd9d956fe1da1": {
+"sha256": "65edd9d956fe1da1cdd83649d92b3eeac81f78cb3d43257e58b3d837f1537fb4",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[22]",
+"entityIds": [
+"western-sahara"
+]
+},
+"g-9913d47cc322193f": {
+"sha256": "9913d47cc322193f9baa545bb5f3034bcf0486aeee4644caa3c20e3bb4335ee2",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[23]",
+"entityIds": [
+"palestine"
+]
+},
+"g-b973bd20416bebfb": {
+"sha256": "b973bd20416bebfb4479d05f6dc79dce7f5fdd119a4bfa18750f5a06202e2970",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[24]",
+"entityIds": [
+"ukraine"
+]
+},
+"g-da35c936c9a5c25a": {
+"sha256": "da35c936c9a5c25a24411e6eaebe6b5d4f531926fdda82bfb6b9b6f0f8caec2b",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[25]",
+"entityIds": [
+"yemen"
+]
+},
+"g-40146860375091a2": {
+"sha256": "40146860375091a20ebb27793c4a0cc2cd1953dd18e1a32b38b0680f5d5fabf0",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[26]",
+"entityIds": [
+"sudan"
+]
+},
+"g-387a9db08cd43f06": {
+"sha256": "387a9db08cd43f061a7b2f7dac3f5fda0b20a32c4c275c5ad18e586e3b82d96d",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[27]",
+"entityIds": [
+"syria-kurds"
+]
+},
+"g-afe67d30ef6a1864": {
+"sha256": "afe67d30ef6a18647358401f98c5012da63150ae4f3c15186bc9707a4f0b2cff",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[28]",
+"entityIds": [
+"korea"
+]
+},
+"g-d7587f5d26697be9": {
+"sha256": "d7587f5d26697be94827fe348400ed8f1170dc262ab87a7aab2bafaf310b4738",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[29]",
+"entityIds": [
+"taiwan"
+]
+},
+"g-844f0356612ccc74": {
+"sha256": "844f0356612ccc7437ae41c1bd22fc1171d4fbd026578183a4af2bcd4cd692ff",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[30]",
+"entityIds": [
+"catalonia"
+]
+},
+"g-9ad15ac4892071ad": {
+"sha256": "9ad15ac4892071ad97a0bacb780a5dd16a9c38ae03c45a61d530f4f728b0bc89",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[31]",
+"entityIds": [
+"quebec"
+]
+},
+"g-0f06731da5f61959": {
+"sha256": "0f06731da5f61959e569d3c208c709e0461b39c7452dced4d6dcea915331d828",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[32]",
+"entityIds": [
+"belgium"
+]
+},
+"g-74aca8ddef8ef6bc": {
+"sha256": "74aca8ddef8ef6bc7ec60458678d34d9d26f48f87612501cecef689407bd9439",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[33]",
+"entityIds": [
+"puerto-rico"
+]
+},
+"g-c44db4d800dde50a": {
+"sha256": "c44db4d800dde50ae334a5fba2f7f40dce73aa513b0be550ea3e9dcf4be627cf",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[34]",
+"entityIds": [
+"west-papua"
+]
+},
+"g-56e299fa018e10a1": {
+"sha256": "56e299fa018e10a1d39372937e4d7958c6e12feeb19f4c2e3dddfdba09f2443a",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[35]",
+"entityIds": [
+"tibet"
+]
+},
+"g-48ff5c28cd88b729": {
+"sha256": "48ff5c28cd88b72959c4d7547317b2d6d24961742d9665ad5158b58f5337fdd4",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[36]",
+"entityIds": [
+"eac"
+]
+},
+"g-3f1227ec058bb42c": {
+"sha256": "3f1227ec058bb42cc583f48f3b3ba4c4eae33e901fa6afa22617569b926ce366",
+"origin": "mapas/fronteras-2100/escenario.json#frames[0].features[37]",
+"entityIds": [
+"jamaica"
+]
+}
+}
+}

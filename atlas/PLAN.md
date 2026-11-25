@@ -1,6 +1,6 @@
 # Atlas — fase 0: inventario y plan
 
-Fecha: 25-11-2026 · Autor: orquestador (Opus) · Estado: **propuesta, pendiente del visto bueno de Marcos**.
+Fecha: 25-11-2026 · Autor: orquestador (Opus) · Estado: **fase 0 aprobada por Marcos (commit 1b624ce); fase 1 hecha** (§11). Las decisiones P1–P9 están adoptadas como **provisionales** (§9).
 
 En esta fase solo se ha leído. No se ha modificado ningún original, no hay commits ni push, y no se ha arrancado ningún servidor (en el puerto 4173 no escuchaba nada y la revisión no lo necesitaba). Se han escrito únicamente `atlas/PLAN.md`, `atlas/INVENTARIO.csv`, `atlas/TAREAS.md` y los auxiliares de `atlas/_tmp/` (§10).
 
@@ -135,7 +135,14 @@ Medición de `atlas/_tmp/comparar_geometrias.py` (salida en `comparar_geometrias
 
 **Recomendación (la opción conservadora):** usar Leaflet local con GeoJSON lon/lat y sin teselas de terceros; el fondo sería `land` dibujado con `--land`. Es lo único que garantiza que la geometría servida sea byte a byte la del original y que ya funciona con estos datos. Las miniaturas de las tarjetas serían SVG proyectados generados offline. Una proyección equivalente con Proj4Leaflet queda como decisión de Marcos (P3).
 
-### 5.2 Contrato de datos (borrador v2; lo fija el orquestador en la tarea 1)
+### 5.2 Contrato de datos (borrador v2)
+
+> **Cerrado en la fase 1: la referencia es `atlas/CONTRATO.md`.** Este apartado queda como el borrador original. Donde no coincidan, manda `CONTRATO.md`. Las diferencias principales son estas:
+> - `pattern` es una clave del diccionario `patterns` del mapa, copiado de los `<pattern>` del SVG original (en 1848 son `diagonal` y `warn`).
+> - `color` es el color **dibujado** en el original.
+> - Se añaden `attrs`, con las propiedades originales literales, y `meta`.
+> - `ports` y `routes` referencian `gid`.
+> - Se admiten `GeometryCollection` y el fichero opcional `<id>.geo.js`.
 
 Es una ampliación compatible del contrato `ATLAS_REGISTER` actual.
 
@@ -194,7 +201,7 @@ Es una ampliación compatible del contrato `ATLAS_REGISTER` actual.
 | Fase | Tareas (detalle en `TAREAS.md`) | Rol y modelo | Depende de |
 |---|---|---|---|
 | 0 | Inventario y plan | Orquestador · Opus | — (**hecha**) |
-| 1 | Contrato v2 cerrado, datos de ejemplo (`atlas/data/_ejemplo.js`) y decisiones P1–P8 | Orquestador · Opus | Visto bueno de Marcos |
+| 1 | Contrato v2 cerrado (`CONTRATO.md`), datos de ejemplo (`atlas/data/_ejemplo.js`), P1–P9 provisionales y `PROMPTS.md` | Orquestador · Opus | 0 (**hecha**, §11) |
 | 2 | 2.1 congelar originales · 2.2 bases · 2.3 generador y prueba de equivalencia · 2.4 los cuatro originales a resolución completa · 2.5 ucronías derivadas de HB · 2.6 extensión acumulada · 2.7 prospectiva · 2.8 validador de hashes · 2.9 `CREDITS.md` | Datos · Codex (worktree `atlas-datos`) | 1 (la 2.1 y la 2.2 pueden empezar con la fase 0 aprobada) |
 | 3 | 3.1 estructura y paleta · 3.2 visor Leaflet · 3.3 leyenda, roles y fichas · 3.4 línea del tiempo y teclado · 3.5 distinción por `kind` · 3.6 móvil, accesibilidad y movimiento reducido | Front · **solo Opus** (worktree `atlas-front`) | 1 (trabaja con `_ejemplo.js`; en paralelo con la 2) |
 | 4 | R1 clases y etapas `historical` · R2 tablas categoría → role · R3 extensión (omisiones y `lost`) · R4 redacción de la prospectiva | Revisión · Gemini (solo lectura; escribe en `atlas/revision/`) | Salidas de la 2.3 a la 2.7 |
@@ -243,15 +250,18 @@ Coordinación según AGENTS.md: un rol que necesite un cambio en ficheros de otr
 
 Ante la duda se ha tomado la opción conservadora que se indica entre paréntesis.
 
-- **P1.** ¿Se puede buscar en Descargas y en otras carpetas fuera de `Mapas/` (las dos copias de `europa_1848.html`, `centroeuropa_1848.html`, los zip de 1848 y `ww1-interactivo.html`)? (No se ha buscado.)
-- **P2.** ¿Las etapas reales dentro de una ucronía (Carlos 1556, Kalmar 1520, Gran Colombia 1819/1822) se marcan como `historical`? (Se mantienen como están hasta R1.)
-- **P3.** ¿Mercator en Leaflet o una proyección equivalente con Proj4Leaflet, que es otra dependencia? (Mercator.)
-- **P4.** ¿Se permite redondear coordenadas para ahorrar peso? (No: precisión original.)
-- **P5.** ¿Se extrae la tabla `PALETTES` a un fichero común, lo que toca `mapeo/`? (No: copia literal en el atlas con un test de igualdad.)
-- **P6.** ¿Se publican en el repo los originales y los chats? `atlas/source-data/` lo despliega Vercel salvo que se añada un `.vercelignore` en la raíz. (Se copian los originales cartográficos tal como exige AGENTS.md; los chats no; no se crea `.vercelignore` sin permiso.)
-- **P7.** ¿Se versiona el `ne_10m_admin_1` de 40 MB o se registra solo su hash y su URL? (Solo hash y URL.)
-- **P8.** ¿Se incorpora el atlas de historia real 1783–1945 (fase 6)? (Queda fuera hasta que se decida.)
-- **P9.** ¿Se puede retirar el visor genérico de `atlas-escenarios`, o tiene que seguir vivo en paralelo? (Sigue intacto; no se toca.)
+> **Fase 1 (25-11-2026):** por indicación de Marcos, las nueve opciones conservadoras entre paréntesis quedan **adoptadas como provisionales** y rigen para todos los roles. Marcos las revisará, y si cambia alguna, el orquestador actualizará este apartado, `CONTRATO.md` y `TAREAS.md`. Las dudas propias del contrato (C1 a C6) están en `CONTRATO.md` §13.
+
+- **P1.** ¿Se puede buscar en Descargas y en otras carpetas fuera de `Mapas/` (las dos copias de `europa_1848.html`, `centroeuropa_1848.html`, los zip de 1848 y `ww1-interactivo.html`)? (**Provisional:** no se busca.)
+- **P2.** ¿Las etapas reales dentro de una ucronía (Carlos 1556, Kalmar 1520, Gran Colombia 1819/1822) se marcan como `historical`? (**Provisional:** se mantienen como están hasta R1.)
+- **P3.** ¿Mercator en Leaflet o una proyección equivalente con Proj4Leaflet, que es otra dependencia? (**Provisional:** Mercator.)
+- **P4.** ¿Se permite redondear coordenadas para ahorrar peso? (**Provisional:** no; precisión original.)
+- **P5.** ¿Se extrae la tabla `PALETTES` a un fichero común, lo que toca `mapeo/`? (**Provisional:** no; copia literal en el atlas con un test de igualdad.)
+- **P6.** ¿Se publican en el repo los originales y los chats? `atlas/source-data/` lo despliega Vercel salvo que se añada un `.vercelignore` en la raíz. (**Provisional:** se copian los originales cartográficos, como exige AGENTS.md; los chats no; no se crea `.vercelignore` sin permiso.)
+- **P7.** ¿Se versiona el `ne_10m_admin_1` de 40 MB o se registra solo su hash y su URL? (**Provisional:** solo hash y URL.)
+- **P8.** ¿Se incorpora el atlas de historia real 1783–1945 (fase 6)? (**Provisional:** queda fuera hasta que se decida.)
+- **P9.** ¿Se puede retirar el visor genérico de `atlas-escenarios`, o tiene que seguir vivo en paralelo? (**Provisional:** sigue intacto y no se toca.)
+- **P10 (nueva, fase 1).** `_ejemplo.js` y `_catalogo-ejemplo.js` quedan en `atlas/data/`, así que se publicarían con el sitio. Son datos reales y no se enlazan desde la portada (`sample: true`). (**Provisional:** se dejan ahí; la integración decidirá si se excluyen.)
 
 ### Archivos que faltan
 
@@ -265,8 +275,44 @@ El original japonés de ChatGPT (HTML, SVG y zip), el emblema del atlas (PNG), `
 - `comparar_geometrias.py` y `comparar_geometrias.txt`: medición original frente a `dist`.
 - `audit_copia.py` y `AUDITORIA-DATOS.json`: ejecuta `audit_data.py` sin cambiarlo, con el informe redirigido aquí (idéntico al original).
 - `despliegue-anterior/index.html`: copia del sitio anterior. No se ha ejecutado.
+- `generar_ejemplo.py` (fase 1): genera `atlas/data/_ejemplo.js` y `_catalogo-ejemplo.js` a partir de `europa_1848.html` y comprueba los hashes. Este no se debe borrar mientras se use el ejemplo; si se conserva, pasará a `atlas/build/` en la integración.
+- `actualizar_tareas_fase1.py` (fase 1): actualiza los estados de `TAREAS.md`. Ya se ha ejecutado y se puede borrar.
 
 Nota: antes del corte, en la sesión anterior, se escribió en la carpeta Temp de la sesión (`…\scratchpad\hashes.json` y `audit\`). Esos ficheros no se usan y se han rehecho dentro de `atlas/_tmp/`.
+
+---
+
+## 11. Fase 1: hecha (25-11-2026)
+
+- **`atlas/CONTRATO.md`**: el contrato de datos v2 cerrado. Incluye ficheros, catálogo, mapa, etapa, entidad, geometrías y hash, vocabularios, reglas para el front, validación y compatibilidad con v1. Lo que quedó en duda está anotado como C1–C6.
+- **`atlas/data/_ejemplo.js`** y **`_catalogo-ejemplo.js`**: un extracto real del original de 1848.
+  - 8 geometrías sin simplificar, cuyo hash coincide con el original.
+  - Las 5 categorías y los 2 roles que existen en ese extracto, áreas y marcadores, y la trama `diagonal`.
+  - Dos etapas: 1848 (histórica) y 1851 (ucronía).
+  - Lo genera `_tmp/generar_ejemplo.py` y se ha comprobado que carga en Node con un `ATLAS_REGISTER` de prueba.
+- **`atlas/PROMPTS.md`**: un prompt listo para cada rol (Front-Opus, Datos-Codex y Revisión-Gemini), con su alcance, ficheros propios, worktree y criterios del §8.
+- **`TAREAS.md`**: la 1 está hecha. Quedan desbloqueadas la 2.1, la 2.2 y la 2.7 (datos) y de la 3.1 a la 3.6 (front, en ese orden). La R2 empieza cuando termine la 2.1.
+- Sin commits ni push: el git lo gestiona Marcos. No se ha modificado ningún original.
+
+---
+
+## 12. Primera entrega visible (25-11-2026)
+
+Marcos pidió algo visible cuanto antes. El orquestador lo ha hecho directamente en `main`, sin worktrees y sin git (los commits los hace Marcos):
+
+- **Datos.**
+  - 2.1: `build/congelar_originales.py` copia los originales y escribe su `MANIFEST.csv`.
+  - 2.4 parcial y 2.7: `build/migrar_originales.py` migra 5 mapas con 16 etapas desde sus originales vectoriales: Gran Alemania, Carlos, Centrales, Eje y Fronteras 2101.
+  - Las etapas que dependen de capas HB quedan como `pendingYears`.
+- **Validación (2.8, primera versión).** `build/validar.py` vuelve a extraer cada geometría de los originales congelados: las 376 tienen el mismo hash canónico y no hay errores de contrato. `test/navegador.cjs` (Chrome sin interfaz) recorre los 5 mapas y sus 16 etapas sin errores de consola, y comprueba el teclado, la paleta clara y el móvil. `test/paleta.cjs` confirma que `PALETTES` es la de mapeo.
+- **Front (3.1 a 3.6).** `atlas/index.html` es el atlas real:
+  - Portada por `kind`.
+  - Visor Leaflet local con rutas `#/<id>/<año>`.
+  - Línea del tiempo discreta.
+  - Leyenda original filtrable, tramas originales y fichas.
+  - El plan y las tareas pasan a `plan.html`, enlazado desde el pie.
+- **Contrato v2:** cambios compatibles, anotados al principio de `CONTRATO.md`.
+- **Dudas E1 a E11:** en `TAREAS.md`.
 
 ---
 
@@ -278,4 +324,4 @@ Nota: antes del corte, en la sesión anterior, se escribió en la carpeta Temp d
 - **Material perdido:** el mapa japonés original de ChatGPT, la vista centroeuropea de 1848, los zip, el SVG y el PNG de 1848, `ww1-interactivo.html` y el emblema. No se buscó fuera de `Mapas/` (P1). El despliegue anterior se ha descargado: es un atlas de historia real 1783–1945 con su módulo de la Primera Guerra Mundial, no el de 1848. Es candidato a una fase opcional.
 - **Arquitectura propuesta:** `atlas/index.html` autónomo, Leaflet local y datos `atlas/data/<id>.js` cargados bajo demanda con un contrato v2: geometrías únicas por `gid`, `kind` en cuatro clases, `category` como leyenda original, `role` que separa soberanía, control, ocupación, dependencia, influencia, reclamación, proyecto y caso, y `certainty` independiente de `precision`. Interfaz con la paleta `mapeo.cfg`; los colores de los datos no se tocan.
 - **Fases:** contrato (Opus) → datos (Codex) y front (Opus) en paralelo → revisión histórica (Gemini) → integración (Opus) con aprobación de Marcos. La validación bloqueante es la igualdad de hashes de geometría entre el original y el atlas.
-- **Pendiente de Marcos:** las decisiones P1 a P9. Hasta su visto bueno no se implementa nada.
+- **Pendiente de Marcos:** revisar las decisiones P1 a P10, adoptadas como provisionales en la fase 1, y lanzar los hilos de cada rol con `PROMPTS.md`.
