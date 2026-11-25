@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>atlas · en construcción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Provisional page: shows the atlas plan while the real viewer is built (task 3.1 replaces this file). -->
+<style>
+:root{--bg:#14161f;--alt:#1c1f2b;--text:#e4e6f0;--sub:#5a607a;--accent:#8fb4ff;--line:color-mix(in srgb,var(--sub) 30%,transparent);color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:14px;line-height:1.6;padding:28px}
+.wrap{max-width:980px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:22px}
+h1{margin:0;font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;font-size:64px;line-height:1}
+h1 b{font-weight:400;color:var(--accent)}
+.back{color:var(--sub);text-decoration:none}.back:hover{color:var(--accent)}
+.note{background:var(--alt);border-radius:16px;padding:16px 20px;color:var(--sub);margin-bottom:18px}
+.note strong{color:var(--text)}
+nav.tabs{display:flex;gap:8px;margin:0 0 18px}
+nav.tabs button{font:inherit;background:var(--alt);color:var(--sub);border:0;border-radius:999px;padding:8px 16px;cursor:pointer}
+nav.tabs button[aria-selected=true]{background:color-mix(in srgb,var(--accent) 18%,var(--alt));color:var(--text)}
+nav.tabs button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+article{background:var(--alt);border-radius:20px;padding:8px 28px 28px}
+article h1{font-size:42px;margin:24px 0 8px}
+article h2{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;font-size:32px;margin:32px 0 8px}
+article h3{font-size:15px;color:var(--accent);margin:22px 0 6px}
+article p,article li{color:var(--text)}
+article a{color:var(--accent)}
+code{background:color-mix(in srgb,var(--sub) 22%,transparent);padding:1px 5px;border-radius:5px;font-size:.92em}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;font-size:12.5px;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+th{color:var(--sub);font-weight:500}
+.err{color:#ff8f8f}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>atlas<b>.</b></h1>
+  <a class="back" href="../">← typemaps</a>
+</header>
+<p class="note"><strong>En construcción.</strong> Aquí irá el atlas histórico: ucronías, extensión acumulada de imperios y prospectiva, migrados sin perder geometría. Mientras tanto, esta página muestra el plan y el estado de las tareas.</p>
+<nav class="tabs" role="tablist">
+  <button role="tab" data-f="PLAN.md" aria-selected="true">Plan</button>
+  <button role="tab" data-f="TAREAS.md" aria-selected="false">Tareas</button>
+</nav>
+<article id="doc" aria-live="polite">Cargando…</article>
+</div>
+<script>
+// Minimal Markdown renderer for the project's own docs (headings, lists, tables, inline code, bold, links).
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function inl(s){
+  var parts=s.split(/(`[^`]*`)/);
+  return parts.map(function(p){
+    if(/^`[^`]*`$/.test(p))return '<code>'+esc(p.slice(1,-1))+'</code>';
+    return esc(p).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>')
+      .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" rel="noopener">$1</a>');
+  }).join('');
+}
+function md(t){
+  var L=t.replace(/\r/g,'').replace(/<!--[\s\S]*?-->/g,'').split('\n'),o=[],i=0;
+  while(i<L.length){
+    var l=L[i];
+    if(!l.trim()){i++;continue}
+    var h=l.match(/^(#{1,4})\s+(.*)/);
+    if(h){o.push('<h'+h[1].length+'>'+inl(h[2])+'</h'+h[1].length+'>');i++;continue}
+    if(/^---+\s*$/.test(l)){o.push('<hr>');i++;continue}
+    if(/^\|/.test(l)){
+      var rows=[];while(i<L.length&&/^\|/.test(L[i])){rows.push(L[i]);i++}
+      var cells=function(r){return r.trim().replace(/^\||\|$/g,'').split('|').map(function(c){return c.trim()})};
+      var hd=cells(rows[0]),body=rows.slice(/^\|[\s:|-]+\|?$/.test(rows[1]||'')?2:1);
+      o.push('<div class="tw"><table><thead><tr>'+hd.map(function(c){return '<th>'+inl(c)+'</th>'}).join('')+'</tr></thead><tbody>'+
+        body.map(function(r){return '<tr>'+cells(r).map(function(c){return '<td>'+inl(c)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>');
+      continue}
+    if(/^\s*([-*]|\d+\.)\s/.test(l)){
+      var ord=/^\s*\d+\./.test(l),items=[];
+      while(i<L.length&&(/^\s*([-*]|\d+\.)\s/.test(L[i])||(/^\s{2,}\S/.test(L[i])&&items.length))){
+        if(/^\s*([-*]|\d+\.)\s/.test(L[i])&&!/^\s{2,}/.test(L[i]))items.push(L[i].replace(/^\s*([-*]|\d+\.)\s+/,''));
+        else items[items.length-1]+='<br>'+L[i].trim().replace(/^([-*]|\d+\.)\s+/,'· ');
+        i++}
+      var tg=ord?'ol':'ul';
+      o.push('<'+tg+'>'+items.map(function(x){return '<li>'+inl(x).replace(/&lt;br&gt;/g,'<br>')+'</li>'}).join('')+'</'+tg+'>');
+      continue}
+    var p=[];while(i<L.length&&L[i].trim()&&!/^(#|\||---|\s*([-*]|\d+\.)\s)/.test(L[i])){p.push(L[i]);i++}
+    o.push('<p>'+inl(p.join(' '))+'</p>');
+  }
+  return o.join('\n');
+}
+var doc=document.getElementById('doc'),tabs=document.querySelectorAll('nav.tabs button');
+function load(f){
+  tabs.forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.f===f))});
+  doc.textContent='Cargando…';
+  fetch(f,{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.text()})
+    .then(function(t){doc.innerHTML=md(t)})
+    .catch(function(){doc.innerHTML='<p class="err">No se ha podido cargar '+esc(f)+'.</p>'});
+}
+tabs.forEach(function(b){b.addEventListener('click',function(){load(b.dataset.f);history.replaceState(null,'','#'+b.dataset.f.replace('.md','').toLowerCase())})});
+load(location.hash==='#tareas'?'TAREAS.md':'PLAN.md');
+</script>
+</body>
+</html>
