@@ -133,6 +133,33 @@ kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var
   .count{font-size:48px}
   .wall{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
 }
+/* phone, one flag at a time: the page never scrolls. It is exactly the visible area above the keyboard,
+   with the flag on top and the answer field right above the keyboard, so typing cannot move anything. */
+@media (max-width:720px){
+  html.m-solo,html.m-solo body{overflow:hidden;overscroll-behavior:none}
+  body.m-solo{position:fixed;left:0;right:0;top:var(--vvt,0px);height:var(--vvh,100dvh);display:flex;flex-direction:column}
+  body.m-solo .glow{display:none}
+  body.m-solo header .wrap{flex-wrap:nowrap;gap:10px;padding-top:10px;padding-bottom:4px;overflow-x:auto;scrollbar-width:none}
+  body.m-solo header .wrap::-webkit-scrollbar{display:none}
+  body.m-solo .mark{font-size:26px}
+  body.m-solo .crumb-l{white-space:nowrap}
+  body.m-solo .seg{flex-wrap:nowrap}
+  body.m-solo .seg button{padding:5px 9px}
+  body.m-solo main{flex:1;min-height:0;display:flex;flex-direction:column}
+  body.m-solo main>.wrap{order:1;flex:1;min-height:0;display:flex}
+  body.m-solo .barwrap{order:2;position:static}
+  body.m-solo .bar{padding:6px 0 10px;gap:6px 14px;align-items:center}
+  body.m-solo .count{font-size:30px}
+  body.m-solo .count small{font-size:18px}
+  body.m-solo #inp{font-size:20px;padding:4px 0 6px}
+  body.m-solo #hint{position:static;margin-top:3px;min-height:16px}
+  body.m-solo .solo{flex:1;min-height:0;padding:6px 0;gap:8px;align-content:center;container-type:size}
+  body.m-solo .frame{width:min(100cqw,calc((100cqh - 26px) * 4 / 3))}
+  body.m-solo .frame img{filter:none}
+  body.m-solo .solo p,body.m-solo .note{display:none}
+  body.m-solo .dots{gap:3px}
+  body.m-solo .dots i{width:5px;height:5px}
+}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important}
   .tile img,.drawer,body{transition:none!important}
@@ -331,7 +358,7 @@ function newGame(){
   $('#total').textContent=ids.length;$('#n').textContent=0;
   $('#play').hidden=false;$('#side').hidden=false;$('#done').hidden=true;inp.disabled=false;inp.value='';hint('');
   const one=cfg.mode==='one';
-  $('#solo').hidden=!one;$('#wall').hidden=one;$('#skip').hidden=!one;
+  $('#solo').hidden=!one;$('#wall').hidden=one;$('#skip').hidden=!one;mobileSolo();
   inp.placeholder=one?'¿De dónde es esta bandera?':'Escribe cualquier país del mural…';
   if(one){
     $('#dots').innerHTML=ids.length<=60?ids.map(()=>'<i></i>').join(''):'';
@@ -352,6 +379,21 @@ function buildWall(review){
   }
   wall.innerHTML=s;wall.hidden=false;wall.classList.toggle('review',!!review);
 }
+// Phones: in one-at-a-time mode lock the page to the visual viewport (the part above the keyboard), so the
+// browser has nothing to scroll when the field changes. --vvh/--vvt follow the keyboard as it opens and closes.
+const phone=matchMedia('(max-width:720px)');
+function mobileSolo(){
+  const on=phone.matches&&cfg.mode==='one'&&G&&!G.ended;
+  document.documentElement.classList.toggle('m-solo',on);body.classList.toggle('m-solo',on);
+  if(on){fitViewport();scrollTo(0,0)}
+}
+function fitViewport(){
+  const v=window.visualViewport,r=document.documentElement.style;
+  r.setProperty('--vvh',(v?v.height:innerHeight)+'px');r.setProperty('--vvt',(v?v.offsetTop:0)+'px');
+}
+if(window.visualViewport){visualViewport.addEventListener('resize',()=>{if(body.classList.contains('m-solo'))fitViewport()});
+  visualViewport.addEventListener('scroll',()=>{if(body.classList.contains('m-solo'))fitViewport()})}
+phone.addEventListener?.('change',()=>G&&mobileSolo());
 function showFlag(first){
   const id=G.queue[0],img=$('#flag');if(!id)return;
   const dots=$('#dots').children;
@@ -415,7 +457,7 @@ inp.addEventListener('keydown',e=>{
 function finish(reason){
   G.ended=true;clearInterval(tick);inp.disabled=true;
   const n=G.found.size,tot=G.ids.length,missed=tot-n;
-  $('#solo').hidden=true;buildWall(true);
+  $('#solo').hidden=true;buildWall(true);mobileSolo();
   $('#play').hidden=true;$('#side').hidden=true;$('#done').hidden=false;
   $('#d-title').textContent=reason==='all'?'Todas acertadas':reason==='time'?'Se acabó el tiempo':'Partida terminada';
   $('#d-detail').textContent=`${Math.round(n/tot*100)}% en ${fmt(G.elapsed)}`+(missed?` · te han faltado ${missed}, marcadas en rojo`:'');
