@@ -10,8 +10,9 @@
 <style>
 :root{--bg:#14161f;--alt:#1c1f2b;--text:#e4e6f0;--sub:#5a607a;--accent:#8fb4ff;color-scheme:dark}
 *{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--text);font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:14px;line-height:1.5;display:grid;place-items:center;padding:28px}
+html,body{min-height:100%;margin:0}
+body{min-height:100vh;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:14px;line-height:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:28px}
 main{width:100%;max-width:760px;display:grid;gap:14px}
 a{display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 24px;padding:30px 32px;border-radius:20px;background:var(--alt);color:inherit;text-decoration:none;transition:transform .25s cubic-bezier(.2,.8,.2,1),background-color .25s}
 a:hover{transform:translateY(-3px);background:color-mix(in srgb,var(--accent) 12%,var(--alt))}
@@ -20,6 +21,12 @@ h2{margin:0;font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-
 h2 b{font-weight:400;color:var(--accent)}
 p{margin:0;color:var(--sub);grid-column:1}
 span{grid-row:1/3;grid-column:2;color:var(--accent);font-size:22px}
+footer{width:100%;max-width:760px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;color:var(--sub);font-size:12px;margin-top:6px}
+footer button{font:inherit;color:var(--sub);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+footer button:hover{color:var(--accent)}
+footer button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+footer span{font-size:12px;color:var(--sub);grid-row:auto;grid-column:auto}
+footer #bk-msg{color:var(--text)}
 </style>
 </head>
 <body>
@@ -28,5 +35,37 @@ span{grid-row:1/3;grid-column:2;color:var(--accent);font-size:22px}
   <a href="mapeo/"><h2>mapeo<b>.</b></h2><p>Países, regiones, capitales y banderas: Europa, el mundo, Europa en 15 épocas de 1492 a 1994, un reto diario y una docena de minijuegos.</p><span aria-hidden="true">→</span></a>
   <a href="atlas/"><h2>atlas<b>.</b></h2><p>Atlas histórico: ucronías, extensión de imperios y prospectiva, con las fronteras originales. 19 mapas: 10 ucronías, 8 de extensión acumulada y uno de prospectiva.</p><span aria-hidden="true">→</span></a>
 </main>
+<footer>
+  <span>Tu progreso (marcas, rutas, estadísticas y paleta) se guarda en este navegador.</span>
+  <button type="button" id="bk-out">Exportar progreso</button>
+  <button type="button" id="bk-in">Importar progreso</button>
+  <input type="file" id="bk-file" accept="application/json,.json" hidden>
+  <span id="bk-msg" aria-live="polite"></span>
+</footer>
+<script>
+// Backup of everything the games keep in localStorage (same origin for tecleo, mapeo and atlas), to move it to another browser.
+(function(){
+  const msg=t=>{document.getElementById('bk-msg').textContent=t};
+  document.getElementById('bk-out').onclick=()=>{
+    const data={};
+    try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);data[k]=localStorage.getItem(k)}}catch(e){return msg('No se puede leer el almacenamiento de este navegador.')}
+    const n=Object.keys(data).length;if(!n)return msg('No hay progreso guardado en este navegador.');
+    const blob=new Blob([JSON.stringify({app:'typemaps',v:1,date:new Date().toISOString(),data},null,1)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='typemaps-progreso-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    msg('Exportadas '+n+' claves. Ábrelo en el otro navegador con «Importar progreso».');
+  };
+  const file=document.getElementById('bk-file');
+  document.getElementById('bk-in').onclick=()=>file.click();
+  file.onchange=()=>{
+    const f=file.files[0];if(!f)return;
+    f.text().then(t=>{
+      const j=JSON.parse(t);if(!j||j.app!=='typemaps'||typeof j.data!=='object')throw 0;
+      let n=0;for(const [k,v] of Object.entries(j.data)){if(typeof v==='string'){localStorage.setItem(k,v);n++}}
+      msg('Importadas '+n+' claves. Tu ruta, marcas y estadísticas ya están en este navegador.');
+    }).catch(()=>msg('Ese archivo no es una copia de progreso de typemaps.')).finally(()=>{file.value=''});
+  };
+})();
+</script>
 </body>
 </html>
