@@ -122,6 +122,7 @@ kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var
 #spark{display:block;margin-top:4px}
 .minis b small{font-size:12px;color:var(--sub);margin-left:8px}
 #r-time small{display:block;margin:2px 0 0}
+.eu-tries{align-self:center;color:var(--sub);font-size:12px;white-space:nowrap}.eu-tries b{color:var(--text);font-weight:500}
 .r-eu{grid-column:1/-1;padding-top:24px;border-top:1px solid var(--line)}
 .eu-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .btn.sm{padding:8px 14px;font-size:13px}
@@ -212,6 +213,7 @@ input[type=range]{flex:1;accent-color:var(--accent)}
         <div class="seg soft" data-key="espace" id="seg-espace">
           <button type="button" data-val="off">sin espacios</button><button type="button" data-val="on">con espacios</button>
         </div>
+        <span class="eu-tries" id="eu-tries" hidden title="Intentos completos de los 47 países (mi ruta y al azar). Cuenta desde la primera tecla; sin terminar = reiniciados o abandonados."></span>
         <div class="seg soft" data-key="time" id="seg-time">
           <button type="button" data-val="15">15</button><button type="button" data-val="30">30</button>
           <button type="button" data-val="60">60</button><button type="button" data-val="120">120</button>
@@ -513,11 +515,26 @@ function palButtons(){
     }
   }
 }
+// Europa attempt counter: full runs only (route or random), counted from the first key; unfinished = reset or abandoned
+const TRY_KEY='tecleo.eu.tries';
+const euTriesGet=()=>Object.assign({started:0,finished:0,day:'',today:0,todayDone:0},store.get(TRY_KEY,{}));
+function euTry(kind){
+  if(cfg.mode!=='europe'||cfg.eorder==='slow')return;
+  const t=euTriesGet(),d=new Date(),day=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  if(t.day!==day){t.day=day;t.today=0;t.todayDone=0}
+  t[kind]++;if(kind==='started')t.today++;else t.todayDone++;
+  store.set(TRY_KEY,t);renderTries();
+}
+function renderTries(){
+  const el=$('#eu-tries');if(!el)return;el.hidden=cfg.mode!=='europe';if(el.hidden)return;
+  const t=euTriesGet(),d=new Date(),day=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(),today=t.day===day?t.today:0,todayDone=t.day===day?t.todayDone:0;
+  el.innerHTML=`<b>${t.started}</b> intentos · <b>${t.finished}</b> terminados · <b>${Math.max(0,t.started-t.finished)}</b> sin terminar`+(today?` · hoy ${todayDone}/${today}`:'');
+}
 function syncUI(){
   $$('.seg[data-key]').forEach(s=>{const k=s.dataset.key;[...s.children].forEach(b=>b.setAttribute('aria-pressed',String(cfg[k])===b.dataset.val))});
   $$('[data-toggle]').forEach(b=>b.setAttribute('aria-pressed',!!cfg[b.dataset.toggle]));
   $$('[data-pal]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pal===cfg.palette));
-  $('#seg-time').hidden=cfg.mode!=='time';$('#seg-count').hidden=cfg.mode!=='words';$('#seg-eorder').hidden=cfg.mode!=='europe';$('#seg-espace').hidden=cfg.mode!=='europe';
+  $('#seg-time').hidden=cfg.mode!=='time';$('#seg-count').hidden=cfg.mode!=='words';$('#seg-eorder').hidden=cfg.mode!=='europe';$('#seg-espace').hidden=cfg.mode!=='europe';renderTries();
   const q=cfg.mode==='quote',eu=cfg.mode==='europe';$('#seg-qtag').hidden=!q;$('#seg-qlen').hidden=!q;$('#seg-opts').hidden=q||eu;$('#seg-lang').hidden=q||eu;
   const c=activeColors();for(let i=0;i<6;i++)$('#c-'+i).value=c[i];
   $('#size').value=cfg.size;$('#size-v').textContent=cfg.size+' px';
@@ -675,7 +692,7 @@ function account(pos,added){
   for(const ch of added){S.secChars++;if(ch===' ')continue;
     const exp=S.words[S.wi][pos];if(ch===exp)S.ok++;else{S.bad++;S.secErr++;flashErr();S.we[S.wi]=(S.we[S.wi]||0)+1;if(exp)S.miss[exp]=(S.miss[exp]||0)+1}pos++}
 }
-function start(){S.started=true;S.t0=performance.now();S.timer=setInterval(tick,1000);body.classList.add('started');if(cfg.mode==='time')setProg(1/cfg.time);paceStart()}
+function start(){euTry('started');S.started=true;S.t0=performance.now();S.timer=setInterval(tick,1000);body.classList.add('started');if(cfg.mode==='time')setProg(1/cfg.time);paceStart()}
 /* Ghost pacer: a faint second caret that advances at the typist's usual speed. */
 let paceRaf=0;
 function paceStart(){
@@ -796,6 +813,7 @@ function euReport(){
   $('#eu-drill').onclick=()=>{cfg.eorder='slow';save();syncUI();reset();focusInput()};
 }
 function finish(){
+  euTry('finished');
   S.finished=true;clearInterval(S.timer);clearTimeout(idleT);
   const dur=cfg.mode==='time'?cfg.time:Math.max(.2,(performance.now()-S.t0)/1000);
   const cc=correctChars(),frac=dur-S.sec;
