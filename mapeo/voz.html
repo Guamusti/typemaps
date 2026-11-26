@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapeo · banderas en voz alta</title>
+<meta name="description" content="Entrenamiento para el récord de todas las banderas en voz alta: 195 banderas, tiempo por bandera y práctica de las más lentas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Voice mode of the flags test (ondeo.voz): one flag at a time, said out loud, timed per flag.
+   Same family as the rest of Mapeo: palette from mapeo.cfg, serif numerals, mono interface. */
+:root{
+  --bg:#14161f; --alt:#1c1f2b; --text:#e4e6f0; --sub:#5a607a; --accent:#8fb4ff; --err:#ff6b81;
+  --ok:color-mix(in srgb,var(--accent) 55%,#5fd38a);
+  --line:color-mix(in srgb,var(--sub) 30%,transparent);
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --display:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.5;display:flex;flex-direction:column;min-height:100vh}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{width:100%;max-width:960px;margin:0 auto;padding:0 28px}
+header .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding-top:22px;padding-bottom:6px}
+.mark{font-family:var(--display);font-style:italic;font-size:38px;line-height:1;color:inherit;text-decoration:none}
+.mark b{font-weight:400;color:var(--accent)}
+.crumb-l{color:var(--sub);font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none}
+.crumb-l:hover{color:var(--text)}
+.rec{margin-left:auto;color:var(--sub);font-size:12px}
+main{flex:1;display:flex}
+main .wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:40px}
+.screen{display:none;width:100%;flex-direction:column;align-items:center;gap:22px}
+.screen.on{display:flex}
+.row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.lbl{color:var(--sub);font-size:11px;text-transform:uppercase;letter-spacing:.12em}
+.opt{color:var(--sub);padding:6px 12px;border-radius:999px}
+.opt:hover{color:var(--text)}
+.opt.sel{color:var(--text);background:color-mix(in srgb,var(--accent) 18%,var(--alt))}
+.opt:disabled{opacity:.4;cursor:default}
+.go{background:var(--alt);font-size:16px;padding:12px 28px;border-radius:12px}
+.go:hover{background:color-mix(in srgb,var(--accent) 14%,var(--alt))}
+.go:disabled{opacity:.4;cursor:default}
+.note{color:var(--sub);font-size:12px;text-align:center;max-width:560px;line-height:1.7}
+.note b{color:var(--text);font-weight:500}
+kbd{background:var(--alt);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:11px;color:var(--text)}
+.hud{width:100%;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);font-size:34px}
+.hud small{font-family:var(--mono);color:var(--sub);font-size:13px}
+.flagbox{width:100%;max-width:560px;aspect-ratio:3/2;display:flex;align-items:center;justify-content:center}
+.flagbox img{max-width:100%;max-height:100%;border-radius:4px;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.heard{min-height:24px;color:var(--sub);font-size:15px;text-align:center}
+.answer{color:var(--err);font-size:14px;min-height:20px}
+.flash-ok{animation:ok .25s}
+.flash-bad{animation:bad .35s}
+@keyframes ok{from{box-shadow:0 0 0 5px var(--ok)}}
+@keyframes bad{from{box-shadow:0 0 0 5px var(--err)}}
+@media (prefers-reduced-motion:reduce){.flash-ok,.flash-bad{animation:none}}
+.big{display:flex;gap:40px;flex-wrap:wrap;justify-content:center}
+.stat{text-align:center}
+.stat .v{font-family:var(--display);font-size:48px;line-height:1.1;color:var(--accent)}
+.stat .k{color:var(--sub);font-size:12px}
+table{border-collapse:collapse;font-size:13px;width:100%;max-width:560px}
+td,th{padding:5px 8px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--sub);font-weight:400;font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+td img{height:16px;vertical-align:middle;border-radius:2px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.v.bad,.bad{color:var(--err)} .v.good,.good{color:var(--ok)}
+.mic{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--sub);margin-right:8px;vertical-align:middle}
+.mic.live{background:var(--err);box-shadow:0 0 8px var(--err)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="mark" href="./" title="Volver a Mapeo">mapeo<b>.</b></a>
+    <a class="crumb-l" href="banderas.html" title="Test de banderas escrito">banderas</a>
+    <span class="crumb-l" aria-current="page" style="color:var(--text)">en voz alta</span>
+    <span class="rec">récord GWR: 195 banderas · 2:55</span>
+  </div>
+</header>
+
+<main><div class="wrap">
+  <section class="screen on" id="scrStart">
+    <div class="lbl">modo</div>
+    <div class="row" data-group="mode">
+      <button class="opt sel" data-v="full">completo (195)</button>
+      <button class="opt" data-v="slow">mis lentas (25)</button>
+      <button class="opt" data-v="50">50 al azar</button>
+      <button class="opt" data-v="20">20 al azar</button>
+    </div>
+    <div class="lbl">entrada</div>
+    <div class="row" data-group="input">
+      <button class="opt sel" data-v="voice">voz</button>
+      <button class="opt" data-v="manual">manual</button>
+    </div>
+    <div class="lbl">idioma</div>
+    <div class="row" data-group="lang">
+      <button class="opt sel" data-v="en">inglés</button>
+      <button class="opt" data-v="es">español</button>
+    </div>
+    <button class="go" id="btnStart" disabled>cargando banderas…</button>
+    <p class="note">
+      <b>Voz:</b> di el nombre y pasa sola al reconocerlo. Si el micro no lo pilla, <kbd>espacio</kbd> = «lo he dicho bien».<br>
+      <b>Manual:</b> dilo en voz alta y pulsa <kbd>espacio</kbd> si acertaste o <kbd>F</kbd> si fallaste o dudaste. En el móvil, tocar la bandera es acierto.<br>
+      <kbd>Esc</kbd> abandona. El tiempo de cada bandera empieza cuando ya está en pantalla. El reconocimiento de voz tiene algo de retraso: para tiempos fiables, usa el manual.
+    </p>
+    <p class="note" id="histNote"></p>
+  </section>
+
+  <section class="screen" id="scrRun">
+    <div class="hud">
+      <div><span id="hudCount">0/0</span> <small id="hudErr"></small></div>
+      <div><span class="mic" id="micDot"></span><span id="hudTime">0.0</span></div>
+    </div>
+    <div class="flagbox"><img id="flagImg" alt="Bandera por decir en voz alta"></div>
+    <div class="heard" id="heard" aria-live="polite"></div>
+    <div class="answer" id="answer" aria-live="polite"></div>
+  </section>
+
+  <section class="screen" id="scrRes">
+    <div class="big">
+      <div class="stat"><div class="v" id="rTotal"></div><div class="k">tiempo total</div></div>
+      <div class="stat"><div class="v" id="rAvg"></div><div class="k">s / bandera</div></div>
+      <div class="stat"><div class="v" id="rProj"></div><div class="k">proyección a 195</div></div>
+      <div class="stat"><div class="v" id="rErr"></div><div class="k">fallos</div></div>
+    </div>
+    <p class="note" id="rVerdict"></p>
+    <div class="lbl">las 15 más lentas de esta ronda</div>
+    <table id="rSlow"></table>
+    <div class="row">
+      <button class="go" id="btnAgain">otra vez (enter)</button>
+      <button class="go" id="btnSlow">practicar mis lentas</button>
+    </div>
+  </section>
+</div></main>
+
+<script>
+/* ---------- look: the shared Mapeo palette ---------- */
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+// Copy of the palette table in banderas.html: [bg, panels, text, secondary, accent, error]
+const PALETTES={medianoche:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],ambar:['#1d1a17','#27231e','#ede4d3','#7a6f5f','#f2b24a','#e5604d'],mar:['#0d2530','#123240','#d6ecef','#4f7785','#4fd6c4','#ff7a6b'],lavanda:['#221d2e','#2c2640','#ece6f7','#74698f','#c6a0ff','#ff7096'],bosque:['#141c17','#1b2620','#dbe6d6','#5c7364','#9bd67a','#f07a5a'],atardecer:['#2a1a24','#38222f','#fbe9dc','#8c6474','#ff8a5c','#ff4d7a'],nordico:['#2b303b','#343b48','#e5e9f0','#6f7a8f','#88c0d0','#d9727b'],carbon:['#111111','#1b1b1b','#f2f2f2','#5c5c5c','#ffffff','#ff5c5c'],papel:['#f2f0ea','#e6e3da','#26262b','#a3a097','#2f55d4','#d43d2f'],sakura:['#f7eef0','#efdfe3','#4a3540','#b99aa5','#d6457a','#8a2be2'],menta:['#e9f3ee','#d9e9e1','#1f3a30','#8fb0a2','#0f9d76','#d1493f'],oceano:['#0b1a2a','#10263b','#dbe8f5','#4e6a85','#5ec2ff','#ff7a85'],solar:['#002b36','#073642','#eee8d5','#5d7a83','#e0b326','#e5534b'],vampiro:['#282a36','#343746','#f8f8f2','#6a76a8','#bd93f9','#ff6e6e'],gruvbox:['#282828','#32302f','#ebdbb2','#7c6f64','#b8bb26','#fb4934'],neon:['#0d0b1a','#17142b','#f1eeff','#5d5885','#39ffb6','#ff4fa3'],cafe:['#1f1813','#2a211a','#eadbc8','#7d6a58','#d7b085','#e8715c'],pizarra:['#22272e','#2d333b','#cdd9e5','#66717e','#6cb6ff','#f47067'],ciruela:['#1d1420','#2a1c2e','#f1e4f3','#84698a','#e0a3ff','#ff8a65'],oliva:['#1b1c14','#25271c','#e6e6cf','#74775c','#c5cf6a','#e8784f'],contraste:['#000000','#111111','#ffffff','#6a6a6a','#ffd400','#ff4040'],arena:['#f4ede1','#e9dfcf','#3a3128','#958676','#b85f22','#b8323a'],cielo:['#eef4fb','#dde8f5','#1f2d3d','#7d91a8','#2672d6','#d6455d'],lino:['#f3f1e7','#e6e3d4','#2f3327','#8f8e78','#4f7d32','#c0503a'],tiza:['#ffffff','#f0f0f0','#111111','#8a8a8a','#1a1a1a','#e0352b']};
+(function applyLook(){
+  const m=store.get('mapeo.cfg',{})||{};
+  const c=m.palette==='custom'&&m.custom?m.custom:(PALETTES[m.palette]||PALETTES.medianoche);
+  const r=document.documentElement;
+  ['--bg','--alt','--text','--sub','--accent','--err'].forEach((k,i)=>r.style.setProperty(k,c[i]));
+  const n=parseInt(c[0].slice(1),16),lum=(.299*(n>>16&255)+.587*(n>>8&255)+.114*(n&255))/255;
+  r.style.colorScheme=lum<.5?'dark':'light';
+})();
+
+/* ---------- data: 193 UN members + Vatican City + Palestine ---------- */
+// iso2|English|Spanish|extra aliases…
+const RAW=`af|Afghanistan|Afganistán|
+al|Albania|Albania|
+dz|Algeria|Argelia|
+ad|Andorra|Andorra|
+ao|Angola|Angola|
+ag|Antigua and Barbuda|Antigua y Barbuda|antigua
+ar|Argentina|Argentina|
+am|Armenia|Armenia|
+au|Australia|Australia|
+at|Austria|Austria|
+az|Azerbaijan|Azerbaiyán|
+bs|Bahamas|Bahamas|the bahamas
+bh|Bahrain|Baréin|bahréin
+bd|Bangladesh|Bangladés|
+bb|Barbados|Barbados|
+by|Belarus|Bielorrusia|
+be|Belgium|Bélgica|
+bz|Belize|Belice|
+bj|Benin|Benín|
+bt|Bhutan|Bután|
+bo|Bolivia|Bolivia|
+ba|Bosnia and Herzegovina|Bosnia y Herzegovina|bosnia
+bw|Botswana|Botsuana|
+br|Brazil|Brasil|
+bn|Brunei|Brunéi|
+bg|Bulgaria|Bulgaria|
+bf|Burkina Faso|Burkina Faso|burkina
+bi|Burundi|Burundi|
+cv|Cape Verde|Cabo Verde|cabo verde
+kh|Cambodia|Camboya|
+cm|Cameroon|Camerún|
+ca|Canada|Canadá|
+cf|Central African Republic|República Centroafricana|car|centroafricana
+td|Chad|Chad|
+cl|Chile|Chile|
+cn|China|China|
+co|Colombia|Colombia|
+km|Comoros|Comoras|
+cg|Congo|Congo|republic of the congo|congo brazzaville|república del congo
+cd|DR Congo|RD del Congo|drc|democratic republic of the congo|república democrática del congo|congo kinshasa|dr congo|rd congo
+cr|Costa Rica|Costa Rica|
+ci|Ivory Coast|Costa de Marfil|cote d ivoire
+hr|Croatia|Croacia|
+cu|Cuba|Cuba|
+cy|Cyprus|Chipre|
+cz|Czechia|Chequia|czech republic|república checa
+dk|Denmark|Dinamarca|
+dj|Djibouti|Yibuti|
+dm|Dominica|Dominica|
+do|Dominican Republic|República Dominicana|
+ec|Ecuador|Ecuador|
+eg|Egypt|Egipto|
+sv|El Salvador|El Salvador|salvador
+gq|Equatorial Guinea|Guinea Ecuatorial|
+er|Eritrea|Eritrea|
+ee|Estonia|Estonia|
+sz|Eswatini|Esuatini|swaziland|suazilandia
+et|Ethiopia|Etiopía|
+fj|Fiji|Fiyi|
+fi|Finland|Finlandia|
+fr|France|Francia|
+ga|Gabon|Gabón|
+gm|Gambia|Gambia|the gambia
+ge|Georgia|Georgia|
+de|Germany|Alemania|
+gh|Ghana|Ghana|
+gr|Greece|Grecia|
+gd|Grenada|Granada|
+gt|Guatemala|Guatemala|
+gn|Guinea|Guinea|
+gw|Guinea-Bissau|Guinea-Bisáu|guinea bissau
+gy|Guyana|Guyana|
+ht|Haiti|Haití|
+hn|Honduras|Honduras|
+hu|Hungary|Hungría|
+is|Iceland|Islandia|
+in|India|India|
+id|Indonesia|Indonesia|
+ir|Iran|Irán|
+iq|Iraq|Irak|
+ie|Ireland|Irlanda|
+il|Israel|Israel|
+it|Italy|Italia|
+jm|Jamaica|Jamaica|
+jp|Japan|Japón|
+jo|Jordan|Jordania|
+kz|Kazakhstan|Kazajistán|
+ke|Kenya|Kenia|
+ki|Kiribati|Kiribati|
+kp|North Korea|Corea del Norte|
+kr|South Korea|Corea del Sur|
+kw|Kuwait|Kuwait|
+kg|Kyrgyzstan|Kirguistán|
+la|Laos|Laos|
+lv|Latvia|Letonia|
+lb|Lebanon|Líbano|
+ls|Lesotho|Lesoto|lesotho
+lr|Liberia|Liberia|
+ly|Libya|Libia|
+li|Liechtenstein|Liechtenstein|
+lt|Lithuania|Lituania|
+lu|Luxembourg|Luxemburgo|
+mg|Madagascar|Madagascar|
+mw|Malawi|Malaui|malawi
+my|Malaysia|Malasia|
+mv|Maldives|Maldivas|
+ml|Mali|Malí|
+mt|Malta|Malta|
+mh|Marshall Islands|Islas Marshall|marshall
+mr|Mauritania|Mauritania|
+mu|Mauritius|Mauricio|
+mx|Mexico|México|
+fm|Micronesia|Micronesia|
+md|Moldova|Moldavia|
+mc|Monaco|Mónaco|
+mn|Mongolia|Mongolia|
+me|Montenegro|Montenegro|
+ma|Morocco|Marruecos|
+mz|Mozambique|Mozambique|
+mm|Myanmar|Birmania|burma|myanmar
+na|Namibia|Namibia|
+nr|Nauru|Nauru|
+np|Nepal|Nepal|
+nl|Netherlands|Países Bajos|holland|holanda|the netherlands
+nz|New Zealand|Nueva Zelanda|
+ni|Nicaragua|Nicaragua|
+ne|Niger|Níger|
+ng|Nigeria|Nigeria|
+mk|North Macedonia|Macedonia del Norte|macedonia
+no|Norway|Noruega|
+om|Oman|Omán|
+pk|Pakistan|Pakistán|
+pw|Palau|Palaos|palau
+pa|Panama|Panamá|
+pg|Papua New Guinea|Papúa Nueva Guinea|papua
+py|Paraguay|Paraguay|
+pe|Peru|Perú|
+ph|Philippines|Filipinas|
+pl|Poland|Polonia|
+pt|Portugal|Portugal|
+qa|Qatar|Catar|qatar
+ro|Romania|Rumanía|rumania
+ru|Russia|Rusia|
+rw|Rwanda|Ruanda|
+kn|Saint Kitts and Nevis|San Cristóbal y Nieves|saint kitts|st kitts|st kitts and nevis
+lc|Saint Lucia|Santa Lucía|st lucia
+vc|Saint Vincent and the Grenadines|San Vicente y las Granadinas|saint vincent|st vincent|san vicente
+ws|Samoa|Samoa|
+sm|San Marino|San Marino|
+st|Sao Tome and Principe|Santo Tomé y Príncipe|sao tome|santo tome
+sa|Saudi Arabia|Arabia Saudí|arabia saudita|saudi
+sn|Senegal|Senegal|
+rs|Serbia|Serbia|
+sc|Seychelles|Seychelles|
+sl|Sierra Leone|Sierra Leona|
+sg|Singapore|Singapur|
+sk|Slovakia|Eslovaquia|
+si|Slovenia|Eslovenia|
+sb|Solomon Islands|Islas Salomón|solomon|salomón
+so|Somalia|Somalia|
+za|South Africa|Sudáfrica|
+ss|South Sudan|Sudán del Sur|
+es|Spain|España|
+lk|Sri Lanka|Sri Lanka|
+sd|Sudan|Sudán|
+sr|Suriname|Surinam|surinam|suriname
+se|Sweden|Suecia|
+ch|Switzerland|Suiza|
+sy|Syria|Siria|
+tj|Tajikistan|Tayikistán|
+tz|Tanzania|Tanzania|
+th|Thailand|Tailandia|
+tl|East Timor|Timor Oriental|timor leste|timor
+tg|Togo|Togo|
+to|Tonga|Tonga|
+tt|Trinidad and Tobago|Trinidad y Tobago|trinidad
+tn|Tunisia|Túnez|
+tr|Turkey|Turquía|turkiye
+tm|Turkmenistan|Turkmenistán|
+tv|Tuvalu|Tuvalu|
+ug|Uganda|Uganda|
+ua|Ukraine|Ucrania|
+ae|United Arab Emirates|Emiratos Árabes Unidos|uae|emirates|emiratos
+gb|United Kingdom|Reino Unido|uk|britain|great britain|u k
+us|United States|Estados Unidos|usa|america|united states of america|us|u s|u s a
+uy|Uruguay|Uruguay|
+uz|Uzbekistan|Uzbekistán|
+vu|Vanuatu|Vanuatu|
+ve|Venezuela|Venezuela|
+vn|Vietnam|Vietnam|viet nam
+ye|Yemen|Yemen|
+zm|Zambia|Zambia|
+zw|Zimbabwe|Zimbabue|zimbabwe
+va|Vatican City|Ciudad del Vaticano|vatican|vaticano|holy see|santa sede
+ps|Palestine|Palestina|`;
+
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[-'’.,]/g,' ').replace(/\s+/g,' ').trim();
+const COUNTRIES=RAW.trim().split('\n').map(line=>{
+  const [code,en,es,...extra]=line.split('|');
+  return {code,en,es,aliases:[...new Set([en,es,...extra].filter(Boolean).map(norm))]};
+});
+const BY_CODE=Object.fromEntries(COUNTRIES.map(c=>[c.code,c]));
+const RECORD_S=175, FULL_N=COUNTRIES.length; // 195
+
+// Every alias with its regex; overlapping names (Niger/Nigeria, Sudan/South Sudan, the Guineas…) resolve by the latest and longest match
+const ALIAS_LIST=[];
+COUNTRIES.forEach(c=>c.aliases.forEach(a=>ALIAS_LIST.push({a,code:c.code,re:new RegExp('(^| )'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?= |$)','g')})));
+function bestMatch(text){
+  let best=null;
+  for(const al of ALIAS_LIST){
+    al.re.lastIndex=0;let m;
+    while((m=al.re.exec(text))){
+      const end=m.index+m[0].length;
+      if(!best||end>best.end||(end===best.end&&al.a.length>best.len))best={code:al.code,end,len:al.a.length};
+    }
+  }
+  return best;
+}
+
+/* ---------- stats, per browser ---------- */
+let STATS=store.get('ondeoVoz.stats',{}); // code -> {n, errors, recent:[s…], best}
+let RUNS=store.get('ondeoVoz.runs',[]);   // {date, n, total, errors}
+function recordFlag(code,secs,ok){
+  const s=STATS[code]||(STATS[code]={n:0,errors:0,recent:[],best:null});
+  s.n++;if(!ok)s.errors++;
+  s.recent.push(ok?secs:Math.max(secs,3)); // a miss weighs at least 3 s
+  if(s.recent.length>10)s.recent.shift();
+  if(ok&&(s.best===null||secs<s.best))s.best=secs;
+}
+const avgRecent=c=>{const s=STATS[c];if(!s||!s.recent.length)return null;return s.recent.reduce((a,b)=>a+b,0)/s.recent.length};
+
+/* ---------- preload the local flags ---------- */
+const IMG_URL=c=>'flags/'+c+'.svg';
+const PRELOADED={};let loaded=0;
+const btnStart=document.getElementById('btnStart');
+COUNTRIES.forEach(c=>{
+  const im=new Image();im.src=IMG_URL(c.code);
+  const done=()=>{loaded++;btnStart.textContent=loaded<FULL_N?`cargando banderas… ${loaded}/${FULL_N}`:'empezar (enter)';if(loaded===FULL_N)btnStart.disabled=false};
+  im.decode?im.decode().then(done,done):(im.onload=im.onerror=done);
+  PRELOADED[c.code]=im;
+});
+setTimeout(()=>{if(btnStart.disabled){btnStart.disabled=false;btnStart.textContent='empezar (enter)'}},15000);
+
+/* ---------- options ---------- */
+const opts={mode:'full',input:'voice',lang:'en'};
+document.querySelectorAll('[data-group]').forEach(g=>{
+  g.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b||b.disabled)return;
+    g.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');opts[g.dataset.group]=b.dataset.v;
+  });
+});
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){
+  const vb=document.querySelector('[data-group=input] [data-v=voice]');
+  vb.textContent='voz (no disponible en este navegador)';vb.disabled=true;vb.classList.remove('sel');
+  document.querySelector('[data-group=input] [data-v=manual]').classList.add('sel');opts.input='manual';
+}
+const fmt=s=>s>=60?`${Math.floor(s/60)}:${(s%60).toFixed(1).padStart(4,'0')}`:s.toFixed(2)+' s';
+function renderHistory(){
+  const full=RUNS.filter(r=>r.n===FULL_N&&r.errors===0);
+  const best=full.length?Math.min(...full.map(r=>r.total)):null;
+  const last=RUNS.slice(-1)[0];
+  document.getElementById('histNote').innerHTML=(best?`Mejor vuelta completa sin fallos: <b>${fmt(best)}</b> · `:'')+(last?`Última: ${last.n} banderas en ${fmt(last.total)}, ${last.errors} fallos`:'Sin vueltas guardadas todavía.');
+}
+renderHistory();
+
+/* ---------- round ---------- */
+const $=id=>document.getElementById(id);
+const show=id=>document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+let run=null,rec=null,tick=null;
+
+function buildQueue(){
+  const codes=COUNTRIES.map(c=>c.code);
+  if(opts.mode==='full')return shuffle(codes);
+  if(opts.mode==='slow'){
+    // never-seen flags first, then the worst recent average
+    const scored=codes.map(c=>({c,v:avgRecent(c)??99})).sort((a,b)=>b.v-a.v);
+    return shuffle(scored.slice(0,25).map(x=>x.c));
+  }
+  return shuffle(codes).slice(0,+opts.mode);
+}
+function startRun(){
+  run={queue:buildQueue(),i:0,results:[],t0:null,tFlag:null,errors:0,busy:false};
+  $('heard').textContent='';$('answer').textContent='';
+  show('scrRun');
+  if(opts.input==='voice')startRec();
+  nextFlag();
+  tick=setInterval(()=>{if(run&&run.t0)$('hudTime').textContent=((performance.now()-run.t0)/1000).toFixed(1)},100);
+}
+function nextFlag(){
+  if(run.i>=run.queue.length)return finish();
+  const code=run.queue[run.i],img=$('flagImg');
+  $('hudCount').textContent=`${run.i+1}/${run.queue.length}`;
+  $('hudErr').textContent=run.errors?`· ${run.errors} fallo${run.errors>1?'s':''}`:'';
+  img.src=PRELOADED[code].src;
+  const ready=()=>requestAnimationFrame(()=>{run.tFlag=performance.now();if(!run.t0)run.t0=run.tFlag;run.busy=false});
+  run.busy=true;
+  img.decode?img.decode().then(ready,ready):ready();
+  markCut();
+}
+function answer(ok){
+  if(!run||run.busy||run.tFlag===null)return;
+  run.busy=true;
+  const code=run.queue[run.i],secs=(performance.now()-run.tFlag)/1000;
+  run.results.push({code,secs,ok});recordFlag(code,secs,ok);
+  const box=$('flagImg');
+  box.classList.remove('flash-ok','flash-bad');void box.offsetWidth;
+  box.classList.add(ok?'flash-ok':'flash-bad');
+  if(!ok){run.errors++;const c=BY_CODE[code];$('answer').textContent=`era: ${opts.lang==='es'?c.es:c.en}`}
+  else $('answer').textContent='';
+  run.i++;run.tFlag=null;
+  nextFlag();
+}
+function finish(){
+  const total=(performance.now()-run.t0)/1000;
+  stopRec();clearInterval(tick);
+  store.set('ondeoVoz.stats',STATS);
+  RUNS.push({date:Date.now(),n:run.queue.length,total,errors:run.errors});RUNS=RUNS.slice(-200);store.set('ondeoVoz.runs',RUNS);
+  const avg=total/run.queue.length,proj=avg*FULL_N;
+  $('rTotal').textContent=fmt(total);
+  $('rAvg').textContent=avg.toFixed(2);
+  $('rProj').textContent=fmt(proj);
+  $('rErr').textContent=run.errors;
+  $('rErr').className='v '+(run.errors?'bad':'good');
+  const diff=proj-RECORD_S;
+  $('rVerdict').innerHTML=diff<0
+    ?`A este ritmo batirías el récord (2:55) por <b class="good">${(-diff).toFixed(1)} s</b>${run.errors?', pero con fallos no cuenta':''}.`
+    :`Te faltan <b class="bad">${diff.toFixed(1)} s</b> sobre 195 banderas: ${(diff/FULL_N).toFixed(2)} s menos por bandera.`;
+  const name=c=>opts.lang==='es'?BY_CODE[c].es:BY_CODE[c].en;
+  const slow=[...run.results].sort((a,b)=>(b.ok?b.secs:99)-(a.ok?a.secs:99)).slice(0,15);
+  $('rSlow').innerHTML='<tr><th></th><th>país</th><th class="num">ahora</th><th class="num">media</th></tr>'+
+    slow.map(r=>`<tr><td><img src="${IMG_URL(r.code)}" alt=""></td><td class="${r.ok?'':'bad'}">${name(r.code)}${r.ok?'':' ✗'}</td><td class="num">${r.secs.toFixed(2)}</td><td class="num">${(avgRecent(r.code)||0).toFixed(2)}</td></tr>`).join('');
+  run=null;show('scrRes');renderHistory();
+}
+function abort(){if(!run)return;stopRec();clearInterval(tick);store.set('ondeoVoz.stats',STATS);run=null;show('scrStart');renderHistory()}
+
+/* ---------- speech recognition ---------- */
+let cutIdx=0,cutLen=0,lastResults=null,recActive=false;
+function markCut(){
+  // what was already heard does not count for the next flag
+  if(lastResults&&lastResults.length){cutIdx=lastResults.length-1;cutLen=lastResults[cutIdx][0].transcript.length}
+  else{cutIdx=0;cutLen=0}
+  $('heard').textContent='';
+}
+function startRec(){
+  rec=new SR();rec.lang=opts.lang==='es'?'es-ES':'en-US';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=3;
+  recActive=true;
+  rec.onstart=()=>$('micDot').classList.add('live');
+  rec.onresult=e=>{
+    lastResults=e.results;
+    if(!run||run.busy)return;
+    const code=run.queue[run.i];
+    let text='';
+    for(let i=cutIdx;i<e.results.length;i++){let t=e.results[i][0].transcript;if(i===cutIdx)t=t.slice(cutLen);text+=' '+t}
+    const n=norm(text);
+    $('heard').textContent=n.split(' ').slice(-5).join(' ');
+    const last=e.results[e.results.length-1];
+    const cands=[n];for(let k=1;k<last.length;k++)cands.push(norm(last[k].transcript));
+    for(const c of cands){const m=bestMatch(c);if(m&&m.code===code){answer(true);return}}
+  };
+  rec.onerror=e=>{if(e.error==='not-allowed'){recActive=false;$('heard').textContent='sin permiso de micrófono: usa espacio / F'}};
+  rec.onend=()=>{$('micDot').classList.remove('live');lastResults=null;cutIdx=0;cutLen=0;if(recActive&&run){try{rec.start()}catch(_){}}};
+  try{rec.start()}catch(_){}
+}
+function stopRec(){recActive=false;if(rec){try{rec.abort()}catch(_){}rec=null}$('micDot').classList.remove('live')}
+
+/* ---------- controls ---------- */
+btnStart.onclick=startRun;
+$('btnAgain').onclick=startRun;
+$('btnSlow').onclick=()=>{opts.mode='slow';document.querySelectorAll('[data-group=mode] button').forEach(b=>b.classList.toggle('sel',b.dataset.v==='slow'));startRun()};
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')return abort();
+  if(run){
+    if(e.code==='Space'){e.preventDefault();answer(true)}
+    else if(e.key==='f'||e.key==='F'||e.key==='Backspace'){e.preventDefault();answer(false)}
+  }else if(e.key==='Enter'){
+    if($('scrStart').classList.contains('on')&&!btnStart.disabled)startRun();
+    else if($('scrRes').classList.contains('on'))startRun();
+  }
+});
+$('flagImg').addEventListener('click',()=>answer(true)); // on a phone, tapping the flag counts as correct
+</script>
+</body>
+</html>
