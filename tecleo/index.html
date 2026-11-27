@@ -122,6 +122,16 @@ kbd{font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;background:var
 #spark{display:block;margin-top:4px}
 .minis b small{font-size:12px;color:var(--sub);margin-left:8px}
 #r-time small{display:block;margin:2px 0 0}
+.eu-thirds{display:grid;grid-template-columns:repeat(3,minmax(90px,auto)) 1fr;gap:12px 32px;align-items:end;margin-bottom:26px}
+.eu-thirds b{display:block;font-family:var(--display,inherit);font-size:34px;font-weight:400;color:var(--accent);line-height:1.1}.eu-thirds small{color:var(--sub);font-size:12px}
+.eu-thirds b.eu-bad,.eu-bad{color:var(--err)}
+.eu-lost p{margin:4px 0 0}.eu-lost .eu-x{color:var(--sub);font-size:12px}
+.eu-parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:28px}
+.eu-part{display:grid;gap:2px;text-align:left;padding:12px 14px;border-radius:12px;background:var(--alt);transition:transform .15s,background-color .2s}
+.eu-part:hover{transform:translateY(-2px);background:color-mix(in srgb,var(--accent) 12%,var(--alt))}
+.eu-part span{color:var(--sub);font-size:12px}.eu-part b{font-weight:400;font-size:24px;color:var(--text)}.eu-part small{color:var(--sub);font-size:11px}
+.eu-part.slow{box-shadow:inset 0 0 0 1px var(--err)}.eu-part.slow b{color:var(--err)}
+@media (max-width:720px){.eu-thirds{grid-template-columns:repeat(3,1fr)}.eu-lost{grid-column:1/-1}}
 .eu-tries{align-self:center;color:var(--sub);font-size:12px;white-space:nowrap}.eu-tries b{color:var(--text);font-weight:500}
 .r-eu{grid-column:1/-1;padding-top:24px;border-top:1px solid var(--line)}
 .eu-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
@@ -208,7 +218,10 @@ input[type=range]{flex:1;accent-color:var(--accent)}
           <button type="button" data-val="europe">europa</button>
         </div>
         <div class="seg soft" data-key="eorder" id="seg-eorder">
-          <button type="button" data-val="route">mi ruta</button><button type="button" data-val="random">al azar</button><button type="button" data-val="slow">mis lentos</button>
+          <button type="button" data-val="route">mi ruta</button><button type="button" data-val="random">al azar</button><button type="button" data-val="slow">mis lentos</button><button type="button" data-val="group">por grupos</button>
+        </div>
+        <div class="seg soft" data-key="epart" id="seg-epart">
+          <button type="button" data-val="nor">nórdicos</button><button type="button" data-val="oes">oeste</button><button type="button" data-val="cen">centro</button><button type="button" data-val="sur">mediterráneo</button><button type="button" data-val="bal">balcanes</button><button type="button" data-val="est">este</button><button type="button" data-val="fin">último tercio</button>
         </div>
         <div class="seg soft" data-key="espace" id="seg-espace">
           <button type="button" data-val="off">sin espacios</button><button type="button" data-val="on">con espacios</button>
@@ -480,12 +493,12 @@ const QUOTES=[
 const FONT_STACK=f=>`"${f}",ui-monospace,"SF Mono",Menlo,Consolas,monospace`;
 
 let cfg=Object.assign({mode:'time',time:30,count:25,lang:'es',punct:false,nums:false,palette:'medianoche',
-  custom:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],font:'JetBrains Mono',size:28,caret:'line',smooth:130,trail:1,glow:1,sound:0,qtag:'all',qlen:'long',eorder:'route',espace:'off',pace:'off'},store.get('tecleo.cfg',{}));
+  custom:['#14161f','#1c1f2b','#e4e6f0','#5a607a','#8fb4ff','#ff6b81'],font:'JetBrains Mono',size:28,caret:'line',smooth:130,trail:1,glow:1,sound:0,qtag:'all',qlen:'long',eorder:'route',epart:'bal',espace:'off',pace:'off'},store.get('tecleo.cfg',{}));
 const save=()=>store.set('tecleo.cfg',cfg);
 
 const root=document.documentElement, body=document.body, area=$('#area'), inp=$('#inp'),
   viewport=$('#viewport'), wordsEl=$('#words'), caretEl=$('#caret'), pacerEl=$('#pacer');
-const pbKey=()=>cfg.mode==='europe'?'tecleo.pb.europe.'+cfg.eorder+euSuf():cfg.mode==='quote'?'tecleo.pb.quote.'+cfg.qlen:`tecleo.pb.${cfg.mode}.${cfg.mode==='time'?cfg.time:cfg.count}.${cfg.lang}.${+cfg.punct}${+cfg.nums}`;
+const pbKey=()=>cfg.mode==='europe'?'tecleo.pb.europe.'+euKey()+euSuf():cfg.mode==='quote'?'tecleo.pb.quote.'+cfg.qlen:`tecleo.pb.${cfg.mode}.${cfg.mode==='time'?cfg.time:cfg.count}.${cfg.lang}.${+cfg.punct}${+cfg.nums}`;
 
 /* ---------- look ---------- */
 const activeColors=()=>cfg.palette==='custom'?cfg.custom:(PALETTES.find(p=>p.id===cfg.palette)||PALETTES[0]).c;
@@ -519,7 +532,7 @@ function palButtons(){
 const TRY_KEY='tecleo.eu.tries';
 const euTriesGet=()=>Object.assign({started:0,finished:0,day:'',today:0,todayDone:0},store.get(TRY_KEY,{}));
 function euTry(kind){
-  if(cfg.mode!=='europe'||cfg.eorder==='slow')return;
+  if(cfg.mode!=='europe'||(cfg.eorder!=='route'&&cfg.eorder!=='random'))return;
   const t=euTriesGet(),d=new Date(),day=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
   if(t.day!==day){t.day=day;t.today=0;t.todayDone=0}
   t[kind]++;if(kind==='started')t.today++;else t.todayDone++;
@@ -534,12 +547,12 @@ function syncUI(){
   $$('.seg[data-key]').forEach(s=>{const k=s.dataset.key;[...s.children].forEach(b=>b.setAttribute('aria-pressed',String(cfg[k])===b.dataset.val))});
   $$('[data-toggle]').forEach(b=>b.setAttribute('aria-pressed',!!cfg[b.dataset.toggle]));
   $$('[data-pal]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pal===cfg.palette));
-  $('#seg-time').hidden=cfg.mode!=='time';$('#seg-count').hidden=cfg.mode!=='words';$('#seg-eorder').hidden=cfg.mode!=='europe';$('#seg-espace').hidden=cfg.mode!=='europe';renderTries();
+  $('#seg-time').hidden=cfg.mode!=='time';$('#seg-count').hidden=cfg.mode!=='words';$('#seg-eorder').hidden=cfg.mode!=='europe';$('#seg-epart').hidden=cfg.mode!=='europe'||cfg.eorder!=='group';$('#seg-espace').hidden=cfg.mode!=='europe';renderTries();
   const q=cfg.mode==='quote',eu=cfg.mode==='europe';$('#seg-qtag').hidden=!q;$('#seg-qlen').hidden=!q;$('#seg-opts').hidden=q||eu;$('#seg-lang').hidden=q||eu;
   const c=activeColors();for(let i=0;i<6;i++)$('#c-'+i).value=c[i];
   $('#size').value=cfg.size;$('#size-v').textContent=cfg.size+' px';
 }
-const NUMERIC=new Set(['time','count','smooth','glow','trail','sound']), RESTART=new Set(['mode','time','count','lang','qtag','qlen','eorder','espace']);
+const NUMERIC=new Set(['time','count','smooth','glow','trail','sound']), RESTART=new Set(['mode','time','count','lang','qtag','qlen','eorder','epart','espace']);
 document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   const seg=b.closest('.seg[data-key]');
@@ -583,8 +596,21 @@ const euStats=()=>store.get('tecleo.eu.words'+euSuf(),{});
 const euSlow=()=>Object.entries(euStats()).filter(([w,v])=>v.length).map(([w,v])=>[w,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>a[1]-b[1]);
 const noSpace=()=>cfg.mode==='europe'&&cfg.espace!=='on';
 const euSuf=()=>noSpace()?'.ns':'';
+// Groups: the same six parts as Speedrun Europa in Mapeo, plus the last third of your own route
+const EU_PARTS=[['nor','Nórdicos','IS NO SE FI DK EE LV LT'],['oes','Oeste','PT ES AD FR MC GB IE BE NL LU'],['cen','Centro','DE CH LI AT PL CZ SK HU'],
+  ['sur','Mediterráneo','IT SM VA MT GR CY TR'],['bal','Balcanes','SI HR BA RS ME XK AL MK BG'],['est','Este','RO MD UA BY RU']].map(([id,n,l])=>({id,n,ids:l.split(' ')}));
+const EU_PART_NAME=Object.assign(Object.fromEntries(EU_PARTS.map(p=>[p.id,p.n])),{fin:'Último tercio'});
+const EU_CODE=Object.fromEntries(Object.entries(EU_TYPE).map(([k,v])=>[v,k]));
+const EU_PART_OF=Object.fromEntries(EU_PARTS.flatMap(p=>p.ids.map(k=>[k,p.id])));
+const euKey=()=>cfg.eorder==='group'?'group.'+cfg.epart:cfg.eorder;
+const euOrder=()=>{try{const o=store.get('mapeo.sr',{})?.sporcle?.pb?.order;if(Array.isArray(o)&&o.length===47&&o.every(k=>EU_TYPE[k]))return o}catch(e){}return EU_ROUTE};
 function euWords(){
-  let order=EU_ROUTE;try{const o=store.get('mapeo.sr',{})?.sporcle?.pb?.order;if(Array.isArray(o)&&o.length===47&&o.every(k=>EU_TYPE[k]))order=o}catch(e){}
+  let order=euOrder();
+  if(cfg.eorder==='group'){
+    // a group in the order your route takes it, three laps (the last third, two) so the transitions get drilled too
+    const ids=cfg.epart==='fin'?order.slice(32):order.filter(k=>EU_PART_OF[k]===cfg.epart),laps=cfg.epart==='fin'?2:3;
+    return Array.from({length:laps},()=>ids).flat().map(k=>EU_TYPE[k]);
+  }
   if(cfg.eorder==='slow'){const sl=euSlow().slice(0,10).map(x=>x[0]);if(sl.length>=5){const out=[];let pool=[...sl,...sl,...sl];
       while(pool.length){const c=pool.filter(w=>w!==out[out.length-1]);const w=(c.length?c:pool)[Math.random()*(c.length?c.length:pool.length)|0];out.push(w);pool.splice(pool.indexOf(w),1)}return out}}
   if(cfg.eorder==='random'){order=[...order];for(let i=order.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[order[i],order[j]]=[order[j],order[i]]}}
@@ -794,6 +820,25 @@ $('#copy').onclick=async e=>{
 
 /* ---------- results ---------- */
 // Europa: speed of every country in this run, the historic average, and a way to drill the slowest ones
+// Full runs: ppm in each third and in each group, how many seconds the last third cost against the pace of the first two,
+// and the same thirds averaged over your recent runs so a pattern (fading at the end) shows up
+function euSplits(){
+  const n=S.words.length;if(n!==47||(cfg.eorder!=='route'&&cfg.eorder!=='random'))return '';
+  const sp=noSpace()?0:1,seg=(a,b)=>{let t=0,c=0;for(let i=a;i<b;i++){t+=(S.wt[i]-(i?S.wt[i-1]:S.t0))/1000;c+=S.words[i].length+(i?sp:0)}return {t,c,ppm:c/5/(t/60)}};
+  const th=[seg(0,16),seg(16,32),seg(32,47)];if(th.some(x=>!(x.t>0)))return '';
+  const rate=(th[0].c+th[1].c)/(th[0].t+th[1].t),lost=th[2].t-th[2].c/rate;
+  const hk='tecleo.eu.thirds'+euSuf(),h=store.get(hk,[]);h.push(th.map(x=>Math.round(x.ppm)));while(h.length>20)h.shift();store.set(hk,h);
+  const avg=h.length>1?[0,1,2].map(j=>Math.round(h.reduce((a,r)=>a+r[j],0)/h.length)):null;
+  const g={};for(let i=0;i<n;i++){const k=EU_PART_OF[EU_CODE[S.words[i]]];if(!k)continue;const dt=(S.wt[i]-(i?S.wt[i-1]:S.t0))/1000;
+    (g[k]=g[k]||{t:0,c:0}).t+=dt;g[k].c+=S.words[i].length+(i?sp:0)}
+  const parts=EU_PARTS.filter(p=>g[p.id]&&g[p.id].t>0).map(p=>({...p,ppm:g[p.id].c/5/(g[p.id].t/60),t:g[p.id].t})).sort((a,b)=>a.ppm-b.ppm);
+  const fmtLost=lost>.05?`<b class="eu-bad">${lost.toFixed(2)} s perdidos</b> respecto al ritmo de los dos primeros`:'sin pérdida: mantienes el ritmo hasta el final';
+  return `<div class="eu-h"><span class="stat-l">ppm por tercio de la ruta</span></div>
+    <div class="eu-thirds">${th.map((x,j)=>`<div><span class="stat-l">${['países 1–16','17–32','33–47'][j]}</span><b${j===2&&lost>.05?' class="eu-bad"':''}>${Math.round(x.ppm)}</b><small>${x.t.toFixed(2)} s</small></div>`).join('')}
+      <div class="eu-lost"><span class="stat-l">último tercio</span><p>${fmtLost}.</p>${avg?`<p class="eu-x">media de tus últimos ${h.length}: ${avg.join(' · ')} ppm</p>`:''}</div></div>
+    <div class="eu-h"><span class="stat-l">ppm por grupo · de más lento a más rápido</span></div>
+    <div class="eu-parts">${parts.map((p,i)=>`<button type="button" class="eu-part${i===0?' slow':''}" data-part="${p.id}" title="Practicar este grupo"><span>${p.n}</span><b>${Math.round(p.ppm)}</b><small>${p.t.toFixed(2)} s · practicar →</small></button>`).join('')}</div>`;
+}
 function euReport(){
   const box=$('#r-eu');box.hidden=cfg.mode!=='europe';if(box.hidden)return;
   const n=S.words.length;if(S.wt[n-1]==null)S.wt[n-1]=performance.now();
@@ -806,11 +851,12 @@ function euReport(){
   const seen=new Set(),uniq=rows.filter(r=>!seen.has(r.w)&&seen.add(r.w)).sort((a,b)=>a.wpm-b.wpm);
   const avg=w=>{const v=st[w];return v&&v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null};
   const max=Math.max(...uniq.map(r=>r.wpm),1);
-  box.innerHTML=`<div class="eu-h"><span class="stat-l">ppm por país · de más lento a más rápido</span>
+  box.innerHTML=euSplits()+`<div class="eu-h"><span class="stat-l">ppm por país · de más lento a más rápido</span>
       <button class="btn alt sm" id="eu-drill" type="button">Practicar mis 10 más lentos</button></div>
     <div class="eu-list">${uniq.map(r=>`<div class="eu-row${r.ok?'':' bad'}"><span class="eu-w">${r.w}</span><span class="eu-bar"><i style="width:${(100*r.wpm/max).toFixed(1)}%"></i></span>
       <b>${Math.round(r.wpm)}</b><span class="eu-x">${[r.err?r.err+(r.err===1?' error':' errores'):'',avg(r.w)!=null?'media '+avg(r.w):''].filter(Boolean).join(' · ')}</span></div>`).join('')}</div>`;
   $('#eu-drill').onclick=()=>{cfg.eorder='slow';save();syncUI();reset();focusInput()};
+  box.querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>{cfg.eorder='group';cfg.epart=b.dataset.part;save();syncUI();reset();focusInput()});
 }
 function finish(){
   euTry('finished');
@@ -842,9 +888,9 @@ function finish(){
   setProg(1);countUp($('#r-wpm'),Math.round(wpm));$('#r-acc').textContent=Math.round(acc)+'%';
   $('#r-raw').textContent=Math.round(raw);$('#r-cons').textContent=Math.round(cons)+'%';
   $('#r-chars').textContent=`${cor}/${inc}/${ext}/${mis}`;if(cfg.mode==='europe'&&cfg.eorder==='slow')$('#r-time').textContent=dur.toFixed(2)+' s';
-  else if(cfg.mode==='europe'){const bk='tecleo.eubest.'+cfg.eorder+euSuf(),b=store.get(bk,null),best=b==null?dur:Math.min(b,dur);store.set(bk,+best.toFixed(2));$('#r-time').innerHTML=`${dur.toFixed(2)} s<small>${b!=null&&dur<b?'¡mejor tiempo!':'mejor '+best.toFixed(2)+' s'}</small>`}
+  else if(cfg.mode==='europe'){const bk='tecleo.eubest.'+euKey()+euSuf(),b=store.get(bk,null),best=b==null?dur:Math.min(b,dur);store.set(bk,+best.toFixed(2));$('#r-time').innerHTML=`${dur.toFixed(2)} s<small>${b!=null&&dur<b?'¡mejor tiempo!':'mejor '+best.toFixed(2)+' s'}</small>`}
   else $('#r-time').textContent=(Math.round(dur*10)/10)+' s';
-  $('#r-mode').textContent=cfg.mode==='europe'?'europa · '+({route:'mi ruta',random:'al azar',slow:'mis lentos'}[cfg.eorder])+(noSpace()?' · sin espacios':''):cfg.mode==='quote'?'cita':(cfg.mode==='time'?`tiempo ${cfg.time}`:`palabras ${cfg.count}`)+' · '+cfg.lang;
+  $('#r-mode').textContent=cfg.mode==='europe'?'europa · '+(cfg.eorder==='group'?'grupo '+(EU_PART_NAME[cfg.epart]||'').toLowerCase():{route:'mi ruta',random:'al azar',slow:'mis lentos'}[cfg.eorder])+(noSpace()?' · sin espacios':''):cfg.mode==='quote'?'cita':(cfg.mode==='time'?`tiempo ${cfg.time}`:`palabras ${cfg.count}`)+' · '+cfg.lang;
   const rq=$('#r-quote');rq.hidden=!S.quote;if(S.quote){rq.textContent=S.quote[0];const c=document.createElement('cite');c.textContent=S.quote[1]+(S.quote[2]?' · '+S.quote[2]:'');rq.append(c)}
   const key=pbKey(),pb=store.get(key,0);
   const el=$('#r-pb');el.innerHTML='';
